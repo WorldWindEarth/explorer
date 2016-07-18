@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.web.clientproject</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/clientside-project/1">
+            <name>World Wind Explorer</name>
+        </data>
+        <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1"/>
+        <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
+            <word>bruce</word>
+            <word>Dropdown</word>
+            <word>Emxsys</word>
+            <word>Firefox</word>
+            <word>http</word>
+            <word>JavaScript</word>
+            <word>keydown</word>
+            <word>LayerProxy</word>
+            <word>layerSelectHandler</word>
+            <word>layerTemplate</word>
+            <word>ojListView</word>
+            <word>ojModule</word>
+            <word>RequireJS</word>
+            <word>Sidebar</word>
+            <word>Toolbar</word>
+            <word>ViewModel</word>
+            <word>viewName</word>
+            <word>wildland</word>
+            <word>WorldWindow</word>
+        </spellchecker-wordlist>
+    </configuration>
+</project>

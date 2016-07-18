@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<!--
+ The MIT License
+ Copyright (c) 2016 Bruce Schubert.
+-->
+<!--suppress XmlHighlighting, HtmlUnknownTag, HtmlUnknownTag, HtmlUnknownTag, HtmlUnknownTag, HtmlUnknownTag -->
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+        <!-- Bootstrap: The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+        <title>World Wind Explorer</title>
+
+        <meta name="description" content="World Wind Explorer">
+        <meta name="author" content="Bruce Schubert">
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="css/images/nasa-logo_32.png"/>
+
+        <!-- JQuery UI provides some UI elements (e.g, a slider) -->
+        <link rel="stylesheet" type="text/css" href="css/libs/jquery-ui/v1.11.4/jquery-ui.min.css"/>
+        <!-- Bootstrap's 'Slate' theme provides the main styling -->
+        <link rel="stylesheet" type="text/css" href="css/libs/bootstrap/v3.3.6/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="css/libs/bootstrap/v3.3.6/bootstrap-slate.min.css"/>
+        <!-- JQuery-Growl plugin for growl style messages-->
+        <link rel="stylesheet" type="text/css" href="css/libs/jquery-plugins/jquery.growl.css"/>
+        <!-- Font Awesome provides icons -->
+        <link rel="stylesheet" type="text/css" href="css/libs/fa/v4.6.2/font-awesome.min.css"/>
+        <!-- Custom application specific styling -->
+        <link rel="stylesheet" type="text/css" href="css/override.css"/>
+
+    </head>
+    <body>
+        <!--
+        Main Menu NavBar
+        -->
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <!-- Branding and 'hamburger' menu -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar"
+                            aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="http://webworldwind.org" target="_blank">World Wind Explorer</a>
+                </div>
+                <!-- Navigation links, Projections and Search Box -->
+                <div class="collapse navbar-collapse" id="main-navbar">
+                    <ul class="nav navbar-nav">
+                        <!-- Home -->
+                        <li class="active">
+                            <a href="#home" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-home visible-sm-block" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Home</span>
+                            </a>
+                        </li>
+                        <!-- Layers -->
+                        <li>
+                            <a href="#layers" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-list visible-sm-block" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Layers</span>
+                            </a>
+                        </li>
+                        <!-- Markers -->
+                        <li>
+                            <a href="#markers" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-map-marker visible-sm-block" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Markers</span>
+                            </a>
+                        </li>
+                        <!-- Search Box -->
+                        <form id="search" class="navbar-form navbar-left" role="search">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Destination" id="searchText"
+                                       data-bind="value: searchText, valueUpdate: 'keyup', event: {keypress: onEnter}"/>
+                            </div>
+                            <button id="searchButton" class="btn btn-primary" type="submit"
+                                    data-bind="click: $root.performSearch">Go To
+                            </button>
+                        </form>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <!-- Projections dropdown -->
+                        <li id="projections" class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                               aria-expanded="false"><span data-bind="text: currentProjection"></span> <span
+                                    class="caret"></span></a>
+                            <!-- Bind the list to the 'projections' observableArray -->
+                            <ul id="projections-menu" class="dropdown-menu" data-bind="foreach: $root.projections">
+                                <li data-bind="click: $root.changeProjection">
+                                    <a><span data-bind="text: $data"></span></a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.navbar-collapse -->
+            </div>
+            <!-- /.container-fluid -->
+        </nav>
+
+        <!--
+        Content
+        -->
+        <div class="container-fluid">
+            <div class="row">
+                <!--
+                Left Sidebar
+                -->
+                <div id="left-sidebar" class="col-sm-4 col-md-3 sidebar-left tab-content">
+                    <!--
+                    Home tab
+                    -->
+                    <div id="home" class="tab-pane active" role="tabpanel">
+                        <div class="section-heading">
+                            <h4 class="sub-header">
+                                <span class="glyphicon glyphicon-home" aria-hidden="true" style="padding-right:5px;"></span>
+                                Home
+                                <a class="section-toggle" data-toggle="collapse" href="#home-body"></a>
+                            </h4>
+                        </div>
+                        <div id="home-body" class="section-body collapse in">
+                            <p>This is an application framework build with Bootstrap and KnockoutJS</p>
+                        </div>
+                    </div>
+
+                    <!--
+                    Layers View (bound to LayersViewModel)
+                    -->
+                    <div id="layers" class="tab-pane" role="tabpanel">
+                        <div class="section-heading">
+                            <h4 class="sub-header">
+                                <span class="glyphicon glyphicon-list" aria-hidden="true" style="padding-right:5px;"></span>
+                                Layers
+                                <a class="section-toggle" data-toggle="collapse" href="#layers-body">
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="layers-body" class="section-body collapse in">
+                            <h5>Base Maps</h5>
+                            <div data-bind="template: { name: 'layer-template', foreach: baseLayers}"></div>
+                            <h5>Overlays</h5>
+                            <div data-bind="template: { name: 'layer-template', foreach: overlayLayers}"></div>
+                            <h5>Data</h5>
+                            <div data-bind="template: { name: 'layer-template', foreach: dataLayers}"></div>
+                            <h5>Effects</h5>
+                            <div data-bind="template: { name: 'layer-template', foreach: effectsLayers}"></div>
+                            <h5>Widgets</h5>
+                            <div data-bind="template: { name: 'layer-template', foreach: widgetLayers}"></div>
+                        </div>
+
+
+                    </div>
+
+                    <!--
+                    Markers View (bound to MarkersViewModel)
+                    -->
+                    <div id="markers" class="tab-pane" role="tabpanel">
+                        <div class="section-heading">
+                            <h4 class="sub-header">
+                                <span class="glyphicon glyphicon-map-marker" aria-hidden="true"
+                                      style="padding-right:5px;"></span>
+                                Markers
+                                <a class="section-toggle" data-toggle="collapse" href="#markers-body"></a>
+                            </h4>
+                        </div>
+                        <div id="markers-body" class="section-body collapse in">
+                            <!-- Bind the list to the 'markers' observableArray -->
+                            <div data-bind="template: { name: 'marker-template', foreach: markers}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--
+                Main Content
+                -->
+                <div id="globe" class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main"
+                     style="height: calc(100vh - 100px);">
+                    <div class="row" style="height: 100%;">
+                        
+                        <!--
+                        Globe Panel
+                        -->
+                        <div class="col-md-12" style="height: 100%;">
+                            <div class="section-heading" style="width: 100%">
+                                <h4 class="sub-header">
+                                    <span class="glyphicon glyphicon-globe" aria-hidden="true"
+                                          style="padding-right:5px;"></span>
+                                    Globe
+                                    <!-- Add Marker button and palette -->
+                                    <div class="btn-group" style="float: right">
+                                        <button type="button"
+                                                class="btn btn-primary btn-sm"
+                                                style="padding-top: 0; padding-bottom: 0;"
+                                                data-bind="click: armDropMarker">
+                                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                            <img width="28px" height="28px;"
+                                                 data-bind="attr:{src: selectedMarkerTemplate().imageSource}"/>
+                                        </button>
+                                        <!--Dropdown button-->
+                                        <button type="button"
+                                                class="btn btn-primary btn-sm dropdown-toggle"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                            <span class="caret"></span>
+                                            <span class="sr-only">Markers Dropdown</span>
+                                        </button>
+                                        <!-- Dropdown list bound the 'markerPalette' observableArray -->
+                                        <ul id="marker-palette"
+                                            class="dropdown-menu"
+                                            style="left: initial; right: 0; min-width: 30px"
+                                            data-bind="foreach: markerPalette">
+                                            <li data-bind="click: $parent.selectedMarkerTemplate">
+                                                <a><img width="28px" height="28px;" data-bind="attr:{src: $data.imageSource}"/></a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </h4>
+                            </div>
+                            <!------------------------->
+                            <!-- NASA Web World Wind -->
+                            <!------------------------->
+                            <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
+                            <canvas id="canvasOne" tabindex='1'
+                                    style="width: 100%; height: 100%; background-color: rgb(0,0,0); border:1px solid #000000;"
+                                    data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
+                                Try Chrome or FireFox.
+                            </canvas>
+                            <div class="row">
+                                <div class="col-xs-12 non-interactive" style="position:absolute; top: 35px; bottom: 0">
+                                    <!--
+                                    Time Controls
+                                    -->
+                                    <!--Create a shallow div along the bottom edge of the globe-->
+                                    <div class="interactive" style="position: absolute; bottom: 0; width: 100%" >
+                                        <!--Date/Time Buttons-->
+                                        <!--style="width: 166px; margin-right: auto; margin-left: auto"-->
+                                        <div id="timeControlButtons" style="width: 166px; margin-right: auto; margin-left: auto">
+                                            <div class="btn-group btn-group-sm interactive" role="group" style="float:bottom" aria-label="time controls">
+                                                <button id="time-fast-back" type="button" class="btn btn-default repeatButton"
+                                                        data-bind="click: onTimeFastBackward">
+                                                    <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-step-back" type="button" class="btn btn-default repeatButton"
+                                                        data-bind="click: onTimeStepBackward">
+                                                    <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-reset" type="button" class="btn btn-default"
+                                                        data-bind="click: onTimeReset">
+                                                    <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-step-forward" type="button" class="btn btn-default repeatButton"
+                                                        data-bind="click: onTimeStepForward">
+                                                    <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-fast-forward" type="button" class="btn btn-default repeatButton"
+                                                        data-bind="click: onTimeFastForward">
+                                                    <span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span>
+                                                </button>
+                                            </div>               
+                                        </div>
+                                        <!--Date/Time Slider-->
+                                        <div id="timeControlSlider" style="width: 166px; margin-right: auto; margin-left: auto"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--
+        Layer Template
+        This script renders the individual layer view model items in the Layers panel.
+        -->
+        <script type="text/html" id="layer-template">
+            <div class="btn-group btn-block">
+                <!--Layer name and visibility button-->
+                <button type="button" 
+                        class="btn btn-default layer-name wrap-panel-heading"
+                        style="display: block; width: 70%"
+                        data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
+                    <span class="glyphicon pull-left" data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
+                    <span class="layer" data-bind="text: $data.name()"></span>
+                </button>
+                <!--Display legend button-->
+                <button type="button" 
+                        class="btn btn-default collapse"
+                        style="display: block;"
+                        data-toggle="collapse"
+                        data-bind="css: {active: $data.enabled(), in: $data.enabled()}, 
+                            attr: {
+                        'data-target': '#collapse-layer-' + $data.id(),
+                        'aria-controls': 'collapse-layer-' + $data.id(),
+                        'aria-expanded': $data.enabled() ? 'true' : 'false'}">
+                    <span class="glyphicon glyphicon-stats"></span>
+                </button>
+                <!--Settings button-->
+                <button type="button" 
+                        class="btn btn-default"
+                        style="display: block;"
+                        data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
+                    <span class="glyphicon glyphicon-cog"></span>
+                </button>
+            </div>
+            <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
+                <div class="well">
+                    <!--Controls and Legend-->
+                    <div>
+                        <img data-bind="attr: {src: legendUrl}"/>
+                    </div>
+                </div>
+            </div>
+
+        </script>
+
+        <!--
+        Marker Template 
+        This script renders the individual marker view model items in the Markers panel.
+        -->
+        <script type="text/html" id="marker-template">
+            <div class="btn-group btn-block">
+                <button type="button" class="btn btn-default" 
+                        style="display: block; width: 70%"
+                        data-bind="click: $root.gotoMarker">
+                    <span class="pull-left"><img width="16px" height="16px"
+                               data-bind="attr:{src: $data.placemark.attributes.imageSource}"/>  </span>
+                    <span data-bind="text: $data.name"></span>
+                </button>
+                <!-- Edit Button -->
+                <button type="button" class="btn btn-default glyphicon glyphicon-pencil"
+                        data-bind="click: $parent.editMarker"></button>
+                <!-- Delete Button -->
+                <button type="button" class="btn btn-default glyphicon glyphicon-trash"
+                        data-bind="click: $parent.removeMarker"></button>
+            </div>
+        </script>
+
+        <!-- 
+        Layer Settings Dialog 
+        -->
+        <div style="display: none">
+            <div id="layer-settings-dialog">
+                Opacity
+                <div id="opacity-slider" auto-focus></div>
+            </div>
+        </div>
+
+
+        <!-- 
+        Marker Editor Dialog 
+        -->
+        <div style="display: none">
+            <div id="marker-editor">
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all"
+                       data-bind="value: marker().name">
+            </div>
+        </div>
+
+
+        <!-- RequireJS AMD configuration file -->
+        <script data-main="js/main" src="js/libs/require/require-debug.js"></script>
+
+    </body>
+</html>

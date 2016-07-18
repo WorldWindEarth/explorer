@@ -1,0 +1,160 @@
+/*
+Copyright (c) 2016, Bruce Schubert.
+The Modified BSD License (3-clause license)
+*/
+body {
+    padding-top: 50px;
+    /* Move the content down because we have a fixed navbar that is 50px tall */
+}
+
+@media (min-width: 768px) {
+    .sidebar-left {
+        position: fixed;
+        top: 51px;
+        bottom: 0;
+        left: 0;
+        z-index: 1000;
+        display: block;
+        padding-top: 0px;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-bottom: 20px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        border-right: 1px solid #eee;
+    }
+}
+
+@media (max-width: 767px) {
+    .section-heading .section-toggle:after {
+        font-family: 'Glyphicons Halflings';
+        content: "\e114";
+        float: none;
+        color: lightgrey;
+        /* symbol for opening sections */
+    }
+
+    .section-heading .section-toggle.collapsed:after {
+        content: "\e080";
+        /* symbol for closing sections */
+    }
+
+    a.section-toggle {
+        text-decoration: none;
+    }
+}
+
+@media (min-width: 768px) {
+    .section-heading .section-toggle:after {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+.container-full {
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    min-height:100%;
+}
+
+
+/* Controls the style of enabled and disabled layers */
+.layer-name {
+    font-style: italic;
+    font-weight: lighter;
+}
+
+.layer-name.active {
+    font-style: normal;
+    font-weight: normal;
+}
+
+.main {
+    padding: 0px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+}
+
+.non-interactive { 
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    pointer-events: none;
+}
+
+.interactive {
+    -webkit-touch-callout: auto !important;
+    -webkit-user-select: auto !important;
+    -khtml-user-select: auto !important;
+    -moz-user-select: auto !important;
+    -ms-user-select: auto !important;
+    -o-user-select: auto !important;
+    pointer-events: auto !important;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    /* -webkit-user-select: none; */
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.section-heading {
+}
+
+.sub-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: default;
+    -webkit-user-select: none; /* Chrome all / Safari all */
+    -moz-user-select: none; /* Firefox all */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Likely future */
+}
+
+/*Ensure JQuery UI dialogs are above other ui elements*/
+.ui-dialog { z-index: 1000 !important ;}
+
+.wrap-panel-heading {
+    white-space: normal;
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
+}
+
+
+#canvas-wrap canvas { 
+    position: relative;
+    top: 0;
+    left: 0; 
+    z-index: 0 !important; 
+    width: 100%; 
+    height: 100%;
+    padding-left: 0;
+    padding-right: 0
+}
+
+
+#timeControlButtons {
+    position: absolute;  /*sets it's position relative to the document instead of the container. Allows the bottom property to be used to force the element to the bottom of the view.  */
+    bottom: 35px;   
+    left: calc(50% - 98px); 
+}
+
+#timeControlSlider {
+    position: absolute;  /*sets it's position relative to the document instead of the container. Allows the bottom property to be used to force the element to the bottom of the view.  */
+    bottom: 20px;   
+    left: calc(50% - 98px);
+}
+
+#timeControlSlider .ui-slider-handle {
+    background:#3e444c;
+    top:3px;
+}
+
