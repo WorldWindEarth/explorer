@@ -19,12 +19,14 @@
  * @author Bruce Schubert
  */
 define(['jquery',
+        'knockout',
         'model/Constants',
         'model/util/Log',
         'model/globe/MarkerManager',
         'model/util/Settings',
         'worldwind'],
     function ($,
+              ko,
               constants,
               log,
               MarkerManager,
@@ -66,8 +68,11 @@ define(['jquery',
                 });
 
                 // Setup an interval to update the current time
+                this.autoUpdateTimeEnabled = ko.observable(true);
                 this.dateTimeInterval = window.setInterval(function () {
-                    self.globe.updateDateTime(new Date());
+                    if (self.autoUpdateTimeEnabled()) {
+                        self.globe.updateDateTime(new Date());
+                    }
                 }, 30000);  // Update every 30 seconds
 
                 // Setup to track the cursor position relative to the World Window's canvas. Listen to touch events in order

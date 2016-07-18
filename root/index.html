@@ -245,24 +245,20 @@
                                         <!--style="width: 166px; margin-right: auto; margin-left: auto"-->
                                         <div id="timeControlButtons" style="width: 166px; margin-right: auto; margin-left: auto">
                                             <div class="btn-group btn-group-sm interactive" role="group" style="float:bottom" aria-label="time controls">
-                                                <button id="time-fast-back" type="button" class="btn btn-default repeatButton"
-                                                        data-bind="click: onTimeFastBackward">
+                                                <button id="time-fast-backward" type="button" class="btn btn-default repeatButton">
                                                     <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span>
                                                 </button>
-                                                <button id="time-step-back" type="button" class="btn btn-default repeatButton"
-                                                        data-bind="click: onTimeStepBackward">
+                                                <button id="time-step-backward" type="button" class="btn btn-default repeatButton">
                                                     <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span>
                                                 </button>
                                                 <button id="time-reset" type="button" class="btn btn-default"
-                                                        data-bind="click: onTimeReset">
+                                                        data-bind="click: onTimeReset, css:{active: autoUpdateTime}">
                                                     <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
                                                 </button>
-                                                <button id="time-step-forward" type="button" class="btn btn-default repeatButton"
-                                                        data-bind="click: onTimeStepForward">
+                                                <button id="time-step-forward" type="button" class="btn btn-default repeatButton">
                                                     <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
                                                 </button>
-                                                <button id="time-fast-forward" type="button" class="btn btn-default repeatButton"
-                                                        data-bind="click: onTimeFastForward">
+                                                <button id="time-fast-forward" type="button" class="btn btn-default repeatButton">
                                                     <span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span>
                                                 </button>
                                             </div>               
