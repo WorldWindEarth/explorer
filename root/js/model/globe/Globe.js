@@ -151,7 +151,7 @@ define(['knockout',
                 if (showBackground || showBackground === undefined) {
                     //this.layerManager.addBackgroundLayer(new SkyBackgroundLayer(this.wwd));
                     //this.layerManager.addBackgroundLayer(new WorldWind.ShowTessellationLayer());
-                    this.layerManager.addOverlayLayer(new TimeZoneLayer(), {enabled: true, pickEnabled: true, opacity: 0.2});
+                    this.layerManager.addOverlayLayer(new TimeZoneLayer(), {enabled: false, pickEnabled: false, opacity: 0.2});
                     this.layerManager.addEffectLayer(new EnhancedAtmosphereLayer(this));
                 }
                 // Adjust the level of detail based on screen properties
