@@ -17,7 +17,7 @@ requirejs.config({
         'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
-        'worldwind': 'libs/emxsys/worldwindlib',
+        'worldwind': 'libs/webworldwind/worldwindlib',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
