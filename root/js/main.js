@@ -41,6 +41,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'views/LayersViewModel',
     'views/MarkerEditor',
     'views/MarkersViewModel',
+    'views/OutputViewModel',
     'views/ProjectionsViewModel',
     'views/SearchViewModel',
     'model/globe/layers/UsgsContoursLayer',
@@ -55,6 +56,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
                 LayersViewModel,
                 MarkerEditor,
                 MarkersViewModel,
+                OuputViewModel,
                 ProjectionsViewModel,
                 SearchViewModel,
                 UsgsContoursLayer,
@@ -109,6 +111,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             ko.applyBindings(new LayersViewModel(globe), document.getElementById('layers'));
             ko.applyBindings(new MarkersViewModel(globe, explorer.markerManager), document.getElementById('markers'));
             ko.applyBindings(new MarkerEditor(), document.getElementById('marker-editor'));
+            ko.applyBindings(new OuputViewModel(), document.getElementById('output'));
 
             // -----------------------------------------------------------
             // Add handlers to auto-expand/collapse the menus
