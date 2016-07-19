@@ -7,6 +7,5 @@ An HTML5/JavaScript geo-browser built from the NASA WebWorldWind SDK using the K
 
 ### Important Links
 - Live Demo: http://explorer.worldwind.earth
-- Project Website: https://emxsys.github.io/WorldWindExplorer
 - NASA Web World Wind SDK: https://github.com/NASAWorldWind/WebWorldWind
 
