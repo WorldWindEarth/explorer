@@ -149,7 +149,6 @@ define(['knockout', 'jquery', 'jqueryui',
             });
 
 
-
             self.onTimeReset = function () {
                 explorer.autoUpdateTimeEnabled(true);   // reset enables the auto time adjustment
                 globe.updateDateTime(new Date());
@@ -166,7 +165,7 @@ define(['knockout', 'jquery', 'jqueryui',
             // single click and repeat clicks.
             var intervalId = -1;
             $(".repeatButton").mousedown(function (event) {
-                switch(event.currentTarget.id) {
+                switch (event.currentTarget.id) {
                     case "time-step-forward":
                         self.intervalMinutes = 60;
                         break;
@@ -182,9 +181,10 @@ define(['knockout', 'jquery', 'jqueryui',
                 }
                 self.changeDateTime();
                 // Start a repeating interval that changes the time.
-                if (intervalId === -1) {    // prevent duplicates
-                    intervalId = setInterval(self.changeDateTime, 200);
+                if (intervalId !== -1) {    // prevent duplicates
+                    clearInterval(intervalId);
                 }
+                intervalId = setInterval(self.changeDateTime, 200);
             }).mouseup(function () {
                 clearInterval(intervalId);
                 intervalId = -1;
@@ -192,8 +192,8 @@ define(['knockout', 'jquery', 'jqueryui',
 
             $('#timeControlSlider').slider({
                 animate: 'fast',
-                min: -100,
-                max: 100,
+                min: -60,
+                max: 60,
                 orientation: 'horizontal',
                 stop: function () {
                     $("#timeControlSlider").slider("value", "0");
@@ -203,7 +203,15 @@ define(['knockout', 'jquery', 'jqueryui',
             this.onSlide = function (event, ui) {
                 //console.log("onSlide: " + ui.value);
                 explorer.autoUpdateTimeEnabled(false);  // stop the auto time adjustment whenever we manually set the time
-                globe.incrementDateTime(self.sliderValueToMinutes(ui.value));
+                globe.incrementDateTime(ui.value);
+                //globe.incrementDateTime(self.sliderValueToMinutes(ui.value));
+                globe.updateDateTime(self.sliderValueToTime(ui.value));
+            };
+            self.sliderValueToTime = function (value) {
+                var time = globe.dateTime(),
+                    minutes = time.getMinutes();
+                time.setTime(time.getTime() + (value * 60000));
+                return time;
             };
             self.sliderValueToMinutes = function (value) {
                 var val, factor = 50;
