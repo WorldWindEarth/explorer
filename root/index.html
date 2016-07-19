@@ -156,8 +156,27 @@
                             <h5>Widgets</h5>
                             <div data-bind="template: { name: 'layer-template', foreach: widgetLayers}"></div>
                         </div>
-
-
+                        <div>
+                            <button type="button"
+                                    class="btn btn-primary btn-sm"
+                                    data-bind="click: onAddLayer">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                Add Layer
+                            </button>        
+                        </div>
+                        <!-- 
+                        Add Layer Dialog 
+                        -->
+                        <div style="display: none">
+                            <div id="add-layer-dialog">
+                                Layer Type:
+                                <select data-bind="options: optionValues, value: selectedOptionValue"></select>
+                                <div>
+                                    Server Address:
+                                    <input style="display: block"/>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!--
@@ -185,7 +204,7 @@
                 <div id="globe" class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main"
                      style="height: calc(100vh - 100px);">
                     <div class="row" style="height: 100%;">
-                        
+
                         <!--
                         Globe Panel
                         -->
@@ -195,8 +214,9 @@
                                     <span class="glyphicon glyphicon-globe" aria-hidden="true"
                                           style="padding-right:5px;"></span>
                                     Globe
-                                    <!-- Add Marker button and palette -->
-                                    <div class="btn-group" style="float: right">
+                                    <!-- Tool bar -->
+                                    <span class="btn-group" style="float: right">
+                                        <!-- Add Marker button and palette -->
                                         <button type="button"
                                                 class="btn btn-primary btn-sm"
                                                 style="padding-top: 0; padding-bottom: 0;"
@@ -209,7 +229,7 @@
                                         <button type="button"
                                                 class="btn btn-primary btn-sm dropdown-toggle"
                                                 data-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false">
+                                                aria-haspopup="true">
                                             <span class="caret"></span>
                                             <span class="sr-only">Markers Dropdown</span>
                                         </button>
@@ -222,12 +242,12 @@
                                                 <a><img width="28px" height="28px;" data-bind="attr:{src: $data.imageSource}"/></a>
                                             </li>
                                         </ul>
-                                    </div>
+                                    </span>
                                 </h4>
                             </div>
-                            <!------------------------->
-                            <!-- NASA Web World Wind -->
-                            <!------------------------->
+                            <!-- ------------------ -->
+                            <!-- WorldWindow Canvas -->
+                            <!-- ------------------ -->
                             <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
                             <canvas id="canvasOne" tabindex='1'
                                     style="width: 100%; height: 100%; background-color: rgb(0,0,0); border:1px solid #000000;"
@@ -329,7 +349,7 @@
                         style="display: block; width: 70%"
                         data-bind="click: $root.gotoMarker">
                     <span class="pull-left"><img width="16px" height="16px"
-                               data-bind="attr:{src: $data.placemark.attributes.imageSource}"/>  </span>
+                                                 data-bind="attr:{src: $data.placemark.attributes.imageSource}"/>  </span>
                     <span data-bind="text: $data.name"></span>
                 </button>
                 <!-- Edit Button -->
@@ -350,7 +370,6 @@
                 <div id="opacity-slider" auto-focus></div>
             </div>
         </div>
-
 
         <!-- 
         Marker Editor Dialog 
