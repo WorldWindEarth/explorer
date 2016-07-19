@@ -9,7 +9,7 @@
  *
  * @param {type} ko
  * @param {type} $
- * @returns {ProjectionsViewModel}
+ * @returns {LayersViewModel}
  */
 define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
         function (ko, $) {
