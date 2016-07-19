@@ -47,7 +47,7 @@ Main Menu NavBar
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="https://github.com/emxsys/WorldWindExplorer" target="_blank">World Wind
+            <a class="navbar-brand" href="https://github.com/NASAWorldWindResearch/WorldWindExplorer" target="_blank">World Wind
                 Explorer</a>
         </div>
         <!-- Navigation links, Projections and Search Box -->
@@ -332,6 +332,28 @@ Main Content
 </div>
 
 <!--
+Layer Settings Dialog
+-->
+<div style="display: none">
+    <div id="layer-settings-dialog">
+        Opacity
+        <div id="opacity-slider" auto-focus></div>
+    </div>
+</div>
+
+<!--
+Marker Editor Dialog
+-->
+<div style="display: none">
+    <div id="marker-editor">
+        <label for="name">Name</label>
+        <input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all"
+               data-bind="value: marker().name">
+    </div>
+</div>
+
+
+<!--
 Layer Template
 This script renders the individual layer view model items in the Layers panel.
 -->
@@ -399,26 +421,63 @@ This script renders the individual marker view model items in the Markers panel.
     </div>
 </script>
 
-<!--
-Layer Settings Dialog
--->
-<div style="display: none">
-    <div id="layer-settings-dialog">
-        Opacity
-        <div id="opacity-slider" auto-focus></div>
+
+<!--Display the server address text box and the add server button-->
+<div class="input-group" id="addServerBox">
+    <input id="addServerText" type="text"
+           class="oj-form-control oj-inputtext-nocomp"
+           data-bind="value: serverAddress"
+           placeholder="Add new server URL"/>
+    <button id="addServerButton" data-bind="click: onAddServerClick,
+                    ojComponent: {
+                        component:'ojButton',
+                        display: 'icons',
+                        icons: {start:'fa fa-plus'},
+                        label: 'Add the specified server'}"/>
+</div>
+<div id="serverTabs">
+    <div id="tabs" data-bind="ojComponent:{component: 'ojTabs', edge:'start'}">
+        <!--Display a tab panel for each server-->
+        <ul data-bind="foreach: servers">
+            <li data-bind="text:$data.title">
+            </li>
+        </ul>
+        <!-- ko template: { name: 'serverTemplate', foreach: servers } -->
+        <!-- /ko -->
     </div>
 </div>
 
 <!--
-Marker Editor Dialog
+Server Template
+This server-template script renders a server's tab content
 -->
-<div style="display: none">
-    <div id="marker-editor">
-        <label for="name">Name</label>
-        <input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all"
-               data-bind="value: marker().name">
+<script type="text/html" id="server-template">
+    <div>
+        <!-- ko if: layers().length -->
+        <ul>
+            <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
+            <!-- /ko -->
+        </ul>
+        <!-- /ko -->
     </div>
-</div>
+</script>
+
+<!--
+Server Layer Template
+This server-layer-template script recursively renders a server's layer list items
+-->
+<script type="text/html" id="serverLayerTemplate">
+    <li>
+        <input type="checkbox" data-bind="click: $module.onAddLayerClick, checked: isChecked, visible: isLayer"/>
+        <span data-bind="text: title"></span>
+        <!-- ko if: layers().length -->
+        <ul>
+            <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
+            <!-- /ko -->
+        </ul>
+        <!-- /ko -->
+    </li>
+</script>
 
 
 <!-- RequireJS AMD configuration file -->
