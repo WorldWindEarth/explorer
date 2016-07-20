@@ -24,6 +24,9 @@ define(['worldwind'],
         var EnhancedAtmosphereLayer = function (globe, url) {
             var self = this;
             WorldWind.AtmosphereLayer.call(this, url);
+
+            this.displayName = "Atmosphere & Day/Night";
+
             // Update the light location based on the Globe's current sunlight member
             globe.sunlight.subscribe(function (sunlight) {
                 self.lightLocation = new WorldWind.Position(sunlight.subsolarLatitude, sunlight.subsolarLongitude, 1.5e11); // 1 au: 149,597,870,700 meters
