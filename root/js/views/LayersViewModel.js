@@ -34,6 +34,9 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
                 self.optionValues = ["WMS Layer", "WMTS Layer", "KML file", "Shapefile"];
                 self.selectedOptionValue = ko.observable(self.optionValues[0]);
                 
+                self.serverAddress = ko.observable();
+                self.servers = ko.observableArray();
+                
                 /**
                  * Toggles the selected layer's visibility on/off
                  * @param {Object} layer The selected layer in the layer collection
@@ -84,6 +87,12 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
                     
                     $("#add-layer-dialog").dialog("open");
                 };
+                
+                
+                self.onAddServer  = function() {
+                    window.alert("TODO: Add " + self.serverAddress());
+                    
+                }
 
             }
 
