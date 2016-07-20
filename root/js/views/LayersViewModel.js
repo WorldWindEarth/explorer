@@ -11,8 +11,8 @@
  * @param {type} $
  * @returns {LayersViewModel}
  */
-define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
-        function (ko, $) {
+define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'model/Constants'],
+        function (ko, $, jqueryui, boostrap, constants) {
 
             /**
              * The view model for the Layers panel.
@@ -34,9 +34,12 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
                 self.optionValues = ["WMS Layer", "WMTS Layer", "KML file", "Shapefile"];
                 self.selectedOptionValue = ko.observable(self.optionValues[0]);
                 
-                self.serverAddress = ko.observable();
-                self.servers = ko.observableArray();
-                
+                /**
+                 * An observable array of servers
+                 */
+                this.servers = layerManager.servers;
+                self.serverAddress = ko.observable("http://neowms.sci.gsfc.nasa.gov/wms/wms");
+
                 /**
                  * Toggles the selected layer's visibility on/off
                  * @param {Object} layer The selected layer in the layer collection
@@ -90,10 +93,22 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
                 
                 
                 self.onAddServer  = function() {
-                    window.alert("TODO: Add " + self.serverAddress());
-                    
-                }
+                    layerManager.addServer(self.serverAddress());
+                    return true;
+                };
 
+                /**
+                 * Add the supplied layer from the server's capabilities to the active layers
+                 */
+                this.onServerLayerClicked = function(layerNode, event){
+                    if (!layerNode.isChecked()) {
+                        // TODO: Open dialog to select a layer category
+                        layerManager.addLayerFromCapabilities(layerNode.layerCaps, constants.LAYER_CATEGORY_OVERLAY);
+                    } else {
+                        layerManager.removeLayer(layerNode.layerCaps);
+                    }
+                    return true;
+                };
             }
 
             return LayersViewModel;
