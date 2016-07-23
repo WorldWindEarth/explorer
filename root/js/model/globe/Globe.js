@@ -110,7 +110,8 @@ define(['knockout',
             this.wwd = wwd;
 
             // Observable properties
-            this.timeZoneOffset = ko.observable(0); // default to UTC
+            this.timeZoneOffsetHours = ko.observable(0); // default to UTC
+            this.timeZoneName = ko.observable("UTC"); // default to UTC
             this.dateTime = ko.observable(new Date(0));
             this.viewpoint = ko.observable(Viewpoint.ZERO).extend({rateLimit: 100});
             this.terrainAtMouse = ko.observable(Terrain.ZERO);
@@ -284,7 +285,7 @@ define(['knockout',
         Globe.prototype.updateTimeZoneOffset = function () {
             var canvasCenter = new WorldWind.Vec2(this.wwd.canvas.width / 2, this.wwd.canvas.height / 2),
                 pickList = this.wwd.pick(canvasCenter),
-                i, len, item;
+                i, len, item, rec;
         
             if (pickList.hasNonTerrainObjects()) {
 
@@ -294,7 +295,16 @@ define(['knockout',
                         continue;
                     }
                     if (item instanceof WorldWind.Renderable) {
-                        console.log(item.displayName);
+                        if (item.layer && item.layer instanceof TimeZoneLayer) {
+                            if (item.pickDelegate && item.pickDelegate.values) {
+                                rec = item.pickDelegate;
+                                this.timeZoneName(rec.values.time_zone);
+                                this.timeZoneOffsetHours(rec.values.zone);
+                            } else {
+                                this.timeZoneOffsetHours(parseFloat(item.displayName));
+                            }
+                            break;
+                        }
                     }
                 }
             }
