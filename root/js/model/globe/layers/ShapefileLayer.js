@@ -48,6 +48,7 @@ define(['worldwind'],
                             0.5);
                             
                       // TODO: Establish a pickDelegate from the record.attributes.values
+                    configuration.pickDelegate = attributes;
 
                     return configuration;
                 };
