@@ -144,28 +144,48 @@ define([
             this.sunset.attributes.color = new WorldWind.Color(241 / 255, 90 / 255, 41 / 255, 1);
 
             this.dateTime = null;
+            this.timeZoneOffsetMs = 0;
             this.sunlight = null;
 
-             // Handles date/time changes in Globe
+             // Handles date/time changes in the Globe
             this.handleTimeChanged = function (newDateTime) {
                 self.dateTime = newDateTime;
                 self.updateDateTimeText();
                 globe.redraw();
             };
-            // Handles sunlight changes in Globe
+
+            // Handles sunlight changes in the Globe
             this.handleSunlightChanged = function (newSunlight) {
                 self.sunlight = newSunlight;
                 self.updateSunlightText();
                 globe.redraw();
             };
 
+            // Handles time zone changes in the Globe
+            this.handleTimeZoneChanged = function (newTimeZoneOffset) {
+                self.timeZoneOffsetMs = newTimeZoneOffset * 3600000; // convert from hours to milliseconds
+                self.updateDateTimeText();
+                globe.redraw();
+            };
+
+            this.isDstEnabled = function(date) {
+                var jan = new Date(date.getFullYear(), 0, 1),
+                    jul = new Date(date.getFullYear(), 6, 1),
+                    stdTimeZoneOffset =  Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+
+                    return date.getTimezoneOffset() < stdTimeZoneOffset;
+            };
+
             // Subscribe to Knockout observables in the Globe
             globe.dateTime.subscribe(this.handleTimeChanged);
             globe.sunlight.subscribe(this.handleSunlightChanged);
+            globe.timeZoneOffsetHours.subscribe(this.handleTimeZoneChanged);
 
             // Load Initial values from the Globe observables
             this.handleTimeChanged(globe.dateTime());
             this.handleSunlightChanged(globe.sunlight());
+
+
 
 
         };
@@ -177,11 +197,21 @@ define([
          * Updates the date and time text with formatted strings.
          */
         TimeWidget.prototype.updateDateTimeText = function () {
-            var timeOptions = {hour: "2-digit", minute: "2-digit", timeZoneName: "short", hour12: false},
-                dateOptions = {"month": "2-digit", "day": "2-digit"};
+            //var timeOptions = {hour: "2-digit", minute: "2-digit", timeZoneName: "short", hour12: false},
+            var timeOptions = {hour: "2-digit", minute: "2-digit", hour12: false},
+                dateOptions = {"month": "2-digit", "day": "2-digit"},
+                utc,
+                localTime;
             if (this.dateTime) {
-                this.time.text = this.dateTime.toLocaleTimeString('en', timeOptions);
-                this.date.text = this.dateTime.toLocaleDateString('en', dateOptions);
+                // Convert current time to UTC milliseconds (must convert tz offset from minutes to milliseconds)
+                // Then apply the time zone offset for the globe's current location
+                utc = this.dateTime.getTime() + (this.dateTime.getTimezoneOffset() * 60000);
+                localTime = new Date(utc + this.timeZoneOffsetMs + (this.isDstEnabled(this.dateTime) ? 3600000 : 0));
+
+                this.time.text = localTime.toLocaleTimeString('en', timeOptions);
+                this.date.text = localTime.toLocaleDateString('en', dateOptions);
+                //this.time.text = this.dateTime.toLocaleTimeString('en', timeOptions);
+                //this.date.text = this.dateTime.toLocaleDateString('en', dateOptions);
             }
         };
 
