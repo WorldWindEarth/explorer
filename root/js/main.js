@@ -38,6 +38,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/Explorer',
     'model/globe/Globe',
     'views/GlobeViewModel',
+    'views/HeaderViewModel',
     'views/LayersViewModel',
     'views/MarkerEditor',
     'views/MarkersViewModel',
@@ -53,6 +54,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
                 explorer,
                 Globe,
                 GlobeViewModel,
+                HeaderViewModel,
                 LayersViewModel,
                 MarkerEditor,
                 MarkersViewModel,
@@ -93,7 +95,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             globe.layerManager.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailHint: config.imageryDetailHint});
             globe.layerManager.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailHint: config.imageryDetailHint});
             globe.layerManager.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailHint: config.imageryDetailHint});
-            //globe.layerManager.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailHint: config.imageryDetailHint});
+            globe.layerManager.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailHint: config.imageryDetailHint});
 
             globe.layerManager.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
 
@@ -105,6 +107,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             // --------------------------------------------------------
             // Bind view models to the corresponding HTML elements
             // --------------------------------------------------------
+            ko.applyBindings(new HeaderViewModel(), document.getElementById('header'));
             ko.applyBindings(new GlobeViewModel(globe, explorer.markerManager), document.getElementById('globe'));
             ko.applyBindings(new ProjectionsViewModel(globe), document.getElementById('projections'));
             ko.applyBindings(new SearchViewModel(globe), document.getElementById('search'));
