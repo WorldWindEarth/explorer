@@ -7,54 +7,33 @@
 /* global define, WorldWind */
 
 /**
- * The TimeZoneLayer.
+ * The TimeZoneLayer, derived from Open Natural Earth 10m time zones.
+ *
+ * See: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/timezones/
  *
  * @exports TimeZoneLayer
  * @author Bruce Schubert
  */
-define(['worldwind'],
-    function (ww) {
+define(['model/globe/layers/ShapefileLayer',
+        'worldwind'],
+    function (ShapefileLayer,
+              ww) {
         "use strict";
         /**
          * Constructs a time zone layer.
          * @constructor
          */
         var TimeZoneLayer = function () {
-
-            WorldWind.RenderableLayer.call(this, "Time Zones");
-
-            // Open Natural Earth 10m time zones simplified to .05deg resolution
+            // Open Natural Earth 10m time zones have been simplified to .05deg resolution
             // See: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/timezones/
-            var shapefilePath = ww.WWUtil.currentUrlSansFilePart() + "/data/timezones/ne_05deg_time_zones.shp",
-                shapefile = new WorldWind.Shapefile(shapefilePath),
-                shapeConfigurationCallback;
-
-            shapeConfigurationCallback = function (attributes, record) {
-                var configuration = {};
-                configuration.name = attributes.values.name || attributes.values.Name || attributes.values.NAME;
-                configuration.attributes = new WorldWind.ShapeAttributes(null);
-                // Fill the polygon with a random pastel color.
-                configuration.attributes.interiorColor = new WorldWind.Color(
-                    0.375 + 0.5 * Math.random(),
-                    0.375 + 0.5 * Math.random(),
-                    0.375 + 0.5 * Math.random(),
-                    0.25);
-
-                // Paint the outline in a darker variant of the interior color.
-                configuration.attributes.outlineColor = new WorldWind.Color(
-                    0.5 * configuration.attributes.interiorColor.red,
-                    0.5 * configuration.attributes.interiorColor.green,
-                    0.5 * configuration.attributes.interiorColor.blue,
-                    0.5);
-
-                return configuration;
-            };
-
-            shapefile.load(null, shapeConfigurationCallback, this);
+            ShapefileLayer.call(this,
+                ww.WWUtil.currentUrlSansFilePart() + "/data/timezones/ne_05deg_time_zones.shp",
+                "Time Zones");
         };
 
-        // Inherit the RenderableLayer methods
-        TimeZoneLayer.prototype = Object.create(WorldWind.RenderableLayer.prototype);
+        // Inherit the ShapefileLayer methods
+        TimeZoneLayer.prototype = Object.create(ShapefileLayer.prototype);
+
 
         return TimeZoneLayer;
     }

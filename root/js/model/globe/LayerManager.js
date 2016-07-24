@@ -13,7 +13,7 @@
  * @param {WorldWind} ww
  * @returns {LayerManager}
  */
-define(['knockout', 'model/Constants', 'worldwind'],
+define(['knockout', 'model/Config', 'model/Constants', 'worldwind'],
     function (ko,
               config,
               constants,
@@ -345,11 +345,12 @@ define(['knockout', 'model/Constants', 'worldwind'],
             request.send(null);
         };
 
-
+        LayerManager.nextServerId = 0;
         LayerManager.prototype.loadServerCapabilites = function (serverAddress, wmsCapsDoc) {
             var wmsService = wmsCapsDoc.service,
                 wmsLayers = wmsCapsDoc.capability.layers,
                 server = {
+                    id: LayerManager.nextServerId++,
                     address: serverAddress,
                     service: wmsService,
                     title: ko.observable(wmsService.title && wmsService.title.length > 0 ? wmsService.title : serverAddress),
@@ -401,7 +402,7 @@ define(['knockout', 'model/Constants', 'worldwind'],
             return layerNodes;
         };
 
-        LayerManager.prototype.addLayer = function (layerCaps, category) {
+        LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
             if (layerCaps.name) {
                 var config = WorldWind.WmsLayer.formLayerConfiguration(layerCaps, null);
                 var layer;

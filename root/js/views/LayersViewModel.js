@@ -9,10 +9,10 @@
  *
  * @param {type} ko
  * @param {type} $
- * @returns {ProjectionsViewModel}
+ * @returns {LayersViewModel}
  */
-define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
-        function (ko, $) {
+define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'model/Constants'],
+        function (ko, $, jqueryui, boostrap, constants) {
 
             /**
              * The view model for the Layers panel.
@@ -30,14 +30,30 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
                 self.effectsLayers = layerManager.effectsLayers;
                 self.widgetLayers = layerManager.widgetLayers;
 
-                // Layer item click handler
+                // Layer type options
+                self.optionValues = ["WMS Layer", "WMTS Layer", "KML file", "Shapefile"];
+                self.selectedOptionValue = ko.observable(self.optionValues[0]);
+                
+                /**
+                 * An observable array of servers
+                 */
+                this.servers = layerManager.servers;
+                self.serverAddress = ko.observable("http://neowms.sci.gsfc.nasa.gov/wms/wms");
+
+                /**
+                 * Toggles the selected layer's visibility on/off
+                 * @param {Object} layer The selected layer in the layer collection
+                 */
                 self.onToggleLayer = function (layer) {
                     layer.enabled(!layer.enabled());
                     globe.redraw();
                 };
 
 
-
+                /**
+                 * Opens a dialog to edit the layer settings.
+                 * @param {Object} layer The selected layer in the layer collection
+                 */
                 self.onEditSettings = function (layer) {
                     
                     $('#opacity-slider').slider({
@@ -61,7 +77,38 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap'],
                     $("#opacity-slider").slider("option", "value", layer.opacity());
                     $("#layer-settings-dialog").dialog("open");
                 };
+                
+                
+                /**
+                 * Opens the Add Layer dialog.
+                 */
+                self.onAddLayer = function() {
+                    $("#add-layer-dialog").dialog({
+                        autoOpen: false,
+                        title: "Add Layer"
+                    });
+                    
+                    $("#add-layer-dialog").dialog("open");
+                };
+                
+                
+                self.onAddServer  = function() {
+                    layerManager.addServer(self.serverAddress());
+                    return true;
+                };
 
+                /**
+                 * Add the supplied layer from the server's capabilities to the active layers
+                 */
+                this.onServerLayerClicked = function(layerNode, event){
+                    if (!layerNode.isChecked()) {
+                        // TODO: Open dialog to select a layer category
+                        layerManager.addLayerFromCapabilities(layerNode.layerCaps, constants.LAYER_CATEGORY_OVERLAY);
+                    } else {
+                        layerManager.removeLayer(layerNode.layerCaps);
+                    }
+                    return true;
+                };
             }
 
             return LayersViewModel;

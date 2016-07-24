@@ -17,7 +17,7 @@ requirejs.config({
         'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
-        'worldwind': 'libs/emxsys/worldwindlib',
+        'worldwind': 'libs/webworldwind/worldwindlib',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
@@ -38,9 +38,11 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/Explorer',
     'model/globe/Globe',
     'views/GlobeViewModel',
+    'views/HeaderViewModel',
     'views/LayersViewModel',
     'views/MarkerEditor',
     'views/MarkersViewModel',
+    'views/OutputViewModel',
     'views/ProjectionsViewModel',
     'views/SearchViewModel',
     'model/globe/layers/UsgsContoursLayer',
@@ -52,9 +54,11 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
                 explorer,
                 Globe,
                 GlobeViewModel,
+                HeaderViewModel,
                 LayersViewModel,
                 MarkerEditor,
                 MarkersViewModel,
+                OuputViewModel,
                 ProjectionsViewModel,
                 SearchViewModel,
                 UsgsContoursLayer,
@@ -91,7 +95,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             globe.layerManager.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailHint: config.imageryDetailHint});
             globe.layerManager.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailHint: config.imageryDetailHint});
             globe.layerManager.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailHint: config.imageryDetailHint});
-            globe.layerManager.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailHint: config.imageryDetailHint});
+            //globe.layerManager.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailHint: config.imageryDetailHint});
 
             globe.layerManager.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
 
@@ -103,12 +107,14 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             // --------------------------------------------------------
             // Bind view models to the corresponding HTML elements
             // --------------------------------------------------------
+            ko.applyBindings(new HeaderViewModel(), document.getElementById('header'));
             ko.applyBindings(new GlobeViewModel(globe, explorer.markerManager), document.getElementById('globe'));
             ko.applyBindings(new ProjectionsViewModel(globe), document.getElementById('projections'));
             ko.applyBindings(new SearchViewModel(globe), document.getElementById('search'));
             ko.applyBindings(new LayersViewModel(globe), document.getElementById('layers'));
             ko.applyBindings(new MarkersViewModel(globe, explorer.markerManager), document.getElementById('markers'));
             ko.applyBindings(new MarkerEditor(), document.getElementById('marker-editor'));
+            //ko.applyBindings(new OuputViewModel(), document.getElementById('output'));
 
             // -----------------------------------------------------------
             // Add handlers to auto-expand/collapse the menus
