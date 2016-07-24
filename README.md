@@ -1,7 +1,5 @@
-# Emxsys - World Wind Explorer
+# World Wind Explorer
 An HTML5/JavaScript geo-browser built from the NASA WebWorldWind SDK using the Knockout and Bootstrap libraries.
-
-A fork of the NASA World Wind Explorer: https://github.com/NASAWorldWindResearch/WorldWindExplorer
 
 ### Objectives
 - Be a useful web app in its own right
