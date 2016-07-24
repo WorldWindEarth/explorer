@@ -5,7 +5,7 @@
  */
 
 /**
- * Layers content module
+ * Projections content module
  *
  * @param {type} ko
  * @param {type} $

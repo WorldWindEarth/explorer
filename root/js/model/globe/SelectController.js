@@ -7,18 +7,22 @@
 /*global define, $, WorldWind */
 
 define([
-    'model/util/WmtUtil',
+    'knockout',
     'worldwind'],
     function (
-        util,
+        ko,
         ww) {
         "use strict";
         /**
+         * The SelectController operates on picked objects containing the Selectable, 
+         * Movable, Openable and/or ContextSensitive capabilites.
          * @constructor
          * @param {WorldWindow} worldWindow
          * @returns {SelectController}
          */
         var SelectController = function (worldWindow) {
+            var self = this;
+            
             this.wwd = worldWindow;
             // Flag to signal that dragging/moving has been initiated.
             // When dragging, the mouse event is consumed, i.e., not propagated.
@@ -29,14 +33,11 @@ define([
             // The time in ms to wait for a double tap
             this.DOUBLE_TAP_INTERVAL = 250;
             // The list of selected items under the mouse cursor
-            this.selectedItems = [];
+            this.selectedItem = ko.observable(null);
             // The top item in the pick list
             this.pickedItem = null;
             // Caches the clicked item for dblclick to process 
             this.clickedItem = null;
-
-            var self = this;
-//            $('#globeContextMenu-popup').puimenu();
 
             // Listen for mouse down to select an item
             this.wwd.addEventListener("mousedown", function (event) {
@@ -206,8 +207,8 @@ define([
                 case 'dblclick':
                     if (this.clickedItem) {
                         this.doOpen(this.clickedItem);
-                        // Release the picked item so mousemove doesn't act on it
                     }
+                    // Release the picked item so mousemove doesn't act on it
                     this.pickedItem = null;
                     break;
                 case 'contextmenu':
@@ -278,7 +279,7 @@ define([
         SelectController.prototype.doSelect = function (pickedItem) {
             if (pickedItem.userObject.select) {
                 pickedItem.userObject.select();
-            }
+                }
         };
 
         SelectController.prototype.doOpen = function (pickedItem) {

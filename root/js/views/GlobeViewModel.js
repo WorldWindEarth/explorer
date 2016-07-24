@@ -35,44 +35,10 @@ define(['knockout', 'jquery', 'jqueryui',
             self.autoUpdateTime = explorer.autoUpdateTimeEnabled;
 
             // Create the marker templates used in the marker palette
-            self.markerPalette = ko.observableArray([
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-red.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-green.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-blue.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-orange.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-teal.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-purple.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-white.png",
-                    attributes: commonAttributes
-                },
-                {
-                    imageSource: "http://worldwindserver.net/webworldwind/images/pushpins/castshadow-black.png",
-                    attributes: commonAttributes
-                }
-            ]);
+            self.markerPalette = ko.observableArray(BasicMarker.templates);
             // The currently selected marker icon in the marker palette
             self.selectedMarkerTemplate = ko.observable(self.markerPalette()[0]);
-
-            // Used for cursor style and click handling
+            // Used for cursor style and click handling (see Globe's canvas in index.html)
             self.dropIsArmed = ko.observable(false);
             // The dropCallback is supplied with the click position and the dropObject.
             self.dropCallback = null;
@@ -94,15 +60,9 @@ define(['knockout', 'jquery', 'jqueryui',
             // This "Drop" action callback creates and adds a marker to the globe
             // when the globe is clicked while dropIsArmed is true.
             self.dropMarkerCallback = function (position, markerTemplate) {
-                var attributes = new WorldWind.PlacemarkAttributes(markerTemplate.attributes),
-                    placemark = new WorldWind.Placemark(position, false, attributes);
-
-                // Set the placemark properties and  attributes
-                placemark.label = config.markerLabels;
-                attributes.imageSource = markerTemplate.imageSource;
-
                 // Add the placemark to the layer and to the observable array
-                markerManager.addMarker(new BasicMarker(markerManager, placemark));
+                markerManager.addMarker(new BasicMarker(
+                        markerManager, position, { imageSource: markerTemplate.imageSource }));
             };
 
             /**

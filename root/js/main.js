@@ -38,6 +38,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/Explorer',
     'model/globe/Globe',
     'views/GlobeViewModel',
+    'views/HeaderViewModel',
     'views/LayersViewModel',
     'views/MarkerEditor',
     'views/MarkersViewModel',
@@ -53,6 +54,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
                 explorer,
                 Globe,
                 GlobeViewModel,
+                HeaderViewModel,
                 LayersViewModel,
                 MarkerEditor,
                 MarkersViewModel,
@@ -105,6 +107,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             // --------------------------------------------------------
             // Bind view models to the corresponding HTML elements
             // --------------------------------------------------------
+            ko.applyBindings(new HeaderViewModel(), document.getElementById('header'));
             ko.applyBindings(new GlobeViewModel(globe, explorer.markerManager), document.getElementById('globe'));
             ko.applyBindings(new ProjectionsViewModel(globe), document.getElementById('projections'));
             ko.applyBindings(new SearchViewModel(globe), document.getElementById('search'));
