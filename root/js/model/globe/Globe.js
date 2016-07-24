@@ -161,9 +161,9 @@ define(['knockout',
                 //this.layerManager.addBackgroundLayer(new SkyBackgroundLayer(this.wwd));
                 //this.layerManager.addBackgroundLayer(new WorldWind.ShowTessellationLayer());
                 this.layerManager.addOverlayLayer(new TimeZoneLayer(), {
-                    enabled: false,
-                    pickEnabled: false,
-                    opacity: 0.2
+                    enabled: true,
+                    pickEnabled: true,
+                    opacity: 0.1
                 });
                 this.layerManager.addEffectLayer(new EnhancedAtmosphereLayer(this));
             }
