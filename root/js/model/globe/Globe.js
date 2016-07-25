@@ -230,7 +230,7 @@ define(['knockout',
 
             // Perform initial updates for time and sunlight
             this.updateDateTime(new Date());
-            
+
             // Subscribe to rate-throttled viewpoint updates
             this.viewpoint.subscribe(this.updateTimeZoneOffset, this);
         };
@@ -278,32 +278,32 @@ define(['knockout',
 
             this.viewpoint(viewpoint);  // observable
         };
-        
+
         /**
          * Updates the time zone offset.
          */
         Globe.prototype.updateTimeZoneOffset = function () {
             var canvasCenter = new WorldWind.Vec2(this.wwd.canvas.width / 2, this.wwd.canvas.height / 2),
                 pickList = this.wwd.pick(canvasCenter),
-                i, len, item, rec;
-        
+                i, len, pickedObject, userObject, record, layer;
+
             if (pickList.hasNonTerrainObjects()) {
 
-                for (i= 0, len = pickList.objects.length; i < len; i++) {
-                    item = pickList.objects[i].userObject;
-                    if (item.isTerrain) {
+                for (i = 0, len = pickList.objects.length; i < len; i++) {
+                    pickedObject = pickList.objects[i];
+                    if (pickedObject.isTerrain) {
                         continue;
                     }
-                    if (item instanceof WorldWind.Renderable) {
-                        if (item.layer && item.layer instanceof TimeZoneLayer) {
-                            if (item.pickDelegate && item.pickDelegate.values) {
-                                rec = item.pickDelegate;
-                                this.timeZoneName(rec.values.time_zone);
-                                this.timeZoneOffsetHours(rec.values.zone);
-                            } else {
-                                this.timeZoneOffsetHours(parseFloat(item.displayName));
+                    userObject = pickedObject.userObject;
+                    if (userObject.userProperties) {
+                        layer = userObject.userProperties.layer;
+                        if (layer && layer instanceof TimeZoneLayer) {
+                            record = userObject.userProperties.record;
+                            if (record) {   // DBaseRecord
+                                this.timeZoneName(record.values.time_zone);
+                                this.timeZoneOffsetHours(record.values.zone);
+                                break;
                             }
-                            break;
                         }
                     }
                 }
