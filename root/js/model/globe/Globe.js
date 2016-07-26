@@ -247,7 +247,7 @@ define(['knockout',
             if (util.minutesBetween(this.lastSolarTime, time) > this.SUNLIGHT_TIME_THRESHOLD) {
                 this.updateSunlight(time, this.lastSolarTarget.latitude, this.lastSolarTarget.longitude);
             }
-            log.info("Globe", "updateDateTime", time.toLocaleString());
+            //log.info("Globe", "updateDateTime", time.toLocaleString());
 
             this.dateTime(time); // observable
         };
