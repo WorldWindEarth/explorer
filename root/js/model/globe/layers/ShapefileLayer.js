@@ -21,47 +21,46 @@ define(['worldwind'],
          */
         var ShapefileLayer = function (shapefileUrl, layerName, shapeConfigurationCallback) {
 
-                WorldWind.RenderableLayer.call(this, layerName || shapefileUrl);
+            WorldWind.RenderableLayer.call(this, layerName || shapefileUrl);
 
-                this._opacity = 0.25;
+            this._opacity = 0.25;
 
-                var shapefilePath = shapefileUrl,
-                    shapefile = new WorldWind.Shapefile(shapefilePath);
+            var shapefilePath = shapefileUrl,
+                shapefile = new WorldWind.Shapefile(shapefilePath);
 
-                if (shapeConfigurationCallback === undefined) {
-                    shapeConfigurationCallback = function (attributes, record) {
-                        var configuration = {};
-                        configuration.name = attributes.values.name || attributes.values.Name || attributes.values.NAME;
-                        configuration.attributes = new WorldWind.ShapeAttributes(null);
-                        // Fill the polygon with a random pastel color.
-                        configuration.attributes.interiorColor = new WorldWind.Color(
-                            0.375 + 0.5 * Math.random(),
-                            0.375 + 0.5 * Math.random(),
-                            0.375 + 0.5 * Math.random(),
-                            0.25);
+            if (shapeConfigurationCallback === undefined) {
+                shapeConfigurationCallback = function (attributes, record) {
+                    var configuration = {};
+                    configuration.name = attributes.values.name || attributes.values.Name || attributes.values.NAME;
+                    configuration.attributes = new WorldWind.ShapeAttributes(null);
+                    // Fill the polygon with a random pastel color.
+                    configuration.attributes.interiorColor = new WorldWind.Color(
+                        0.375 + 0.5 * Math.random(),
+                        0.375 + 0.5 * Math.random(),
+                        0.375 + 0.5 * Math.random(),
+                        0.25);
 
-                        // Paint the outline in a darker variant of the interior color.
-                        configuration.attributes.outlineColor = new WorldWind.Color(
-                            0.5 * configuration.attributes.interiorColor.red,
-                            0.5 * configuration.attributes.interiorColor.green,
-                            0.5 * configuration.attributes.interiorColor.blue,
-                            0.5);
+                    // Paint the outline in a darker variant of the interior color.
+                    configuration.attributes.outlineColor = new WorldWind.Color(
+                        0.5 * configuration.attributes.interiorColor.red,
+                        0.5 * configuration.attributes.interiorColor.green,
+                        0.5 * configuration.attributes.interiorColor.blue,
+                        0.5);
 
-                        // Make the DBaseRecord and Layer available to picked objects
-                        configuration.userProperties = {record: attributes, layer: record.shapefile.layer};
+                    // Make the DBaseRecord and Layer available to picked objects
+                    configuration.userProperties = {record: attributes, layer: record.shapefile.layer};
 
-                        return configuration;
-                    };
-                }
-
-
-                // Create renderables for all the features in the shapefile
-                // and add them to this layer.
-                shapefile.load(null, shapeConfigurationCallback, this);
-
-
+                    return configuration;
+                };
             }
-            ;
+
+
+            // Create renderables for all the features in the shapefile
+            // and add them to this layer.
+            shapefile.load(null, shapeConfigurationCallback, this);
+
+
+        };
 
         // Inherit the RenderableLayer methods
         ShapefileLayer.prototype = Object.create(WorldWind.RenderableLayer.prototype);
@@ -86,7 +85,6 @@ define(['worldwind'],
                             }
                         }
                     }
-
                 }
             }
 
