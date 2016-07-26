@@ -65,10 +65,13 @@ define([
                     WorldWind.OFFSET_PIXELS, MARKER_ORIGIN_Y),
                 timeOffset = new WorldWind.Offset(
                     WorldWind.OFFSET_PIXELS, LEFT_MARGIN + 52,
-                    WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN + 65),
+                    WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN + 70),
+                timeZoneOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_PIXELS, LEFT_MARGIN + 52,
+                    WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN + 55),
                 dateOffset = new WorldWind.Offset(
                     WorldWind.OFFSET_PIXELS, LEFT_MARGIN + 52,
-                    WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN + 35),
+                    WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN + 30),
                 riseOffset = new WorldWind.Offset(
                     WorldWind.OFFSET_PIXELS, 3,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN - 25),
@@ -81,11 +84,10 @@ define([
                 sets2Offset = new WorldWind.Offset(
                     WorldWind.OFFSET_PIXELS, -85,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN - 45),
-                textAttr = new WorldWind.TextAttributes(null);
+                textAttr = new WorldWind.TextAttributes(null),
+                smallTextAttr = new WorldWind.TextAttributes(null);
+
             // Graphics
-// The reset button has been superseded by the time control buttons            
-//            this.reset = new WorldWind.ScreenImage(lowerLeft, wmt.IMAGE_PATH + "reset-button.png");
-//            this.reset.imageOffset = resetOffset;
 
             this.background = new WorldWind.ScreenImage(lowerLeft, constants.IMAGE_PATH + "widget-circle-bg.png");
             this.background.imageOffset = backgroundOffset;
@@ -122,10 +124,17 @@ define([
             textAttr.color = WorldWind.Color.WHITE;
             textAttr.font = new WorldWind.Font(18);
             textAttr.offset = center;
+            smallTextAttr.color = WorldWind.Color.WHITE;
+            smallTextAttr.font = new WorldWind.Font(12, "italic");
+            smallTextAttr.offset = center;
 
             this.date = new WorldWind.ScreenText(dateOffset, "Date");
             this.date.alwaysOnTop = true;
             this.date.attributes = textAttr;
+
+            this.timezone = new WorldWind.ScreenText(timeZoneOffset, "Time Zone");
+            this.timezone.alwaysOnTop = true;
+            this.timezone.attributes = smallTextAttr;
 
             this.time = new WorldWind.ScreenText(timeOffset, "Time");
             this.time.alwaysOnTop = true;
@@ -144,24 +153,52 @@ define([
             this.sunset.attributes.color = new WorldWind.Color(241 / 255, 90 / 255, 41 / 255, 1);
 
             this.dateTime = null;
+            this.timeZoneOffsetMs = 0;
+            this.timeZoneName = "";
             this.sunlight = null;
 
-             // Handles date/time changes in Globe
+            // Handles date/time changes in the Globe
             this.handleTimeChanged = function (newDateTime) {
                 self.dateTime = newDateTime;
                 self.updateDateTimeText();
                 globe.redraw();
             };
-            // Handles sunlight changes in Globe
+
+            // Handles sunlight changes in the Globe
             this.handleSunlightChanged = function (newSunlight) {
                 self.sunlight = newSunlight;
                 self.updateSunlightText();
                 globe.redraw();
             };
 
+            // Handles time zone changes in the Globe
+            this.handleTimeZoneChanged = function (newTimeZoneOffset) {
+                self.timeZoneOffsetMs = newTimeZoneOffset * 3600000; // convert from hours to milliseconds
+                self.timeZoneName = globe.timeZoneName();
+                self.updateDateTimeText();
+                self.updateSunlightText();
+                globe.redraw();
+            };
+
+            this.isDstEnabled = function (date) {
+                var jan = new Date(date.getFullYear(), 0, 1),
+                    jul = new Date(date.getFullYear(), 6, 1),
+                    stdTimeZoneOffset = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+
+                return date.getTimezoneOffset() < stdTimeZoneOffset;
+            };
+
+            this.timeZoneTime = function (date) {
+                // Convert current time to UTC milliseconds (must convert tz offset from minutes to milliseconds)
+                // Then apply the time zone offset for the globe's current location
+                var utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+                return new Date(utc + this.timeZoneOffsetMs + (this.isDstEnabled(date) ? 3600000 : 0));
+            };
+
             // Subscribe to Knockout observables in the Globe
             globe.dateTime.subscribe(this.handleTimeChanged);
             globe.sunlight.subscribe(this.handleSunlightChanged);
+            globe.timeZoneOffsetHours.subscribe(this.handleTimeZoneChanged);
 
             // Load Initial values from the Globe observables
             this.handleTimeChanged(globe.dateTime());
@@ -177,11 +214,22 @@ define([
          * Updates the date and time text with formatted strings.
          */
         TimeWidget.prototype.updateDateTimeText = function () {
-            var timeOptions = {hour: "2-digit", minute: "2-digit", timeZoneName: "short", hour12: false},
-                dateOptions = {"month": "2-digit", "day": "2-digit"};
+            //var timeOptions = {hour: "2-digit", minute: "2-digit", timeZoneName: "short", hour12: false},
+            var timeOptions = {hour: "2-digit", minute: "2-digit"},
+                dateOptions = {"month": "2-digit", "day": "2-digit"},
+                utc,
+                localTime;
             if (this.dateTime) {
-                this.time.text = this.dateTime.toLocaleTimeString('en', timeOptions);
-                this.date.text = this.dateTime.toLocaleDateString('en', dateOptions);
+                // Convert current time to UTC milliseconds (must convert tz offset from minutes to milliseconds)
+                // Then apply the time zone offset for the globe's current location
+                //utc = this.dateTime.getTime() + (this.dateTime.getTimezoneOffset() * 60000);
+                //localTime = new Date(utc + this.timeZoneOffsetMs + (this.isDstEnabled(this.dateTime) ? 3600000 : 0));
+
+                localTime = this.timeZoneTime(this.dateTime);
+
+                this.time.text = localTime.toLocaleTimeString('en', timeOptions);
+                this.date.text = localTime.toLocaleDateString('en', dateOptions);
+                this.timezone.text = this.timeZoneName;
             }
         };
 
@@ -190,14 +238,13 @@ define([
          * Updates the sunrise and sunset text with formatted strings.
          */
         TimeWidget.prototype.updateSunlightText = function () {
-            var shortTimeOptions = {hour: "2-digit", minute: "2-digit", hour12: false};
-            //    isoDate = this.dateTime.toISOString().substr(0, 11),
-            //    today = new Date(this.dateTime.getFullYear(), this.dateTime.getMonth(), this.dateTime.getDate()),
-            //    sunriseTime = new Date(today.getTime() + this.sunlight.sunriseTime * 60000),
-            //    sunsetTime = new Date(today.getTime() + this.sunlight.sunsetTime * 60000);
+            var shortTimeOptions = {hour: "2-digit", minute: "2-digit", hour12: false},
+                sunriseTime, sunsetTime;
             if (this.sunlight) {
-                this.sunrise.text = this.sunlight.sunriseTime.toLocaleTimeString('en', shortTimeOptions);
-                this.sunset.text = this.sunlight.sunsetTime.toLocaleTimeString('en', shortTimeOptions);
+                sunriseTime = this.timeZoneTime(this.sunlight.sunriseTime);
+                sunsetTime = this.timeZoneTime(this.sunlight.sunsetTime);
+                this.sunrise.text = isNaN(sunriseTime.getTime()) ? "" : sunriseTime.toLocaleTimeString('en', shortTimeOptions);
+                this.sunset.text = isNaN(sunsetTime.getTime()) ? "" : sunsetTime.toLocaleTimeString('en', shortTimeOptions);
             }
         };
 
@@ -207,7 +254,7 @@ define([
          */
         TimeWidget.prototype.render = function (dc) {
 
-            // HACK: Don't allow rotation values to go to zero 
+            // HACK: Don't allow rotation values to go to zero
             // else z-ording gets confused with non-rotated images
             // appearing on top of rotated images.
             var localHour = WorldWind.Angle.normalizedDegrees(this.sunlight.localHourAngle),
@@ -246,8 +293,10 @@ define([
             } else {
                 this.eclipseIcon.render(dc);
             }
-            this.sunriseIcon.render(dc);
-            this.sunsetIcon.render(dc);
+            if (!isNaN(this.sunlight.sunriseTime.getTime()) && !isNaN(this.sunlight.sunsetTime.getTime())) {
+                this.sunriseIcon.render(dc);
+                this.sunsetIcon.render(dc);
+            }
 
             //this.reset.render(dc);
 
@@ -255,6 +304,7 @@ define([
             // Text
             this.date.render(dc);
             this.time.render(dc);
+            this.timezone.render(dc);
             this.sunrise.render(dc);
             this.sunset.render(dc);
         };
@@ -269,4 +319,5 @@ define([
 
         return TimeWidget;
     }
-);
+)
+;
