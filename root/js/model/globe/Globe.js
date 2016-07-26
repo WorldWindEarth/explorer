@@ -158,8 +158,6 @@ define(['knockout',
 
             // Add optional background layers
             if (showBackground || showBackground === undefined) {
-                //this.layerManager.addBackgroundLayer(new SkyBackgroundLayer(this.wwd));
-                //this.layerManager.addBackgroundLayer(new WorldWind.ShowTessellationLayer());
                 this.layerManager.addOverlayLayer(new TimeZoneLayer(), {
                     enabled: true,
                     pickEnabled: true,
@@ -300,6 +298,7 @@ define(['knockout',
                         if (layer && layer instanceof TimeZoneLayer) {
                             record = userObject.userProperties.record;
                             if (record) {   // DBaseRecord
+                                // Update observables
                                 this.timeZoneName(record.values.time_zone);
                                 this.timeZoneOffsetHours(record.values.zone);
                                 break;
