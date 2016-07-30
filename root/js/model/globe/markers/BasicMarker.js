@@ -53,15 +53,14 @@ define([
 
                 // Add the mix-in capabilites:
 
-                // Make movable by the SelectController: adds the isMovable member.
-                //  The MarkerManager toggles the isMovable state when a marker is selected.
+                // Make movable by the SelectController: adds the isMovable, latitude and longitude
+                // observables. The MarkerManager toggles the isMovable state when a marker is selected.
                 movable.makeMovable(this);
 
                 // Make selectable via picking (see SelectController): adds the "select" method
-                selectable.makeSelectable(this, function () {   // define the callback that selects this marker
-                    // The manager will toggle the exclusive highlighted state
-                    // i.e., only a single marker can be highlighted at one time.
-                    manager.selectMarker(self);                      
+                selectable.makeSelectable(this, function (params) {   // define the callback that selects this marker
+                    this.isMovable(params.selected);
+                    this.placemark.highlighted = params.selected;
                     return true;    // return true to fire a EVENT_OBJECT_SELECTED event
                 });
                 
@@ -71,8 +70,7 @@ define([
                     // TODO: add error checking for existance of editor
                     // TOOD: set openable false if no editor element defined in options/params
                     var $editor = $("#marker-editor"),
-                            markerEditor = ko.dataFor($editor.get(0));
-                    this.select();
+                        markerEditor = ko.dataFor($editor.get(0));
                     markerEditor.open(this);
                     return true; // return true to fire EVENT_OBJECT_OPENED event.
                 });
@@ -96,22 +94,20 @@ define([
                 /** The name of this marker */
                 this.name = ko.observable(args.name || "Marker");
                 /** The latitude of this marker -- set be by the Movable interface during pick/drag operations. See SelectController */
-                this.latitude = ko.observable(position.latitude);
+                this.latitude(position.latitude);
                 /** The longitude of this marker -- may be set by the Movable interface during pick/drag operations See SelectController */
-                this.longitude = ko.observable(position.longitude);
-                /** The movable state */
-                this.isMovable = ko.observable(args.isMovable === undefined ? true : args.isMovable);
+                this.longitude (position.longitude);
                 /** The lat/lon location string of this marker */
                 this.location = ko.computed(function () {
                     return "Lat " + self.latitude().toPrecision(4).toString() + "\n" + "Lon " + self.longitude().toPrecision(5).toString();
                 });
+                /** The movable mix-in state */
+                this.isMovable(args.isMovable === undefined ? true : args.isMovable);
                 
                 // Properties
                 
                 /** The image source url, stored/recalled in the persistant store */
                 this.source = args.imageSource;
-                /** The default movable state is false; a marker must be selected to be movable. */
-                this.isMovable = false;
                 
                 // Create the placemark property
                 normalAttributes = new WorldWind.PlacemarkAttributes(BasicMarker.commonAttributes());
