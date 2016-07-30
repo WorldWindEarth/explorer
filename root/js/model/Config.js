@@ -14,13 +14,11 @@
 define(['jquery',
         'model/Constants',
         'model/util/Log',
-        'model/globe/MarkerManager',
         'model/util/Settings',
         'worldwind'],
     function ($,
               constants,
               log,
-              MarkerManager,
               settings) {
         "use strict";
         /**
