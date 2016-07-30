@@ -14,15 +14,16 @@
  * @author Bruce Schubert
  */
 define([
+    'knockout',
     'model/util/Publisher', 
     'model/Events'],
-    function (publisher, events) {
+    function (ko, publisher, events) {
         "use strict";
         
         var Openable = {
-            open: function () {
-                if (this.isOpenable) {
-                    if (this.openMe()) {
+            open: function (params) {
+                if (this.isOpenable()) {
+                    if (this.openMe(params)) {
                         // Fire the opened event if we succeeded.
                         this.fire(events.EVENT_OBJECT_OPENED, this);
                     }
@@ -49,7 +50,7 @@ define([
                     }
                 }
                 // Add the properties
-                o.isOpenable = true;
+                o.isOpenable = ko.observable(true);
                 o.openMe = openCallback;
                 
                 // Add the Publisher capability so that events can be generated.

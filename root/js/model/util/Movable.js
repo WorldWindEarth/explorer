@@ -71,8 +71,13 @@ define(['knockout',
                     }
                 }
                 // Add the properties
-                o.isMovable = true;
-
+                o.isMovable = ko.observable(true);
+                if (typeof o.latitude === 'undefined') {
+                    o.latitude = ko.observable();
+                }
+                if (typeof o.longitude === 'undefined') {
+                    o.longitude = ko.observable();
+                }
                 // Add the Publisher capability so that events can be generated.
                 publisher.makePublisher(o);
             }
