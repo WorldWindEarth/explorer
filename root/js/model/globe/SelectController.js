@@ -297,7 +297,12 @@ define([
                 }
             }
         };
-
+        SelectController.prototype.doDeselect = function (userObject) {
+            if (this.lastSelectedItem() === userObject) {
+                this.lastSelectedItem().select({selected: false});
+                this.lastSelectedItem(null);
+            }
+        };
         SelectController.prototype.doOpen = function (userObject) {
             if (ko.isObservable(userObject.isOpenable) && userObject.isOpenable()) {                
                 if (userObject.open) {
