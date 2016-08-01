@@ -46,12 +46,11 @@ define(['jquery',
             startupHeading: 0,
             startupTilt: 0,
             startupRoll: 0,
-            showPanControl: true,
+            showPanControl: false,
             showExaggerationControl: true,
             showFieldOfViewControl: false,
             terrainSampleRadius: 30
       };
-
 
         return Config;
     }
