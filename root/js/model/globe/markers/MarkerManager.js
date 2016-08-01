@@ -105,11 +105,27 @@ define(['knockout',
              * Saves the markers list to local storage.
              */
             MarkerManager.prototype.saveMarkers = function () {
-                // Get a native array where we've ignore markers that have been flagged as "invalid"
-                var validMarkers = this.markers().filter(function (marker) { return !marker.invalid; }),
-                    markersString = ko.toJSON(validMarkers, ['id', 'name', 'source', 'latitude', 'longitude', 'isMovable']);
-                
-                // Set the key/value pair
+                var validMarkers = [],
+                markersString,
+                i, len, marker;
+        
+                // Knockout's toJSON can fail on complex objects... it appears
+                // to recurse and a call stack limit can be reached. So here we
+                // create a simplfied version of the object here to pass to toJSON.
+                for (var i = 0, len = this.markers().length; i < len; i++) {
+                    marker = this.markers()[i];
+                    if (!marker.invalid) {
+                        validMarkers.push({
+                            id: marker.id,
+                            name: marker.name,
+                            source: marker.source,
+                            latitude: marker.latitude,
+                            longitude: marker.longitude,
+                            isMovable: marker.isMovable
+                        });
+                    }
+                }  
+                markersString = ko.toJSON(validMarkers, ['id', 'name', 'source', 'latitude', 'longitude', 'isMovable']);
                 localStorage.setItem(constants.STORAGE_KEY_MARKERS, markersString);
             };
 
