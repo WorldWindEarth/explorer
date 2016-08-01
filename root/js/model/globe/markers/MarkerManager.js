@@ -26,7 +26,6 @@ define(['knockout',
                 this.globe = globe;
                 this.layer = layer || globe.findLayer(constants.LAYER_NAME_MARKERS);
                 this.markers = ko.observableArray();
-                this.selectedMarker = null;
 
                 // Subscribe to "arrayChange" events ...
                 // documented here: http://blog.stevensanderson.com/2013/10/08/knockout-3-0-release-candidate-available/
@@ -70,25 +69,6 @@ define(['knockout',
                 return null;
             };
             
-            /**
-             * Selects the given marker; deselects other markers
-             * @param {Marker} marker The marker to Select
-             */
-            MarkerManager.prototype.selectMarker = function (marker) {
-                
-                if (this.selectedMarker === marker) {
-                    return;
-                }
-                if (this.selectedMarker !== null) {
-                    this.selectedMarker.placemark.highlighted = false;
-                    this.selectedMarker.isMovable = false;
-                }
-                if (marker !== null) {
-                    marker.placemark.highlighted = true;
-                    marker.isMovable = true;
-                    this.selectedMarker = marker;
-                }
-            };
 
             /**
              * Removes the given marker from the markers array and from the marker's renderable layer.
@@ -118,6 +98,7 @@ define(['knockout',
                         break;
                     }
                 }
+                this.globe.selectController.doDeselect(marker);
             };
 
             /**

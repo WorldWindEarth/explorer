@@ -20,10 +20,25 @@ define(['knockout',
          * The view model for the Output panel.
          * @constructor
          */
-        function OutputViewModel() {
+        function OutputViewModel(globe) {
             var self = this;
-
-
+            
+            this.globe = globe;
+            
+            // Get a reference to the SelectController's selectedItem observable
+            this.selectedItem = this.globe.selectController.lastSelectedItem;
+            
+            this.viewTemplateName = ko.observable(null);
+            
+            this.selectedItem.subscribe(function(newItem) {
+                // Determine if the new item has a view template
+                if (newItem!==null) {
+                    if (typeof newItem.viewTemplateName !== "undefined") {
+                        self.viewTemplateName(newItem.viewTemplateName);
+                    }
+                }
+                
+            });
         }
 
         return OutputViewModel;
