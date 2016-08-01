@@ -32,8 +32,8 @@ define([
             this.tapped = false;
             // The time in ms to wait for a double tap
             this.DOUBLE_TAP_INTERVAL = 250;
-            // The list of selected items under the mouse cursor
-            this.selectedItem = ko.observable(null);
+            // The currently selected item.
+            this.lastSelectedItem = ko.observable(null);
             // The top item in the pick list
             this.pickedItem = null;
             // Caches the clicked item for dblclick to process 
@@ -139,21 +139,21 @@ define([
                 case 'mousemove':
                     if (this.pickedItem) {
                         // Handle left-clicks and touch device 
-                        if (this.isMovable(this.pickedItem) && (button === 0 || type === 'touchmove')) {
+                        if (this.isMovable(this.pickedItem.userObject) && (button === 0 || type === 'touchmove')) {
                             // To prevent confustion with clicks and taps,
                             // start dragging only if the mouse or touch
                             // point has moved a few pixels.
                             if (!this.isDragging &&
                                 (Math.abs(this.startX - x) > 2 || Math.abs(this.startY - y) > 2)) {
                                 this.isDragging = true;
-                                this.startMove(this.pickedItem);
+                                this.startMove(this.pickedItem.userObject);
                             }
                             // Perform the actual move of the picked object
                             if (this.isDragging) {
                                 // Get the new terrain coords at the pick point
                                 terrainObject = pickList.terrainObject();
                                 if (terrainObject) {
-                                    this.doMove(this.pickedItem, terrainObject);
+                                    this.doMove(this.pickedItem.userObject, terrainObject);
                                 }
                             }
                         }
@@ -169,7 +169,7 @@ define([
                         // If our isDragging flag is set, then it's a given
                         // that the touch/mouse event signals a move finished.
                         if (this.isDragging) {
-                            this.finishMove(this.pickedItem);
+                            this.finishMove(this.pickedItem.userObject);
                             this.pickedItem = null;
                         } else if (type === 'touchend') {
                             // Determine if touch event is a single tap or a double tap:
@@ -181,14 +181,14 @@ define([
                                 this.clickedItem = this.pickedItem;
                                 this.tapped = setTimeout(function () {
                                     self.tapped = null;
-                                    self.doSelect(self.clickedItem);
+                                    self.doSelect(self.clickedItem.userObject);
                                 }, this.DOUBLE_TAP_INTERVAL);
                             } else {
                                 // A double tap has occured. Clear the pending
                                 // single tap action and perform the open action
                                 clearTimeout(this.tapped);
                                 this.tapped = null;
-                                this.doOpen(this.pickedItem);
+                                this.doOpen(this.pickedItem.userObject);
                             }
                             this.pickedItem = null;
                         }
@@ -199,14 +199,14 @@ define([
                     // Remember the clicked item for dblclick processing
                     this.clickedItem = this.pickedItem;
                     if (this.clickedItem) {
-                        this.doSelect(this.clickedItem);
+                        this.doSelect(this.clickedItem.userObject);
                     }
                     // Release the picked item so mousemove doesn't act on it
                     this.pickedItem = null;
                     break;
                 case 'dblclick':
                     if (this.clickedItem) {
-                        this.doOpen(this.clickedItem);
+                        this.doOpen(this.clickedItem.userObject);
                     }
                     // Release the picked item so mousemove doesn't act on it
                     this.pickedItem = null;
@@ -214,7 +214,7 @@ define([
                 case 'contextmenu':
                     this.isDragging = false;
                     if (this.pickedItem) {
-                        this.doContextSensitive(this.pickedItem);
+                        this.doContextSensitive(this.pickedItem.userObject);
                         // Release the picked item so mousemove doesn't act on it
                         this.pickedItem = null;
                     }
@@ -231,28 +231,34 @@ define([
             }
         };
 
-        SelectController.prototype.doContextSensitive = function (pickedItem) {
-            if (pickedItem.userObject.showContextMenu) {
-                pickedItem.userObject.showContextMenu();
-            } else {
-                // Otherwise, build a context menu from standard capabilities
-//              $('#globeContextMenu-popup').puimenu('show');
+        SelectController.prototype.doContextSensitive = function (userObject) {
+            if (ko.isObservable(userObject.isContextSensitive) && userObject.isContextSensitive()) {                
+                if (userObject.showContextMenu) {
+                    userObject.showContextMenu();
+                } else {
+                    // Otherwise, build a context menu from standard capabilities
+    //              $('#globeContextMenu-popup').puimenu('show');
+                }
             }
         };
 
-        SelectController.prototype.isMovable = function (pickedItem) {
-            return pickedItem.userObject.isMovable;
+        SelectController.prototype.isMovable = function (userObject) {
+            if (ko.isObservable(userObject.isMovable)) {
+                return userObject.isMovable();
+            } else {
+                return userObject.isMovable
+            };
         };
-        SelectController.prototype.startMove = function (pickedItem) {
-            if (pickedItem.userObject.moveStarted) {
+        SelectController.prototype.startMove = function (userObject) {
+            if (userObject.moveStarted) {
                 // Fires EVENT_OBJECT_MOVE_STARTED
-                pickedItem.userObject.moveStarted();
+                userObject.moveStarted();
             }
         };
-        SelectController.prototype.doMove = function (pickedItem, terrainObject) {
-            if (pickedItem.userObject.moveToLatLon) {
+        SelectController.prototype.doMove = function (userObject, terrainObject) {
+            if (userObject.moveToLatLon) {
                 // Fires EVENT_OBJECT_MOVED
-                pickedItem.userObject.moveToLatLon(
+                userObject.moveToLatLon(
                     terrainObject.position.latitude,
                     terrainObject.position.longitude);
             }
@@ -268,23 +274,40 @@ define([
 //                            }
         };
 
-        SelectController.prototype.finishMove = function (pickedItem) {
+        SelectController.prototype.finishMove = function (userObject) {
             // Test for a "Movable" capability    
-            if (pickedItem.userObject.moveFinished) {
+            if (userObject.moveFinished) {
                 // Fires EVENT_OBJECT_MOVE_FINISHED
-                pickedItem.userObject.moveFinished();
+                userObject.moveFinished();
             }
         };
 
-        SelectController.prototype.doSelect = function (pickedItem) {
-            if (pickedItem.userObject.select) {
-                pickedItem.userObject.select();
+        SelectController.prototype.doSelect = function (userObject) {
+            if (ko.isObservable(userObject.isSelectable) && userObject.isSelectable()) {                
+                if (this.lastSelectedItem() === userObject) {
+                    return;
                 }
+                if (this.lastSelectedItem() !== null) {
+                    this.lastSelectedItem().select({selected: false});
+                    this.lastSelectedItem(null);
+                }
+                if (userObject.select) {
+                    userObject.select({selected: true});
+                    this.lastSelectedItem(userObject);
+                }
+            }
         };
-
-        SelectController.prototype.doOpen = function (pickedItem) {
-            if (pickedItem.userObject.open) {
-                pickedItem.userObject.open();
+        SelectController.prototype.doDeselect = function (userObject) {
+            if (this.lastSelectedItem() === userObject) {
+                this.lastSelectedItem().select({selected: false});
+                this.lastSelectedItem(null);
+            }
+        };
+        SelectController.prototype.doOpen = function (userObject) {
+            if (ko.isObservable(userObject.isOpenable) && userObject.isOpenable()) {                
+                if (userObject.open) {
+                    userObject.open();
+                }
             }
         };
 

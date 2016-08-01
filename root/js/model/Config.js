@@ -14,13 +14,11 @@
 define(['jquery',
         'model/Constants',
         'model/util/Log',
-        'model/globe/MarkerManager',
         'model/util/Settings',
         'worldwind'],
     function ($,
               constants,
               log,
-              MarkerManager,
               settings) {
         "use strict";
         /**
@@ -48,12 +46,11 @@ define(['jquery',
             startupHeading: 0,
             startupTilt: 0,
             startupRoll: 0,
-            showPanControl: true,
+            showPanControl: false,
             showExaggerationControl: true,
             showFieldOfViewControl: false,
             terrainSampleRadius: 30
       };
-
 
         return Config;
     }

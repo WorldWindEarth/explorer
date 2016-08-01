@@ -14,15 +14,17 @@
  * @author Bruce Schubert
  */
 define([
+    'knockout',
     'model/util/Publisher', 
     'model/Events'],
-    function (publisher, events) {
+    function (ko, publisher, events) {
         "use strict";
         
         var Selectable = {
-            select: function () {
-                if (this.isSelectable) {
-                    if (this.selectMe()) {
+            // select function template added to Selectable instances
+            select: function (params) {
+                if (this.isSelectable()) {
+                    if (this.selectMe(params)) {
                         // Fire the selected event if we succeeded.
                         this.fire(events.EVENT_OBJECT_SELECTED, this);
                     }
@@ -49,7 +51,7 @@ define([
                     }
                 }
                 // Add the properties
-                o.isSelectable = true;
+                o.isSelectable = ko.observable(true);
                 o.selectMe = selectCallback;
                 
                 // Add the Publisher capability so that events can be generated.

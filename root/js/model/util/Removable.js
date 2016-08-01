@@ -15,15 +15,17 @@
  * @author Bruce Schubert
  */
 define([
+    'knockout',
     'model/util/Publisher',
     'model/Events'],
     function (
+        ko,
         publisher,
         events) {
         "use strict";
         var Removable = {
             remove: function () {
-                if (this.isRemovable) {
+                if (this.isRemovable()) {
                     if (this.removeMe()) {
                         this.fire(events.EVENT_OBJECT_REMOVED, this);
                     }
@@ -50,7 +52,7 @@ define([
                     }
                 }
                 // Add the properties
-                o.isRemovable = true;
+                o.isRemovable = ko.observable(true);
                 o.removeMe = removeCallback;
 
                 // Add the Publisher capability so that events can be generated.

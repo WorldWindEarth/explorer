@@ -28,14 +28,15 @@ define(['knockout', 'model/Constants'],
 
                 /** "Edit" function invokes a modal dialog to edit the marker attributes */
                 self.editMarker = function (marker) {
-                    if (marker.isOpenable) {
+                    if (marker.isOpenable()) {
+                        globe.selectController.doSelect(marker);
                         marker.open();
                     }
                 };
                 
                 /** "Remove" function removes a marker from the globe */
                 self.removeMarker = function (marker) {
-                    if (marker.isRemovable) {
+                    if (marker.isRemovable()) {
                         marker.remove();
                     }
                 };
