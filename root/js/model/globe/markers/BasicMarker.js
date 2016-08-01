@@ -12,6 +12,7 @@ define([
     'model/Constants',
     'model/util/ContextSensitive',
     'model/Events',
+    'model/util/Formatter',
     'model/util/Openable',
     'model/util/Log',
     'model/util/Movable',
@@ -26,6 +27,7 @@ define([
                 constants,
                 contextSensitive,
                 events,
+                formatter,
                 openable,
                 log,
                 movable,
@@ -92,7 +94,7 @@ define([
                 contextSensitive.makeContextSensitive(this, function () {    // define the function that shows the context sentive memnu
                     $.growl({
                         title: self.name(), 
-                        message: self.location + "\n" + self.toponym()});
+                        message: "Location: " + self.toponym() + ", " + self.location()});
                 });
 
                 // Observables
@@ -109,8 +111,7 @@ define([
                 this.longitude (position.longitude);
                 /** The lat/lon location string of this marker */
                 this.location = ko.computed(function () {
-                    // TODO: Use Formatter module
-                    return "Lat " + self.latitude().toPrecision(4).toString() + "\n" + "Lon " + self.longitude().toPrecision(5).toString();
+                    return formatter.formatDecimalDegreesLat(self.latitude(), 3) + ", " + formatter.formatDecimalDegreesLon(self.longitude(), 3);
                 });
                 this.toponym = ko.observable("");
                 
@@ -216,7 +217,7 @@ define([
                             }
                         }
                         // Update the placename property: toponym
-                        self.toponym = placename;
+                        self.toponym(placename);
 
                         log.info('BasicMarker', 'refreshPlace', self.name() + ': EVENT_PLACE_CHANGED');
                         self.fire(events.EVENT_PLACE_CHANGED, self);
