@@ -98,6 +98,7 @@ define(['knockout',
                         break;
                     }
                 }
+                this.globe.selectController.doDeselect(marker);
             };
 
             /**
