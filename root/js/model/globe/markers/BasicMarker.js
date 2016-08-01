@@ -11,9 +11,11 @@ define([
     'jquery-growl',
     'model/Constants',
     'model/util/ContextSensitive',
+    'model/Events',
     'model/util/Openable',
     'model/util/Log',
     'model/util/Movable',
+    'model/services/PlaceService',
     'model/util/Removable',
     'model/util/Selectable',
     'model/util/WmtUtil',
@@ -23,9 +25,11 @@ define([
                 growl,
                 constants,
                 contextSensitive,
+                events,
                 openable,
                 log,
                 movable,
+                placeService,
                 removable,
                 selectable,
                 util) {
@@ -49,6 +53,8 @@ define([
                         args = params || {},
                         normalAttributes, highlightAttributes, placemark;
 
+                this.globe = manager.globe;
+                
                 // TODO: assert validitiy of method arguments
 
                 // Add the mix-in capabilites:
@@ -78,13 +84,15 @@ define([
                 // Make deletable via menu: adds the isRemovable member and the "remove" method
                 removable.makeRemovable(this, function () {     // define the callback that "removes" this marker
                     // TODO: Could ask for confirmation; return false if veto'd
-                    manager.removeMarker(self); // Removes the marker from the manager's observableArray
+                    manager.removeMarker(self);     // Removes the marker from the manager's observableArray
                     return true;    // return true to fire a EVENT_OBJECT_REMOVED
                 });
 
                 // Make context sensitive by the SelectController: adds the isContextSensitive member
-                contextSensitive.makeContextSenstive(this, function () {    // define the function that shows the context sentive memnu
-                    $.growl({title: "TODO", message: "Show menu with delete, open, and lock/unlock"});
+                contextSensitive.makeContextSensitive(this, function () {    // define the function that shows the context sentive memnu
+                    $.growl({
+                        title: self.name(), 
+                        message: self.location + "\n" + self.toponym()});
                 });
 
                 // Observables
@@ -93,21 +101,26 @@ define([
                 this.id = ko.observable(args.id || util.guid());
                 /** The name of this marker */
                 this.name = ko.observable(args.name || "Marker");
+                /** The movable mix-in state */
+                this.isMovable(args.isMovable === undefined ? false : args.isMovable);
                 /** The latitude of this marker -- set be by the Movable interface during pick/drag operations. See SelectController */
-                this.latitude(position.latitude);
+                this.latitude(position.latitude)
                 /** The longitude of this marker -- may be set by the Movable interface during pick/drag operations See SelectController */
                 this.longitude (position.longitude);
                 /** The lat/lon location string of this marker */
                 this.location = ko.computed(function () {
+                    // TODO: Use Formatter module
                     return "Lat " + self.latitude().toPrecision(4).toString() + "\n" + "Lon " + self.longitude().toPrecision(5).toString();
                 });
-                /** The movable mix-in state */
-                this.isMovable(args.isMovable === undefined ? true : args.isMovable);
+                this.toponym = ko.observable("");
                 
                 // Properties
                 
                 /** The image source url, stored/recalled in the persistant store */
                 this.source = args.imageSource;
+                /** DOM element id to display view when this marker is selected. */
+                //this.viewTemplateName = 'basic-marker-view-template';
+                
                 
                 // Create the placemark property
                 normalAttributes = new WorldWind.PlacemarkAttributes(BasicMarker.commonAttributes());
@@ -132,7 +145,7 @@ define([
                 // See: SelectController
                 this.placemark.pickDelegate = this;
 
-                // Synchronize the placemark to the observable (writeable) properties of this marker
+                // Synchronize the placemark to this marker's the observable properties
 
                 this.name.subscribe(function (newName) {
                     self.placemark.label = newName;
@@ -143,8 +156,77 @@ define([
                 this.longitude.subscribe(function (newLon) {
                     self.placemark.position.longitude = newLon;
                 });
+                
+                // Self subscribe to move operations so we can update the toponyn when
+                // the move is finished. We don't want to update during the move itself.
+                this.on(events.EVENT_OBJECT_MOVE_FINISHED, this.refresh);
 
+                this.refresh();
             };
+
+
+            /**
+             * Updates the marker's place data.
+             */
+            BasicMarker.prototype.refresh = function () {
+                this.refreshPlace();
+            };
+
+            /**
+             * Updates this object's place attributes. 
+             */
+            BasicMarker.prototype.refreshPlace = function (deferred) {
+
+                if (!this.latitude() || !this.longitude()) {
+                    return;
+                }
+                var self = this,
+                    i, max, item, 
+                    places = [], 
+                    placename = '',
+                    placeResults;
+
+                // Get the place name(s) at this location
+                placeService.places(
+                    this.latitude(),
+                    this.longitude(),
+                    function (json) { // Callback to process Yahoo GeoPlanet geo.placefinder result
+
+                        // Load all the places into a places object array
+                        if (!json.query.results) {
+                            log.error("BasicMarker", "refreshPlace", "json.query.results is null");
+                            return;
+                        }
+                        // Place single result into an array for processing
+                        placeResults = (json.query.count === 1 ? [json.query.results.place] : json.query.results.place);
+                        for (i = 0, max = placeResults.length; i < max; i++) {
+                            item = placeResults[i];
+                            places[i] = {
+                                name: item.name, 
+                                placeType: item.placeTypeName.content,
+                            };
+                        };
+                        self.places = places; // Saving the place results for testing... not currently used
+
+                        // Find the first place name that's not a zip code (they're ordered by granularity) 
+                        for (i = 0, max = places.length; i < max; i++) {
+                            if (places[i].type !== "Zip Code") {
+                                placename = places[i].name;
+                                break;
+                            }
+                        }
+                        // Update the placename property: toponym
+                        self.toponym = placename;
+
+                        log.info('BasicMarker', 'refreshPlace', self.name() + ': EVENT_PLACE_CHANGED');
+                        self.fire(events.EVENT_PLACE_CHANGED, self);
+                        if (deferred) {
+                            deferred.resolve(self);
+                        }
+                    }
+                );
+            };
+
 
             BasicMarker.commonAttributes = function () {
                 var attributes = new WorldWind.PlacemarkAttributes(null);
