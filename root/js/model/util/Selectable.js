@@ -21,6 +21,7 @@ define([
         "use strict";
         
         var Selectable = {
+            // select function template added to Selectable instances
             select: function (params) {
                 if (this.isSelectable()) {
                     if (this.selectMe(params)) {
