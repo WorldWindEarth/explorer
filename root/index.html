@@ -131,7 +131,13 @@
                             </h4>
                         </div>
                         <div id="home-body" class="section-body collapse in">
-                            <p>This is an application framework build with Bootstrap and KnockoutJS</p>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Date/Time Settings</div>
+                                <div class="panel-body">
+                                    <text class="label">Auto Detect Time Zone:</text>
+                                    <input type="checkbox" data-bind="checked: timeZoneDetectEnabled" />                                
+                                </div>
+                            </div>
                         </div>
                     </div>
 
