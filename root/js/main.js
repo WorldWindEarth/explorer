@@ -17,6 +17,7 @@ requirejs.config({
         'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
+        'moment': 'libs/moment/moment-2.14.1',
         'worldwind': 'libs/webworldwind/worldwindlib',
         'model': 'model' // root application path
     },
