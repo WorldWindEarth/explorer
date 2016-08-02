@@ -25,6 +25,7 @@ define(['knockout',
             
             this.globe = globe;
             this.timeZoneDetectEnabled = globe.timeZoneDetectEnabled;
+            this.use24Time = globe.use24Time;
 
         }
 

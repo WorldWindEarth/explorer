@@ -110,6 +110,7 @@ define(['knockout',
             this.wwd = wwd;
 
             // Observable properties
+            this.use24Time = ko.observable(false);
             this.timeZoneDetectEnabled = ko.observable(true);
             this.timeZoneOffsetHours = ko.observable(0); // default to UTC
             this.timeZoneName = ko.observable("UTC"); // default to UTC
