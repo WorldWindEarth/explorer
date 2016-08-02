@@ -11,11 +11,14 @@
  *
  * @author Bruce Schubert
  */
-define([
+define(['knockout',
+        'moment',
         'model/Constants',
         'model/Events',
         'worldwind'],
-    function (constants,
+    function (ko,
+              moment,
+              constants,
               events,
               ww) {
         "use strict";
@@ -73,20 +76,22 @@ define([
                     WorldWind.OFFSET_PIXELS, LEFT_MARGIN + 52,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN + 30),
                 riseOffset = new WorldWind.Offset(
-                    WorldWind.OFFSET_PIXELS, 3,
+                    WorldWind.OFFSET_PIXELS, 0,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN - 25),
                 setsOffset = new WorldWind.Offset(
-                    WorldWind.OFFSET_PIXELS, 64,
+                    WorldWind.OFFSET_PIXELS, 72,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN - 25),
                 rise2Offset = new WorldWind.Offset(
-                    WorldWind.OFFSET_PIXELS, -25,
+                    WorldWind.OFFSET_PIXELS, -20,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN - 45),
                 sets2Offset = new WorldWind.Offset(
-                    WorldWind.OFFSET_PIXELS, -85,
+                    WorldWind.OFFSET_PIXELS, -92,
                     WorldWind.OFFSET_PIXELS, BOTTOM_MARGIN - 45),
                 textAttr = new WorldWind.TextAttributes(null),
                 smallTextAttr = new WorldWind.TextAttributes(null);
 
+            this.globe = globe;
+            
             // Graphics
 
             this.background = new WorldWind.ScreenImage(lowerLeft, constants.IMAGE_PATH + "widget-circle-bg.png");
@@ -214,21 +219,11 @@ define([
          * Updates the date and time text with formatted strings.
          */
         TimeWidget.prototype.updateDateTimeText = function () {
-            //var timeOptions = {hour: "2-digit", minute: "2-digit", timeZoneName: "short", hour12: false},
-            var timeOptions = {hour: "2-digit", minute: "2-digit"},
-                dateOptions = {"month": "2-digit", "day": "2-digit"},
-                utc,
-                localTime;
+            var localTime;
             if (this.dateTime) {
-                // Convert current time to UTC milliseconds (must convert tz offset from minutes to milliseconds)
-                // Then apply the time zone offset for the globe's current location
-                //utc = this.dateTime.getTime() + (this.dateTime.getTimezoneOffset() * 60000);
-                //localTime = new Date(utc + this.timeZoneOffsetMs + (this.isDstEnabled(this.dateTime) ? 3600000 : 0));
-
-                localTime = this.timeZoneTime(this.dateTime);
-
-                this.time.text = localTime.toLocaleTimeString('en', timeOptions);
-                this.date.text = localTime.toLocaleDateString('en', dateOptions);
+                localTime = moment(this.timeZoneTime(this.dateTime));
+                this.time.text = localTime.format(this.globe.use24Time() ? "HH:mm" : "h:mm A")
+                this.date.text = localTime.format("MMM D");
                 this.timezone.text = this.timeZoneName;
             }
         };
@@ -238,13 +233,12 @@ define([
          * Updates the sunrise and sunset text with formatted strings.
          */
         TimeWidget.prototype.updateSunlightText = function () {
-            var shortTimeOptions = {hour: "2-digit", minute: "2-digit", hour12: false},
-                sunriseTime, sunsetTime;
+            var sunriseTime, sunsetTime;
             if (this.sunlight) {
-                sunriseTime = this.timeZoneTime(this.sunlight.sunriseTime);
-                sunsetTime = this.timeZoneTime(this.sunlight.sunsetTime);
-                this.sunrise.text = isNaN(sunriseTime.getTime()) ? "" : sunriseTime.toLocaleTimeString('en', shortTimeOptions);
-                this.sunset.text = isNaN(sunsetTime.getTime()) ? "" : sunsetTime.toLocaleTimeString('en', shortTimeOptions);
+                sunriseTime = moment(this.timeZoneTime(this.sunlight.sunriseTime));
+                sunsetTime = moment(this.timeZoneTime(this.sunlight.sunsetTime));
+                this.sunrise.text = sunriseTime.isValid() ? sunriseTime.format(this.globe.use24Time() ? "HH:mm" : "h:mmA") : "";
+                this.sunset.text = sunsetTime.isValid() ? sunsetTime.format(this.globe.use24Time() ? "HH:mm" : "h:mmA") : "";
             }
         };
 

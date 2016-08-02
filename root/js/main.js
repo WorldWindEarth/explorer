@@ -17,6 +17,7 @@ requirejs.config({
         'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
+        'moment': 'libs/moment/moment-2.14.1',
         'worldwind': 'libs/webworldwind/worldwindlib',
         'model': 'model' // root application path
     },
@@ -39,6 +40,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/globe/Globe',
     'views/GlobeViewModel',
     'views/HeaderViewModel',
+    'views/HomeViewModel',
     'views/LayersViewModel',
     'views/MarkerEditor',
     'views/MarkersViewModel',
@@ -55,6 +57,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
                 Globe,
                 GlobeViewModel,
                 HeaderViewModel,
+                HomeViewModel,
                 LayersViewModel,
                 MarkerEditor,
                 MarkersViewModel,
@@ -111,6 +114,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             ko.applyBindings(new GlobeViewModel(globe, explorer.markerManager), document.getElementById('globe'));
             ko.applyBindings(new ProjectionsViewModel(globe), document.getElementById('projections'));
             ko.applyBindings(new SearchViewModel(globe), document.getElementById('search'));
+            ko.applyBindings(new HomeViewModel(globe), document.getElementById('home'));
             ko.applyBindings(new LayersViewModel(globe), document.getElementById('layers'));
             ko.applyBindings(new MarkersViewModel(globe, explorer.markerManager), document.getElementById('markers'));
             ko.applyBindings(new OuputViewModel(globe), document.getElementById('output'));

@@ -14,9 +14,11 @@
  * @exports TimeZoneLayer
  * @author Bruce Schubert
  */
-define(['model/globe/layers/ShapefileLayer',
+define(['model/Constants',
+        'model/globe/layers/ShapefileLayer',
         'worldwind'],
-    function (ShapefileLayer,
+    function (constants,
+              ShapefileLayer,
               ww) {
         "use strict";
         /**
@@ -35,12 +37,14 @@ define(['model/globe/layers/ShapefileLayer',
                     0.375 + 0.5 * Math.random(),
                     0.0);   // We must draw the interior to enable picking, but make it transparent
 
+                // Disabled drawing the outlines to improve rendering/picking performance
+                configuration.attributes.drawOutline = false;
                 // Paint the outline in a darker variant of the interior color.
-                configuration.attributes.outlineColor = new WorldWind.Color(
-                    0.5 * configuration.attributes.interiorColor.red,
-                    0.5 * configuration.attributes.interiorColor.green,
-                    0.5 * configuration.attributes.interiorColor.blue,
-                    0.5);
+//                configuration.attributes.outlineColor = new WorldWind.Color(
+//                    0.5 * configuration.attributes.interiorColor.red,
+//                    0.5 * configuration.attributes.interiorColor.green,
+//                    0.5 * configuration.attributes.interiorColor.blue,
+//                    0.5);
 
                 // Make the DBaseRecord and Layer available to picked objects
                 configuration.userProperties = {record: attributes, layer: record.shapefile.layer};
@@ -50,11 +54,12 @@ define(['model/globe/layers/ShapefileLayer',
 
             this._enabled = true;
 
-            // Open Natural Earth 10m time zones have been simplified to .05deg resolution
+            // The Open Natural Earth 10m time zones have been simplified to .05deg resolution
             // See: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/timezones/
             ShapefileLayer.call(this,
                 ww.WWUtil.currentUrlSansFilePart() + "/data/timezones/ne_05deg_time_zones.shp",
-                "Time Zones", shapeConfigurationCallback);
+                constants.LAYER_NAME_TIME_ZONES, 
+                shapeConfigurationCallback);
         };
 
         // Inherit the ShapefileLayer methods

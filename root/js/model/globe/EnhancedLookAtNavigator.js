@@ -9,11 +9,11 @@
 
 define([
     'model/util/Log',
-    'model/Explorer',
+    'model/Constants',
     'worldwind'],
     function (
         Log,
-        explorer,
+        constants,
         ww) {
         "use strict";
         var EnhancedLookAtNavigator = function (worldWindow) {
@@ -135,7 +135,11 @@ define([
             }
             if (isNaN(this.range)) {
                 Log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: NaN");
-                this.range = this.lastRange;
+                this.range = isNaN(this.lastRange) ? 1000 : this.lastRange;
+            }
+            if (this.range < 0) {
+                Log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: < 0");
+                this.range = 1;
             }
             if (isNaN(this.heading)) {
                 Log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid heading: NaN");
@@ -161,7 +165,7 @@ define([
 
             // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
             // range is zero.
-            this.range = WorldWind.WWMath.clamp(this.range, 1, explorer.NAVIGATOR_MAX_RANGE);
+            this.range = WorldWind.WWMath.clamp(this.range, 1, constants.NAVIGATOR_MAX_RANGE);
 
             // Normalize heading to between -180 and +180.
             this.heading = WorldWind.Angle.normalizedDegrees(this.heading);
