@@ -110,10 +110,12 @@ define(['knockout',
             this.wwd = wwd;
 
             // Observable properties
+            this.use24Time = ko.observable(false);
+            this.timeZoneDetectEnabled = ko.observable(true);
             this.timeZoneOffsetHours = ko.observable(0); // default to UTC
             this.timeZoneName = ko.observable("UTC"); // default to UTC
             this.dateTime = ko.observable(new Date(0));
-            this.viewpoint = ko.observable(Viewpoint.ZERO).extend({rateLimit: 100});
+            this.viewpoint = ko.observable(Viewpoint.ZERO).extend({rateLimit: 100});    // 10hz
             this.terrainAtMouse = ko.observable(Terrain.ZERO);
             this.sunlight = ko.observable(new Sunlight(
                 this.dateTime(),
@@ -158,10 +160,11 @@ define(['knockout',
 
             // Add optional background layers
             if (showBackground || showBackground === undefined) {
-                this.layerManager.addOverlayLayer(new TimeZoneLayer(), {
+                // Add TimeZone support
+                this.timeZoneLayer = new TimeZoneLayer();
+                this.layerManager.addOverlayLayer(this.timeZoneLayer, {
                     enabled: true,
-                    pickEnabled: true,
-                    opacity: 0.1
+                    pickEnabled: true
                 });
                 this.layerManager.addEffectLayer(new EnhancedAtmosphereLayer(this));
             }
@@ -230,7 +233,11 @@ define(['knockout',
             this.updateDateTime(new Date());
 
             // Subscribe to rate-throttled viewpoint updates
-            this.viewpoint.subscribe(this.updateTimeZoneOffset, this);
+            this.viewpoint.subscribe(function () {
+                if (this.timeZoneDetectEnabled()) {
+                    this.updateTimeZoneOffset();
+                }
+            }, this);
         };
 
         /**
@@ -261,7 +268,7 @@ define(['knockout',
         };
 
         /**
-         * Updates model properties associated with the globe's view.
+         * Updates the globe's viewpoint..
          */
         Globe.prototype.updateEyePosition = function () {
             var viewpoint = this.getViewpoint(), // computes the viewpoint
@@ -274,7 +281,7 @@ define(['knockout',
                 this.updateSunlight(time, target.latitude, target.longitude);
             }
 
-            this.viewpoint(viewpoint);  // observable
+            this.viewpoint(viewpoint);  // rate-throttled observable
         };
 
         /**
@@ -282,9 +289,11 @@ define(['knockout',
          */
         Globe.prototype.updateTimeZoneOffset = function () {
             var canvasCenter = new WorldWind.Vec2(this.wwd.canvas.width / 2, this.wwd.canvas.height / 2),
-                pickList = this.wwd.pick(canvasCenter),
-                i, len, pickedObject, userObject, record, layer;
-
+                pickList, i, len, pickedObject, 
+                userObject, layer, record;
+                
+            this.timeZoneLayer.pickEnabled = true;
+            pickList = this.wwd.pick(canvasCenter);
             if (pickList.hasNonTerrainObjects()) {
 
                 for (i = 0, len = pickList.objects.length; i < len; i++) {
@@ -307,6 +316,7 @@ define(['knockout',
                     }
                 }
             }
+            this.timeZoneLayer.pickEnabled = false;
         };
 
         /**

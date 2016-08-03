@@ -40,6 +40,7 @@ define([], function () {
         LAYER_NAME_SKY: "Sky",
         LAYER_NAME_VIEW_CONTROLS: "Controls",
         LAYER_NAME_WIDGETS: "Widgets",
+        LAYER_NAME_TIME_ZONES: "Time Zones",
         MARKER_LABEL_LATLON: "markerLabelLatLon",
         MARKER_LABEL_NAME: "markerLabelName",
         MARKER_LABEL_NONE: "markerLabelNone",
