@@ -7,7 +7,7 @@
 
 define(['knockout',
     'model/Constants',
-    'model/globe/markers/BasicMarker',
+    'model/markers/BasicMarker',
     'worldwind'],
         function (ko,
                 constants,
