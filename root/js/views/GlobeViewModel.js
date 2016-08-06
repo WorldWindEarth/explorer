@@ -6,7 +6,7 @@
 /*global WorldWind*/
 
 define(['knockout', 'jquery', 'jqueryui',
-        'model/globe/markers/BasicMarker',
+        'model/markers/BasicMarker',
         'model/Config',
         'model/Constants',
         'model/Explorer',

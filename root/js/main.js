@@ -18,7 +18,7 @@ requirejs.config({
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
         'moment': 'libs/moment/moment-2.14.1',
-        'worldwind': 'libs/webworldwind/worldwindlib',
+        'worldwind': 'libs/emxsys/webworldwind/worldwindlib.debug',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
