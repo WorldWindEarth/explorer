@@ -7,7 +7,9 @@ body {
     /* Move the content down because we have a fixed navbar that is 50px tall */
 }
 
+/*Desktop or laptop*/
 @media (min-width: 768px) {
+    /*desktop sidebar*/
     .sidebar-left {
         position: fixed;
         top: 51px;
@@ -25,18 +27,20 @@ body {
     }
 }
 
+/*Mobile phone or table*/
 @media (max-width: 767px) {
+    
+    /* symbol for opening sections */
     .section-heading .section-toggle:after {
         font-family: 'Glyphicons Halflings';
         content: "\e114";
         float: none;
         color: lightgrey;
-        /* symbol for opening sections */
     }
 
+    /* symbol for closing sections */
     .section-heading .section-toggle.collapsed:after {
         content: "\e080";
-        /* symbol for closing sections */
     }
 
     a.section-toggle {
@@ -58,6 +62,23 @@ body {
     min-height:100%;
 }
 
+/*split window gutter*/
+.gutter {
+    background-color: #aaa;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    z-index: 900 !important ;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('images/grips/vertical.png');
+    cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('images/grips/horizontal.png');
+    cursor: ns-resize;
+}
 
 /* Controls the style of enabled and disabled layers */
 .layer-name {
@@ -108,6 +129,14 @@ body {
 
 .section-heading {
 }
+
+/*split window container class*/
+.split {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
 
 .sub-header {
     padding-bottom: 10px;
