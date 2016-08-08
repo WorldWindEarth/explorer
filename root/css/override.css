@@ -7,54 +7,6 @@ body {
     /* Move the content down because we have a fixed navbar that is 50px tall */
 }
 
-/*Desktop or laptop*/
-@media (min-width: 768px) {
-    /*desktop sidebar*/
-    .sidebar-left {
-        position: fixed;
-        top: 51px;
-        bottom: 0;
-        left: 0;
-        z-index: 1000;
-        display: block;
-        padding-top: 0px;
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-bottom: 20px;
-        overflow-x: hidden;
-        overflow-y: auto;
-        border-right: 1px solid #eee;
-    }
-}
-
-/*Mobile phone or table*/
-@media (max-width: 767px) {
-    
-    /* symbol for opening sections */
-    .section-heading .section-toggle:after {
-        font-family: 'Glyphicons Halflings';
-        content: "\e114";
-        float: none;
-        color: lightgrey;
-    }
-
-    /* symbol for closing sections */
-    .section-heading .section-toggle.collapsed:after {
-        content: "\e080";
-    }
-
-    a.section-toggle {
-        text-decoration: none;
-    }
-}
-
-@media (min-width: 768px) {
-    .section-heading .section-toggle:after {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-}
-
 .container-full {
     margin: 0 auto;
     width: 100%;
@@ -186,4 +138,59 @@ body {
     background:#3e444c;
     top:3px;
 }
+
+
+/*Desktop or laptop*/
+@media (min-width: 768px) {
+    /*desktop sidebar*/
+    .sidebar-left {
+        position: fixed;
+        top: 51px;
+        bottom: 0;
+        left: 0;
+        z-index: 1000;
+        display: block;
+        padding-top: 0px;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-bottom: 20px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        border-right: 1px solid #eee;
+    }
+    .main {
+        top: 51px;
+        position: fixed;
+        height: calc(100vh - 51px);
+    }
+    .section-heading .section-toggle:after {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+/*Mobile phone or table*/
+@media (max-width: 767px) {
+    .main {
+        height: calc(100vh - 71px);
+    }
+    /* symbol for opening sections */
+    .section-heading .section-toggle:after {
+        font-family: 'Glyphicons Halflings';
+        content: "\e114";
+        float: none;
+        color: lightgrey;
+    }
+
+    /* symbol for closing sections */
+    .section-heading .section-toggle.collapsed:after {
+        content: "\e080";
+    }
+
+    a.section-toggle {
+        text-decoration: none;
+    }
+}
+
+
 

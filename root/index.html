@@ -286,118 +286,113 @@
                 </div>
 
                 <!--
-                Globe 
+                Explorer 
                 -->
-                <div class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main">
-
-                    <div class="row" style="height: 100%;">
-
+                <div id="explorer" class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main">
+                    <!--
+                    Globe View (bound to the GlobeViewModel)
+                    -->
+                    <div id="globe" class="split" style="height: 100%">
+                        <div class="section-heading" style="width: 100%">
+                            <h4 class="sub-header">
+                                <span class="glyphicon glyphicon-globe" aria-hidden="true"
+                                      style="padding-right:5px;"></span>
+                                Globe
+                                <!-- Tool bar -->
+                                <span class="btn-group" style="float: right">
+                                    <!-- Add Marker button and palette -->
+                                    <button type="button"
+                                            class="btn btn-primary btn-sm"
+                                            style="padding-top: 0; padding-bottom: 0;"
+                                            data-bind="click: armDropMarker">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                        <img width="28px" height="28px;"
+                                             data-bind="attr:{src: selectedMarkerTemplate().imageSource}"/>
+                                    </button>
+                                    <!--Dropdown button-->
+                                    <button type="button"
+                                            class="btn btn-primary btn-sm dropdown-toggle"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true">
+                                        <span class="caret"></span>
+                                        <span class="sr-only">Markers Dropdown</span>
+                                    </button>
+                                    <!-- Dropdown list bound the 'markerPalette' observableArray -->
+                                    <ul id="marker-palette"
+                                        class="dropdown-menu"
+                                        style="left: initial; right: 0; min-width: 30px"
+                                        data-bind="foreach: markerPalette">
+                                        <li data-bind="click: $parent.selectedMarkerTemplate">
+                                            <a><img width="28px" height="28px;"
+                                                    data-bind="attr:{src: $data.imageSource}"/></a>
+                                        </li>
+                                    </ul>
+                                </span>
+                            </h4>
+                        </div>
                         <!--
-                        Globe View (bound to the GlobeViewModel)
+                        WorldWindow
                         -->
-                        <div id="globe" class="col-md-12">
-                            <div class="section-heading" style="width: 100%">
-                                <h4 class="sub-header">
-                                    <span class="glyphicon glyphicon-globe" aria-hidden="true"
-                                          style="padding-right:5px;"></span>
-                                    Globe
-                                    <!-- Tool bar -->
-                                    <span class="btn-group" style="float: right">
-                                        <!-- Add Marker button and palette -->
-                                        <button type="button"
-                                                class="btn btn-primary btn-sm"
-                                                style="padding-top: 0; padding-bottom: 0;"
-                                                data-bind="click: armDropMarker">
-                                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                                            <img width="28px" height="28px;"
-                                                 data-bind="attr:{src: selectedMarkerTemplate().imageSource}"/>
-                                        </button>
-                                        <!--Dropdown button-->
-                                        <button type="button"
-                                                class="btn btn-primary btn-sm dropdown-toggle"
-                                                data-toggle="dropdown"
-                                                aria-haspopup="true">
-                                            <span class="caret"></span>
-                                            <span class="sr-only">Markers Dropdown</span>
-                                        </button>
-                                        <!-- Dropdown list bound the 'markerPalette' observableArray -->
-                                        <ul id="marker-palette"
-                                            class="dropdown-menu"
-                                            style="left: initial; right: 0; min-width: 30px"
-                                            data-bind="foreach: markerPalette">
-                                            <li data-bind="click: $parent.selectedMarkerTemplate">
-                                                <a><img width="28px" height="28px;"
-                                                        data-bind="attr:{src: $data.imageSource}"/></a>
-                                            </li>
-                                        </ul>
-                                    </span>
-                                </h4>
-                            </div>
-                            <!--
-                            WorldWindow
-                            -->
-                            <!--Offset the height to accommodate the section heading-->
-                            <div style="height: calc(100vh - 135px);">
-                                <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
-                                <canvas id="canvasOne" tabindex='1'
-                                        style="width: 100%; height: 100%; background-color: rgb(0,0,0); border:1px solid #000000;"
-                                        data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
-                                    Try Chrome or FireFox.
-                                </canvas>
-                                <div class="row">
-                                    <div class="col-xs-12 non-interactive" style="position:absolute; top: 35px; bottom: 0">
-                                        <!--
-                                        Time Controls
-                                        -->
-                                        <!--Create a shallow div along the bottom edge of the globe-->
-                                        <div class="interactive" style="position: absolute; bottom: 0; width: 100%">
-                                            <!--Date/Time Buttons-->
-                                            <!--style="width: 166px; margin-right: auto; margin-left: auto"-->
-                                            <div id="timeControlButtons"
-                                                 style="width: 166px; margin-right: auto; margin-left: auto">
-                                                <div class="btn-group btn-group-sm interactive" role="group"
-                                                     style="float:bottom"
-                                                     aria-label="time controls">
-                                                    <button id="time-fast-backward" type="button"
-                                                            class="btn btn-default repeatButton">
-                                                        <span class="glyphicon glyphicon-fast-backward"
-                                                              aria-hidden="true"></span>
-                                                    </button>
-                                                    <button id="time-step-backward" type="button"
-                                                            class="btn btn-default repeatButton">
-                                                        <span class="glyphicon glyphicon-step-backward"
-                                                              aria-hidden="true"></span>
-                                                    </button>
-                                                    <button id="time-reset" type="button" class="btn btn-default"
-                                                            data-bind="click: onTimeReset, css:{active: autoUpdateTime}">
-                                                        <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-                                                    </button>
-                                                    <button id="time-step-forward" type="button"
-                                                            class="btn btn-default repeatButton">
-                                                        <span class="glyphicon glyphicon-step-forward"
-                                                              aria-hidden="true"></span>
-                                                    </button>
-                                                    <button id="time-fast-forward" type="button"
-                                                            class="btn btn-default repeatButton">
-                                                        <span class="glyphicon glyphicon-fast-forward"
-                                                              aria-hidden="true"></span>
-                                                    </button>
-                                                </div>
+                        <!--Offset the height to accommodate the section heading-->
+                        <div id="worldwindow" style="height: calc(100% - 42px);">
+                            <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
+                            <canvas id="canvasOne" tabindex='1'
+                                    style="width: 100%; height: 100%; background-color: rgb(0,0,0); border:1px solid #000000;"
+                                    data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
+                                Try Chrome or FireFox.
+                            </canvas>
+                            <div class="row">
+                                <div class="col-xs-12 non-interactive">
+                                    <!--
+                                    Time Controls
+                                    -->
+                                    <!--Create a shallow div along the bottom edge of the globe-->
+                                    <div class="interactive" style="position: absolute; bottom: 0; width: 100%">
+                                        <!--Date/Time Buttons-->
+                                        <div id="timeControlButtons"
+                                             style="width: 166px; margin-right: auto; margin-left: auto">
+                                            <div class="btn-group btn-group-sm interactive" role="group"
+                                                 style="float:bottom"
+                                                 aria-label="time controls">
+                                                <button id="time-fast-backward" type="button"
+                                                        class="btn btn-default repeatButton">
+                                                    <span class="glyphicon glyphicon-fast-backward"
+                                                          aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-step-backward" type="button"
+                                                        class="btn btn-default repeatButton">
+                                                    <span class="glyphicon glyphicon-step-backward"
+                                                          aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-reset" type="button" class="btn btn-default"
+                                                        data-bind="click: onTimeReset, css:{active: autoUpdateTime}">
+                                                    <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-step-forward" type="button"
+                                                        class="btn btn-default repeatButton">
+                                                    <span class="glyphicon glyphicon-step-forward"
+                                                          aria-hidden="true"></span>
+                                                </button>
+                                                <button id="time-fast-forward" type="button"
+                                                        class="btn btn-default repeatButton">
+                                                    <span class="glyphicon glyphicon-fast-forward"
+                                                          aria-hidden="true"></span>
+                                                </button>
                                             </div>
-                                            <!--Date/Time Slider-->
-                                            <div id="timeControlSlider"
-                                                 style="width: 166px; margin-right: auto; margin-left: auto"></div>
                                         </div>
+                                        <!--Date/Time Slider-->
+                                        <div id="timeControlSlider"
+                                             style="width: 166px; margin-right: auto; margin-left: auto"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <!--
-                        Output View (bound to the OutputViewModel)
-                        -->
-                        <div id="output" data-bind="template: {
+                    <!--
+                    Output View (bound to the OutputViewModel)
+                    -->
+                    <div id="output" class="row split">
+                        <div style="height: 100%;" data-bind="template: {
                             if: viewTemplateName()!==null,
                             name: viewTemplateName,
                             data: selectedItem
@@ -532,26 +527,60 @@
         This server-layer-template script recursively renders a server's layer list items
         -->
         <script type="text/html" id="server-layer-template">
-            <li>
-                <input type="checkbox" data-bind="click: $root.onServerLayerClicked, checked: isChecked, visible: isLayer"/>
-                <span data-bind="text: title"></span>
-                <!-- ko if: layers().length -->
-                <ul>
-                    <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
-                    <!-- /ko -->
-                </ul>
+        <li>
+            <input type="checkbox" data-bind="click: $root.onServerLayerClicked, checked: isChecked, visible: isLayer"/>
+            <span data-bind="text: title"></span>
+            <!-- ko if: layers().length -->
+            <ul>
+                <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
                 <!-- /ko -->
-            </li>
-        </script>
-        <!--
-        Hello World Template
-        This test template renders 'Hello World'
-        -->
-        <script type="text/html" id="hello-world-template">
-            <p>Hello World!</p>
-        </script>
+            </ul>
+            <!-- /ko -->
+        </li>
+    </script>
+    <!--
+    Hello World Template
+    This test template renders 'Hello World'
+    -->
+    <script type="text/html" id="hello-world-template">
+        <p>Hello World!</p>
+    </script>
 
+    <!--
+    Window Splitter
+    -->
+    <script src="js/libs/split/split.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var mq = window.matchMedia( "(min-width: 768px)" ); 
+        if (mq.matches) {
+            // window width is 768px or greater
+            Split(['#globe', '#output'], {
+            direction: 'vertical',
+                    minSize: 10,
+                    sizes: [80, 20],
+                    gutterSize: 10,
+                    cursor: 'row-resize'
+            });
+        }
+        //You can also add an event listener which fires when a change is detected:
 
+//        // media query event handler
+//        if (matchMedia) {
+//          var mq = window.matchMedia("(min-width: 500px)");
+//          mq.addListener(WidthChange);
+//          WidthChange(mq);
+//        }
+//
+//        // media query change
+//        function WidthChange(mq) {
+//          if (mq.matches) {
+//            // window width is at least 500px
+//          } else {
+//            // window width is less than 500px
+//          }
+//        }   
+
+    </script>
 
     <!--Prototyping the jquery fancytree plugin-->
     <!--<script src="//cdn.jsdelivr.net/jquery.fancytree/2.9.0/jquery.fancytree-all.min.js" type="text/javascript"></script>-->
