@@ -3,15 +3,16 @@ Copyright (c) 2016, Bruce Schubert.
 The Modified BSD License (3-clause license)
 */
 body {
-    padding-top: 50px;
+    /*padding-top: 50px;*/
     /* Move the content down because we have a fixed navbar that is 50px tall */
 }
 
 .container-split {
+    /*maximum size, excluding the nav-bar*/
     position: fixed;
+    top: 54px;
+    height: calc(100vh - 54px);
     width: 100vw;
-    height: calc(100vh - 50px);
-    top: 51px;
 }
 
 .container-full {
@@ -21,7 +22,29 @@ body {
     min-height:100%;
 }
 
+.globe-button {
+    background:rgba(255,255,255,0.3);
+}
+/*.globe-button:hover {
+    background: rgba(255,255,255,0.7); 
+    color:rgba(255,255,255,0.8);
+}*/
 
+#globe {
+    overflow: hidden;
+}
+
+#globe canvas { 
+    top: 0;
+    left: 0; 
+    z-index: 0 !important; 
+    width: 100%; 
+    height: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    background-color: rgb(0,0,0); 
+    /*border:1px solid #000000;*/
+}
 /* Controls the style of enabled and disabled layers */
 .layer-name {
     font-style: italic;
@@ -101,6 +124,8 @@ body {
 .split.split-horizontal, .gutter.gutter-horizontal {
     height: 100%;
     float: left;
+}
+.split.split-vertical {
 }
 
 .sub-header {
