@@ -120,7 +120,7 @@ define(['knockout',
             this.sunlight = ko.observable(new Sunlight(
                 this.dateTime(),
                 this.viewpoint().target.latitude,
-                this.viewpoint().target.longitude)).extend({rateLimit: 100});
+                this.viewpoint().target.longitude)).extend({rateLimit: 100});   // 10hz
 
             // Override the default TextSupport with our custom verion that draws outline text
             this.wwd.drawContext.textSupport = new EnhancedTextSupport();
@@ -271,17 +271,21 @@ define(['knockout',
          * Updates the globe's viewpoint..
          */
         Globe.prototype.updateEyePosition = function () {
-            var viewpoint = this.getViewpoint(), // computes the viewpoint
-                target = viewpoint.target,
+            var currentViewpoint = this.getViewpoint(), // computes the viewpoint
+                target = currentViewpoint.target,
                 time = this.dateTime();
-
+        
+            if (this.viewpoint().equals(currentViewpoint)) {
+                return;
+            }
+            
             // Initiate a request to update the sunlight property when we've moved a significant distance
             if (!this.lastSolarTarget || this.lastSolarTarget.distanceBetween(target) > this.SUNLIGHT_DISTANCE_THRESHOLD) {
                 this.lastSolarTarget.copy(target);
                 this.updateSunlight(time, target.latitude, target.longitude);
             }
 
-            this.viewpoint(viewpoint);  // rate-throttled observable
+            this.viewpoint(currentViewpoint);  // rate-throttled observable
         };
 
         /**
@@ -519,7 +523,7 @@ define(['knockout',
         };
 
         /**
-         * Redraws the globe.
+         * Request a redraw of the globe.
          */
         Globe.prototype.redraw = function () {
             this.wwd.redraw();
