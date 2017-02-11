@@ -120,6 +120,7 @@
                 Left Sidebar
                 -->
                 <div id="left-sidebar" class="split split-horizontal tab-content">
+                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true" style="float: right;"></span>
                     <!--
                     Home tab
                     -->
@@ -538,49 +539,6 @@
     -->
     <script type="text/html" id="hello-world-template">
         <p>Hello World!</p>
-    </script>
-
-    <!--
-    Window Splitter
-    -->
-    <script src="js/libs/split/split.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        Split(['#left-sidebar', '#explorer'], {
-            direction: 'horizontal',
-            minSize: [5, 240],
-            sizes: [20, 80],
-            gutterSize: 10
-            });
-
-        Split(['#globe', '#output'], {
-            direction: 'vertical',
-            minSize: [100, 5],
-            sizes: [80, 20],
-            gutterSize: 10
-        });
-        
-//        var mq = window.matchMedia( "(min-width: 768px)" ); 
-//        // window width is 768px or greater
-//        if (mq.matches) {
-//            // Split
-//        }
-//        //You can also add an event listener which fires when a change is detected:
-//
-//        // media query event handler
-//        if (matchMedia) {
-//          var mq = window.matchMedia("(min-width: 500px)");
-//          mq.addListener(WidthChange);
-//          WidthChange(mq);
-//        }
-//
-//        // media query change
-//        function WidthChange(mq) {
-//          if (mq.matches) {
-//            // window width is at least 500px
-//          } else {
-//            // window width is less than 500px
-//          }
-//        }   
     </script>
 
     <!--Prototyping the jquery fancytree plugin-->

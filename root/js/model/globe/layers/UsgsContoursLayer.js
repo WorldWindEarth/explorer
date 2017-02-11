@@ -31,7 +31,7 @@ define([
             var cfg = {
                 title: "USGS Contour Lines",
                 version: "1.3.0",
-                service: "http://services.nationalmap.gov/arcgis/services/Contours/MapServer/WMSServer?",
+                service: "https://services.nationalmap.gov/arcgis/services/Contours/MapServer/WMSServer?",
                 layerNames: "1,2,4,5,7,8", // lines and labels: large scale, 50' and 100' respectively
                 sector: new WorldWind.Sector(18.915561901, 64.8750000000001, -160.544024274, -66.9502505149999),
                 levelZeroDelta: new WorldWind.Location(36, 36),

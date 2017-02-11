@@ -45,6 +45,7 @@ body {
     background-color: rgb(0,0,0); 
     /*border:1px solid #000000;*/
 }
+
 /* Controls the style of enabled and disabled layers */
 .layer-name {
     font-style: italic;

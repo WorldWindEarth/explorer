@@ -31,7 +31,7 @@ define([
             var cfg = {
                 title: "USGS Topo Basemap",
                 version: "1.3.0",
-                service: "http://basemap.nationalmap.gov/arcgis/services/USGSTopo/MapServer/WmsServer?",
+                service: "https://basemap.nationalmap.gov/arcgis/services/USGSTopo/MapServer/WmsServer?",
                 layerNames: "0",
                 sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
                 levelZeroDelta: new WorldWind.Location(36, 36),

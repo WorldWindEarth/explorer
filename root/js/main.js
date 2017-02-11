@@ -18,7 +18,8 @@ requirejs.config({
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
         'moment': 'libs/moment/moment-2.14.1',
-        'worldwind': 'libs/emxsys/webworldwind/worldwindlib.debug',
+        'split': 'libs/split/split',
+        'worldwind': 'libs/emxsys/webworldwind/worldwind',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
@@ -33,7 +34,7 @@ requirejs.config({
 /**
  * A top-level require call executed by the Application.
  */
-require(['knockout', 'jquery', 'bootstrap', 'worldwind',
+require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
     'model/Config',
     'model/Constants',
     'model/Explorer',
@@ -50,7 +51,7 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/globe/layers/UsgsContoursLayer',
     'model/globe/layers/UsgsImageryTopoBaseMapLayer',
     'model/globe/layers/UsgsTopoBaseMapLayer'],
-        function (ko, $, bootstrap, ww,
+        function (ko, $, bootstrap, split, ww,
                 config,
                 constants,
                 explorer,
@@ -136,6 +137,20 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
             // Auto-scroll-into-view expanded dropdown menus
             $('.dropdown').on('shown.bs.dropdown', function (event) {
                 event.target.scrollIntoView(false); // align to bottom
+            });
+
+            // Add the window splitters
+            Split(['#left-sidebar', '#explorer'], {
+                direction: 'horizontal',
+                minSize: [5, 240],
+                sizes: [20, 80],
+                gutterSize: 10
+            });
+            Split(['#globe', '#output'], {
+                direction: 'vertical',
+                minSize: [100, 5],
+                sizes: [80, 20],
+                gutterSize: 10
             });
 
             // ------------------------------------------------------------

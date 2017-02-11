@@ -278,7 +278,7 @@ define(['knockout',
             if (this.viewpoint().equals(currentViewpoint)) {
                 return;
             }
-
+            
             // Initiate a request to update the sunlight property when we've moved a significant distance
             if (!this.lastSolarTarget || this.lastSolarTarget.distanceBetween(target) > this.SUNLIGHT_DISTANCE_THRESHOLD) {
                 this.lastSolarTarget.copy(target);
