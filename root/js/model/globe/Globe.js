@@ -14,7 +14,6 @@
  * @param {Config}
  * @param {Events}
  * @param {Constants}
- * @param {EnhancedLookAtNavigator} EnhancedLookAtNavigator Doesn't allow the eye pos to go below the terrain.
  * @param {EnhancedTextSupport} EnhancedTextSupport Provides outline text.
  * @param {EnhancedViewControlsLayer} EnhancedViewControlsLayer Provides a vertical layout.
  * @param {KeyboardControls} KeyboardControls Provides keyboard navigation for the globe.
@@ -41,7 +40,6 @@ define(['knockout',
         'model/Constants',
         'model/Events',
         'model/globe/layers/EnhancedAtmosphereLayer',
-        'model/globe/EnhancedLookAtNavigator',
         'model/globe/EnhancedTextSupport',
         'model/globe/layers/EnhancedViewControlsLayer',
         'model/globe/KeyboardControls',
@@ -65,7 +63,6 @@ define(['knockout',
               constants,
               events,
               EnhancedAtmosphereLayer,
-              EnhancedLookAtNavigator,
               EnhancedTextSupport,
               EnhancedViewControlsLayer,
               KeyboardControls,
@@ -91,16 +88,16 @@ define(['knockout',
          * @param {WorldWindow} wwd The WorldWindow object.
          * @param {Object} options Optional. Example (with defaults):
          *  {
-             *      showBackground: true
-             *      showReticule: true, 
-             *      showViewControls: true, 
-             *      includePanControls: true, 
-             *      includeRotateControls: true, 
-             *      includeTiltControls: true, 
-             *      includeZoomControls: true, 
-             *      includeExaggerationControls: false, 
-             *      includeFieldOfViewControls: false, 
-             *  }
+         *      showBackground: true
+         *      showReticule: true,
+         *      showViewControls: true,
+         *      includePanControls: true,
+         *      includeRotateControls: true,
+         *      includeTiltControls: true,
+         *      includeZoomControls: true,
+         *      includeExaggerationControls: false,
+         *      includeFieldOfViewControls: false,
+         *  }
          * @returns {Globe}
          */
         var Globe = function (wwd, options) {
@@ -108,6 +105,9 @@ define(['knockout',
             publisher.makePublisher(this);
 
             this.wwd = wwd;
+
+            // Enhance the behavior of the navigator: prevent it from going below the terrain
+            this.enhanceLookAtNavigator(wwd.navigator);
 
             // Observable properties
             this.use24Time = ko.observable(false);
@@ -127,12 +127,6 @@ define(['knockout',
             // Add support for animating the globe to a position.
             this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
             this.isAnimating = false;
-            // WorldWindow event handlers are called in the reverse order in which
-            // they are registered:
-            // So add the custom navigator *before* the SelectController so the
-            // SelectController can consume the mouse events and preempt the
-            // globe pan/drag operations when moving objects around the globe.
-            this.wwd.navigator = new EnhancedLookAtNavigator(this.wwd);
             this.wwd.highlightController = new WorldWind.HighlightController(this.wwd);
             this.selectController = new SelectController(this.wwd);
             this.keyboardControls = new KeyboardControls(this);
@@ -238,6 +232,146 @@ define(['knockout',
                     this.updateTimeZoneOffset();
                 }
             }, this);
+        };
+
+        /**
+         * Enhance the behavior of the LookAtNavigator by not allowing the eye
+         * position to go below the terrain.
+         * @param {LookAtNavigator} navigator
+         */
+        Globe.prototype.enhanceLookAtNavigator = function (navigator) {
+
+            // Use the navigator's current settings for the initial 'last' settings
+            navigator.lastEyePosition = new WorldWind.Position();
+            navigator.lastLookAtLocation = new WorldWind.Location(navigator.lookAtLocation.latitude, navigator.lookAtLocation.longitude);
+            navigator.lastRange = navigator.range;
+            navigator.lastHeading = navigator.heading;
+            navigator.lastTilt = navigator.tilt;
+            navigator.lastRoll = navigator.roll;
+
+            /**
+             * Returns the intercept position of a ray from the eye to the lookAtLocation.
+             * @returns {Position) The current terrain intercept position
+             */
+            navigator.terrainInterceptPosition = function () {
+                var wwd = navigator.worldWindow,
+                    centerPoint = new WorldWind.Vec2(wwd.canvas.width / 2, wwd.canvas.height / 2),
+                    terrainObject = wwd.pickTerrain(centerPoint).terrainObject();
+
+                if (terrainObject) {
+                    return terrainObject.position;
+                }
+            };
+            /**
+             * Limit the navigator's position and orientation appropriately for the current scene.
+             * Overrides the LookAtNavigator's applyLimits function.
+             */
+            navigator.applyLimits = function () {
+                if (isNaN(navigator.lookAtLocation.latitude) || isNaN(navigator.lookAtLocation.longitude)) {
+                    log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid lat/lon: NaN");
+                    navigator.lookAtLocation.latitude = navigator.lastLookAtLocation.latitude;
+                    navigator.lookAtLocation.longitude = navigator.lastLookAtLocation.longitude;
+                }
+                if (isNaN(navigator.range)) {
+                    log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: NaN");
+                    navigator.range = isNaN(navigator.lastRange) ? 1000 : navigator.lastRange;
+                }
+                if (navigator.range < 0) {
+                    log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: < 0");
+                    navigator.range = 1;
+                }
+                if (isNaN(navigator.heading)) {
+                    log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid heading: NaN");
+                    navigator.heading = navigator.lastHeading;
+                }
+                if (isNaN(navigator.tilt)) {
+                    log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid tilt: NaN");
+                    navigator.tilt = navigator.lastTilt;
+                }
+
+                if (!navigator.validateEyePosition()) {
+                    // Eye position is invalid, so restore the last navigator settings
+                    navigator.lookAtLocation.latitude = navigator.lastLookAtLocation.latitude;
+                    navigator.lookAtLocation.longitude = navigator.lastLookAtLocation.longitude;
+                    navigator.range = navigator.lastRange;
+                    navigator.heading = navigator.lastHeading;
+                    navigator.tilt = navigator.lastTilt;
+                    navigator.roll = navigator.lastRoll;
+                }
+                // Clamp latitude to between -90 and +90, and normalize longitude to between -180 and +180.
+                navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -90, 90);
+                navigator.lookAtLocation.longitude = WorldWind.Angle.normalizedDegreesLongitude(navigator.lookAtLocation.longitude);
+                // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
+                // range is zero.
+                navigator.range = WorldWind.WWMath.clamp(navigator.range, 1, constants.NAVIGATOR_MAX_RANGE);
+                // Normalize heading to between -180 and +180.
+                navigator.heading = WorldWind.Angle.normalizedDegrees(navigator.heading);
+                // Clamp tilt to between 0 and +90 to prevent the viewer from going upside down.
+                navigator.tilt = WorldWind.WWMath.clamp(navigator.tilt, 0, 90);
+                // Normalize heading to between -180 and +180.
+                navigator.roll = WorldWind.Angle.normalizedDegrees(navigator.roll);
+                // Apply 2D limits when the globe is 2D.
+                if (navigator.worldWindow.globe.is2D() && navigator.enable2DLimits) {
+                    // Clamp range to prevent more than 360 degrees of visible longitude.
+                    var nearDist = navigator.nearDistance,
+                        nearWidth = WorldWind.WWMath.perspectiveFrustumRectangle(navigator.worldWindow.viewport, nearDist).width,
+                        maxRange = 2 * Math.PI * navigator.worldWindow.globe.equatorialRadius * (nearDist / nearWidth);
+                    navigator.range = WorldWind.WWMath.clamp(navigator.range, 1, maxRange);
+
+                    // Force tilt to 0 when in 2D mode to keep the viewer looking straight down.
+                    navigator.tilt = 0;
+                }
+                // Cache the nav settings
+                navigator.lastLookAtLocation.latitude = navigator.lookAtLocation.latitude;
+                navigator.lastLookAtLocation.longitude = navigator.lookAtLocation.longitude;
+                navigator.lastRange = navigator.range;
+                navigator.lastHeading = navigator.heading;
+                navigator.lastTilt = navigator.tilt;
+                navigator.lastRoll = navigator.roll;
+            };
+            /**
+             * Validate the eye position is not below the terrain.
+             * @returns {Boolean}
+             */
+            navigator.validateEyePosition = function () {
+                var wwd = navigator.worldWindow,
+                    navigatorState = navigator.intermediateState(),
+                    eyePoint = navigatorState.eyePoint,
+                    eyePos = new WorldWind.Position(),
+                    terrainElev;
+
+                // Get the eye position in geographic coords
+                wwd.globe.computePositionFromPoint(eyePoint[0], eyePoint[1], eyePoint[2], eyePos);
+                if (!eyePos.equals(navigator.lastEyePosition)) {
+                    // Validate the new eye position to ensure it doesn't go below the terrain surface
+                    terrainElev = wwd.globe.elevationAtLocation(eyePos.latitude, eyePos.longitude);
+                    if (eyePos.altitude < terrainElev) {
+                        //Log.error("EnhancedLookAtNavigator", "validateEyePosition", "eyePos (" + eyePos.altitude + ") is below ground level (" + terrainElev + ").");
+                        return false;
+                    }
+                }
+                navigator.lastEyePosition.copy(eyePos);
+                return true;
+            };
+            /**
+             * Returns a new NavigatorState without calling applyLimits().
+             * See also LookAtNavigator.currentState().
+             * @returns {NavigatorState}
+             */
+            navigator.intermediateState = function () {
+                // navigator.applyLimits(); -- Don't do this!!
+                var globe = navigator.worldWindow.globe,
+                    lookAtPosition = new WorldWind.Position(
+                        navigator.lookAtLocation.latitude,
+                        navigator.lookAtLocation.longitude,
+                        0),
+                    modelview = WorldWind.Matrix.fromIdentity();
+
+                modelview.multiplyByLookAtModelview(lookAtPosition, navigator.range, navigator.heading, navigator.tilt, navigator.roll, globe);
+
+                return navigator.currentStateForModelview(modelview);
+            };
+
         };
 
         /**
