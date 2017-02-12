@@ -7,14 +7,13 @@
 /*global define, $, WorldWind */
 
 define([
-    'knockout',
-    'worldwind'],
-    function (
-        ko,
-        ww) {
+        'knockout',
+        'worldwind'],
+    function (ko,
+              ww) {
         "use strict";
         /**
-         * The SelectController operates on picked objects containing the Selectable, 
+         * The SelectController operates on picked objects containing the Selectable,
          * Movable, Openable and/or ContextSensitive capabilites.
          * @constructor
          * @param {WorldWindow} worldWindow
@@ -22,12 +21,12 @@ define([
          */
         var SelectController = function (worldWindow) {
             var self = this;
-            
+
             this.wwd = worldWindow;
             // Flag to signal that dragging/moving has been initiated.
             // When dragging, the mouse event is consumed, i.e., not propagated.
             this.isDragging = false;
-            // Flag to signal if a touch tap has occured.
+            // Flag to signal if a touch tap has occurred.
             // Used to determine single or double tap.
             this.tapped = false;
             // The time in ms to wait for a double tap
@@ -39,61 +38,72 @@ define([
             // Caches the clicked item for dblclick to process 
             this.clickedItem = null;
 
-            // Listen for mouse down to select an item
-            this.wwd.addEventListener("mousedown", function (event) {
+            // Register listeners on the event target.
+            function eventListener(event) {
                 self.handlePick(event);
-            });
-            // Listen for mouse moves and tap gestutes to move an item
-            this.wwd.addEventListener("mousemove", function (event) {
-                self.handlePick(event);
-            });
-            // Listen for mouse up to release an item
-            this.wwd.addEventListener("mouseup", function (event) {
-                self.handlePick(event);
-            });
-            this.wwd.addEventListener("mouseout", function (event) {
-                self.handlePick(event);
-            });
-            // Listen for single clicks to select an item
-            this.wwd.addEventListener("click", function (event) {
-                self.handlePick(event);
-            });
-            // Listen for double clicks to open an item
-            this.wwd.addEventListener("dblclick", function (event) {
-                self.handlePick(event);
-            });
-            // Listen for right clicks to open menu
-            this.wwd.addEventListener("contextmenu", function (event) {
-                self.handlePick(event);
-            });
+            }
 
+            // Mirror WorldWind's behavior and use the PointerEvent interface if it's available.
+            if (window.PointerEvent) {
+                // If the WorldWind LookAtNavigator is using these events, then we must also in order
+                // to consume the events to prevent pan/drag operations when dragging objects.
+                this.wwd.addEventListener("pointerdown", eventListener);
+                this.wwd.addEventListener("pointermove", eventListener);
+                this.wwd.addEventListener("pointerup", eventListener);
+                this.wwd.addEventListener("pointerout", eventListener);
+            }
+            // Listen for mouse
+            this.wwd.addEventListener("mousedown", eventListener);  // Listen for mouse down to select an item
+            this.wwd.addEventListener("mousemove", eventListener);  // Listen for mouse moves and tap gestures to move an item
+            this.wwd.addEventListener("mouseup", eventListener);    // Listen for mouse up to release an item
+            this.wwd.addEventListener("mouseout", eventListener);
             // Listen for touch
-            this.wwd.addEventListener("touchstart", function (event) {
-                self.handlePick(event);
-            });
-            this.wwd.addEventListener("touchmove", function (event) {
-                self.handlePick(event);
-            });
-            this.wwd.addEventListener("touchend", function (event) {
-                self.handlePick(event);
-            });
-        };
+            this.wwd.addEventListener("touchstart", eventListener);
+            this.wwd.addEventListener("touchmove", eventListener);
+            this.wwd.addEventListener("touchend", eventListener);
+            // Listen for mouse clicks
+            this.wwd.addEventListener("click", eventListener);          // Listen for single clicks to select an item
+            this.wwd.addEventListener("dblclick", eventListener);       // Listen for double clicks to open an item
+            this.wwd.addEventListener("contextmenu", eventListener);    // Listen for right clicks to open menu
+
+        }
         /**
          * Performs the pick apply the appropriate action on the selected item.
-         * @param {Event or TapRecognizer} o The input argument is either an Event or a TapRecognizer. Both have the 
-         *  same properties for determiningthe mouse or tap location.
+         * @param {Event or TapRecognizer} o The input argument is either an Event or a TapRecognizer. Both have the
+         *  same properties for determining the mouse or tap location.
          */
         SelectController.prototype.handlePick = function (o) {
             // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
             // the mouse or tap location.
             var self = this,
-                type = o.type,
+                type,
                 x, y,
                 button = o.button,
                 redrawRequired,
                 pickList,
                 terrainObject,
                 isTouchDevice = false;
+
+            // Alias PointerEvent event types to mouse and touch event types
+            if (o.type === "pointerdown" && o.pointerType === "mouse") {
+                type = "mousedown";
+            } else if (o.type === "pointermove" && o.pointerType === "mouse") {
+                type = "mousemove";
+            } else if (o.type === "pointerout" && o.pointerType === "mouse") {
+                type = "mouseout";
+            } else if (o.type === "pointerup" && o.pointerType === "mouse") {
+                type = "mouseup";
+            } else if (o.type === "pointerdown" && o.pointerType === "touch") {
+                type = "touchstart";
+            } else if (o.type === "pointermove" && o.pointerType === "touch") {
+                type = "touchmove";
+            } else if (o.type === "pointercancel" && o.pointerType === "touch") {
+                type = "touchcancel";
+            } else if (o.type === "pointerup" && o.pointerType === "touch") {
+                type = "touchend";
+            } else {
+                type = o.type;
+            }
 
             // Get our X,Y values from the event; 
             // determine if this is a touch device.
@@ -114,12 +124,14 @@ define([
                 y = o.clientY;
             }
             redrawRequired = false;
+
             // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
             // relative to the upper left corner of the canvas rather than the upper left corner of the page.
             pickList = this.wwd.pick(this.wwd.canvasCoordinates(x, y));
+
             switch (type) {
-                case 'touchstart':
-                case 'mousedown':
+                case "touchstart":
+                case "mousedown":
                     // Handles right AND left-clicks, and touch event
                     if (pickList.hasNonTerrainObjects()) {
                         // Establish the picked item - may be used by 
@@ -135,11 +147,11 @@ define([
                         this.pickedItem = null;
                     }
                     break;
-                case 'touchmove':
-                case 'mousemove':
+                case "touchmove":
+                case "mousemove":
                     if (this.pickedItem) {
                         // Handle left-clicks and touch device 
-                        if (this.isMovable(this.pickedItem.userObject) && (button === 0 || type === 'touchmove')) {
+                        if (this.isMovable(this.pickedItem.userObject) && (button === 0 || type === "touchmove")) {
                             // To prevent confustion with clicks and taps,
                             // start dragging only if the mouse or touch
                             // point has moved a few pixels.
@@ -159,24 +171,24 @@ define([
                         }
                     }
                     break;
-                case 'touchend':
-                case 'touchcancel':
-                case 'mouseup':
-                case 'mouseout':
+                case "touchend":
+                case "touchcancel":
+                case "mouseup":
+                case "mouseout":
                     if (this.pickedItem) {
                         // The end of a touch can signal either the end of a 
                         // drag/move operation or a tap/double-tap.
-                        // If our isDragging flag is set, then it's a given
+                        // If our isDragging flag is set, then it"s a given
                         // that the touch/mouse event signals a move finished.
                         if (this.isDragging) {
                             this.finishMove(this.pickedItem.userObject);
                             this.pickedItem = null;
-                        } else if (type === 'touchend') {
+                        } else if (type === "touchend") {
                             // Determine if touch event is a single tap or a double tap:
-                            // Capture the first tap, and if another tap doesn't come in 
+                            // Capture the first tap, and if another tap doesn"t come in 
                             // within the alloted time, then perform single tap action.
                             if (!this.tapped) {
-                                // Wait for another tap, if if doesn't happen,
+                                // Wait for another tap, if if doesn"t happen,
                                 // then perform the select action
                                 this.clickedItem = this.pickedItem;
                                 this.tapped = setTimeout(function () {
@@ -195,23 +207,23 @@ define([
                     }
                     this.isDragging = false;
                     break;
-                case 'click':
+                case "click":
                     // Remember the clicked item for dblclick processing
                     this.clickedItem = this.pickedItem;
                     if (this.clickedItem) {
                         this.doSelect(this.clickedItem.userObject);
                     }
-                    // Release the picked item so mousemove doesn't act on it
+                    // Release the picked item so mousemove doesn"t act on it
                     this.pickedItem = null;
                     break;
-                case 'dblclick':
+                case "dblclick":
                     if (this.clickedItem) {
                         this.doOpen(this.clickedItem.userObject);
                     }
-                    // Release the picked item so mousemove doesn't act on it
+                    // Release the picked item so mousemove doesn"t act on it
                     this.pickedItem = null;
                     break;
-                case 'contextmenu':
+                case "contextmenu":
                     this.isDragging = false;
                     if (this.pickedItem) {
                         this.doContextSensitive(this.pickedItem.userObject);
@@ -222,7 +234,6 @@ define([
             }
             // Prevent pan/drag operations on the globe when we're dragging an object.
             if (this.isDragging) {
-                o.stopImmediatePropagation();   // Try and prevent WW PanRecognizer TouchEvent from processing event
                 o.preventDefault();
             }
             // Update the window if we changed anything.
@@ -232,12 +243,12 @@ define([
         };
 
         SelectController.prototype.doContextSensitive = function (userObject) {
-            if (ko.isObservable(userObject.isContextSensitive) && userObject.isContextSensitive()) {                
+            if (ko.isObservable(userObject.isContextSensitive) && userObject.isContextSensitive()) {
                 if (userObject.showContextMenu) {
                     userObject.showContextMenu();
                 } else {
                     // Otherwise, build a context menu from standard capabilities
-    //              $('#globeContextMenu-popup').puimenu('show');
+                    //              $('#globeContextMenu-popup').puimenu('show');
                 }
             }
         };
@@ -246,15 +257,17 @@ define([
             if (ko.isObservable(userObject.isMovable)) {
                 return userObject.isMovable();
             } else {
-                return userObject.isMovable
-            };
+                return userObject.isMovable;
+            }
         };
+
         SelectController.prototype.startMove = function (userObject) {
             if (userObject.moveStarted) {
                 // Fires EVENT_OBJECT_MOVE_STARTED
                 userObject.moveStarted();
             }
         };
+
         SelectController.prototype.doMove = function (userObject, terrainObject) {
             if (userObject.moveToLatLon) {
                 // Fires EVENT_OBJECT_MOVED
@@ -283,7 +296,7 @@ define([
         };
 
         SelectController.prototype.doSelect = function (userObject) {
-            if (ko.isObservable(userObject.isSelectable) && userObject.isSelectable()) {                
+            if (ko.isObservable(userObject.isSelectable) && userObject.isSelectable()) {
                 if (this.lastSelectedItem() === userObject) {
                     return;
                 }
@@ -297,14 +310,16 @@ define([
                 }
             }
         };
+
         SelectController.prototype.doDeselect = function (userObject) {
             if (this.lastSelectedItem() === userObject) {
                 this.lastSelectedItem().select({selected: false});
                 this.lastSelectedItem(null);
             }
         };
+
         SelectController.prototype.doOpen = function (userObject) {
-            if (ko.isObservable(userObject.isOpenable) && userObject.isOpenable()) {                
+            if (ko.isObservable(userObject.isOpenable) && userObject.isOpenable()) {
                 if (userObject.open) {
                     userObject.open();
                 }

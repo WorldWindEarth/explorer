@@ -9,11 +9,10 @@
 /**
  * The USGS TNM Topo Base Map layer.
  * 
- * See: http://basemap.nationalmap.gov/arcgis/services/USGSTopo/MapServer/WMSServer?request=GetCapabilities&service=WMS
+ * See: https://basemap.nationalmap.gov/arcgis/services/USGSTopo/MapServer/WMSServer?request=GetCapabilities&service=WMS
  * 
  * @returns {UsgsTopoBaseMapLayer}
  */
-
 define([
     'model/Explorer',
     'worldwind'],

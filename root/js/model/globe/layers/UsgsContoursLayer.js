@@ -9,7 +9,7 @@
 /**
  * The USGS Contours layer.
  * 
- * See: http://services.nationalmap.gov/arcgis/services/Contours/MapServer/WMSServer?request=GetCapabilities&service=WMS
+ * See: https://services.nationalmap.gov/arcgis/services/Contours/MapServer/WMSServer?request=GetCapabilities&service=WMS
  * 
  * @returns {UsgsContoursLayer}
  */

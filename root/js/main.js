@@ -92,7 +92,7 @@ require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
             // Create the explorer's primary globe that's associated with the specified HTML5 canvas
             globe = new Globe(new WorldWind.WorldWindow("canvasOne"), globeOptions);
 
-            // Defined the Globe's layers and layer options
+            // Define the Globe's layers and layer options
             globe.layerManager.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: true, detailHint: config.imageryDetailHint});
             globe.layerManager.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailHint: config.imageryDetailHint});
             globe.layerManager.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: true, detailHint: config.imageryDetailHint});
@@ -105,7 +105,7 @@ require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
 
             globe.layerManager.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_MARKERS), {enabled: true, pickEnabled: true});
 
-            // Initialize the Explorer object
+            // Initialize the Explorer object with a Globe to "explore"
             explorer.initialize(globe);
 
             // --------------------------------------------------------

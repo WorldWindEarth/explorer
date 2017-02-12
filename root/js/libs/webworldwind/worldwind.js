@@ -1664,8 +1664,8 @@ define('geom/Vec3',[
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Vec3", "areColinear", "missingVector"));
             }
 
-            var ab = b.subtract(a).normalize(),
-                bc = c.subtract(b).normalize();
+           var ab = new Vec3(a[0]-b[0],a[1]-b[1],a[2]-b[2]).normalize(),
+               bc = new Vec3(c[0]-b[0],c[1]-b[1],c[2]-b[2]).normalize();
 
             // ab and bc are considered colinear if their dot product is near +/-1.
             return Math.abs(ab.dot(bc)) > 0.999;
@@ -15004,7 +15004,7 @@ define('util/PeriodicTimeSequence',[
             var struct;
 
             // upcase the string just in case people don't follow the letter of the law
-            period = period.toUpperCase();
+            period = period.toUpperCase().trim();
 
             // input validation
             if (!period)
@@ -77992,6 +77992,26 @@ define('ogc/WmsLayerCapabilities',[
             }
         });
 
+        WmsLayerCapabilities.prototype.style = function(name) {
+            if (!name) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WmsLayerCapabilities", "style",
+                        "Style name is null or undefined."));
+            }
+
+            var styles = this.styles;
+            if (!styles) {
+                return null;
+            }
+
+            for (var i = 0, len = styles.length, style; i < len; i++) {
+                style = styles[i];
+                if (style.name === name) {
+                    return style;
+                }
+            }
+        }
+
         WmsLayerCapabilities.accumulate = function (layer, propertyName, accumulation) {
             // Accumulate all of the named properties in the specified layer and its ancestors.
             while (layer && (layer instanceof WmsLayerCapabilities)) {
@@ -78462,7 +78482,7 @@ define('ogc/WmsCapabilities',[
          * specified in the given WMS Capabilities document. Most fields can be accessed as properties named
          * according to their document names converted to camel case. For example, "version", "service.title",
          * "service.contactInformation.contactPersonPrimary". The exceptions are online resources, whose property
-         * path has been shortened. For example "capability.request.getMap.formats" and "capability.request.getMap.url".
+         * path has been shortened. For example "capability.request.getMap.formats" and "capability.request.getMap.getUrl".
          * @param {{}} xmlDom An XML DOM representing the WMS Capabilities document.
          * @throws {ArgumentError} If the specified XML DOM is null or undefined.
          */
@@ -78473,6 +78493,61 @@ define('ogc/WmsCapabilities',[
             }
 
             this.assembleDocument(xmlDom);
+        };
+
+        WmsCapabilities.prototype.getNamedLayers = function () {
+            return this.accumulateNamedLayers(this.capability.layers);
+        };
+
+        /**
+         * Accumulates the named layers recursively from the provided initial array of layers. An optional array for accumulated
+         * results is provided.
+         * @param {WmsLayerCapabilities[]} startLayers the layer array to start accumulation, named layers of this array are included in accumulation
+         * @param {WmsLayerCapabilities[]} namedLayersArray optional accumulation array
+         * @returns an array of named WmsLayerCapabilities
+         */
+        WmsCapabilities.prototype.accumulateNamedLayers = function (startLayers, namedLayersArray) {
+            var namedLayers = namedLayersArray || [];
+            
+            if (!startLayers) {
+                return namedLayers;
+            }
+
+            for (var i = 0, len = startLayers.length; i < len; i++) {
+                var layer = startLayers[i];
+                if (layer.name) {
+                    namedLayers.push(layer);
+                }
+                if (layer.layers) {
+                    this.accumulateNamedLayers(layer.layers, namedLayers);
+                }
+            }
+
+            return namedLayers;
+        };
+
+        /**
+         * Searches for a named layer matching the provided name and returns the WmsLayerCapabilities object representing 
+         * the named layer.
+         * @param {String} name the layer name to find
+         * @returns {WmsLayerCapabilities} if a matching named layer is found or null
+         * @throws {ArgumentError} If the specified name is null or empty.
+         */
+        WmsCapabilities.prototype.getNamedLayer = function (name) {
+            if (!name || (name.length === 0)) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WmsCapabilities", "getNamedLayer", "No WMS layer name provided."));
+            }
+
+            var namedLayers = this.namedLayers();
+
+            for (var i = 0, len = namedLayers.length; i < len; i++) {
+                if (name === namedLayers[i].name) {
+                    return namedLayers[i];
+                }
+            }
+
+            return null;
         };
 
         WmsCapabilities.prototype.assembleDocument = function (dom) {
@@ -78511,7 +78586,7 @@ define('ogc/WmsCapabilities',[
                 } else if (child.localName === "KeywordList") {
                     service.keywordList = this.assembleKeywordList(child);
                 } else if (child.localName === "OnlineResource") {
-                    service.onlineResource = child.getAttribute("xlink:href");
+                    service.url = child.getAttribute("xlink:href");
                 } else if (child.localName === "Fees") {
                     service.fees = child.textContent;
                 } else if (child.localName === "AccessConstraints") {
@@ -78678,7 +78753,7 @@ define('ogc/WmsCapabilities',[
                                     for (var c4 = 0; c4 < children4.length; c4++) {
                                         var child4 = children4[c4];
                                         if (child4.localName === "OnlineResource") {
-                                            request.url = child4.getAttribute("xlink:href");
+                                            request.getUrl = child4.getAttribute("xlink:href");
                                         }
                                     }
                                 }
@@ -78847,7 +78922,7 @@ define('layer/WmsLayer',[
             }
 
             // Determine the GetMap service address.
-            config.service = getMapInfo.url;
+            config.service = getMapInfo.getUrl;
 
             // Determine the coordinate system to use.
             var coordinateSystems = wmsLayerCapabilities.crses; // WMS 1.3.0 and greater

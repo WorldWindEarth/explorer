@@ -9,7 +9,7 @@
 /**
  * The USGS Imagery Topo Base Map layer.
  * 
- * See: http://basemap.nationalmap.gov/arcgis/services/USGSImageryTopo/MapServer/WMSServer?request=GetCapabilities&service=WMS
+ * See: https://basemap.nationalmap.gov/arcgis/services/USGSImageryTopo/MapServer/WMSServer?request=GetCapabilities&service=WMS
  * 
  * @returns {UsgsImageryTopoBaseMapLayer}
  */

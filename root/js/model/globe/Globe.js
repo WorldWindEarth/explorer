@@ -127,11 +127,11 @@ define(['knockout',
             // Add support for animating the globe to a position.
             this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
             this.isAnimating = false;
-            // Add the custom navigator *before* the select controller
-            // so the select controller can consume the mouse events
-            // and preempt the globe pan/drag operations when moving objects.
-            // Event handlers are called in the reverse order in which
-            // they are registered.
+            // WorldWindow event handlers are called in the reverse order in which
+            // they are registered:
+            // So add the custom navigator *before* the SelectController so the
+            // SelectController can consume the mouse events and preempt the
+            // globe pan/drag operations when moving objects around the globe.
             this.wwd.navigator = new EnhancedLookAtNavigator(this.wwd);
             this.wwd.highlightController = new WorldWind.HighlightController(this.wwd);
             this.selectController = new SelectController(this.wwd);
@@ -274,11 +274,11 @@ define(['knockout',
             var currentViewpoint = this.getViewpoint(), // computes the viewpoint
                 target = currentViewpoint.target,
                 time = this.dateTime();
-        
+
             if (this.viewpoint().equals(currentViewpoint)) {
                 return;
             }
-            
+
             // Initiate a request to update the sunlight property when we've moved a significant distance
             if (!this.lastSolarTarget || this.lastSolarTarget.distanceBetween(target) > this.SUNLIGHT_DISTANCE_THRESHOLD) {
                 this.lastSolarTarget.copy(target);
@@ -293,9 +293,9 @@ define(['knockout',
          */
         Globe.prototype.updateTimeZoneOffset = function () {
             var canvasCenter = new WorldWind.Vec2(this.wwd.canvas.width / 2, this.wwd.canvas.height / 2),
-                pickList, i, len, pickedObject, 
+                pickList, i, len, pickedObject,
                 userObject, layer, record;
-                
+
             this.timeZoneLayer.pickEnabled = true;
             pickList = this.wwd.pick(canvasCenter);
             if (pickList.hasNonTerrainObjects()) {
