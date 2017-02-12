@@ -127,7 +127,6 @@ define(['knockout',
             // Add support for animating the globe to a position.
             this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
             this.isAnimating = false;
-            this.wwd.highlightController = new WorldWind.HighlightController(this.wwd);
             this.selectController = new SelectController(this.wwd);
             this.keyboardControls = new KeyboardControls(this);
             this.layerManager = new LayerManager(this);

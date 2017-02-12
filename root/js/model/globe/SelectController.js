@@ -34,6 +34,8 @@ define(['knockout'],
             this.pickedItem = null;
             // Caches the clicked item for dblclick to process 
             this.clickedItem = null;
+            // The list of highlighted items
+            this.highlightedItems = [];
 
             // Register listeners on the event target.
             function eventListener(event) {
@@ -75,10 +77,20 @@ define(['knockout'],
             // the mouse or tap location.
             var eventType,
                 x, y,
-                button = o.button,
+                h, len,
                 redrawRequired,
                 pickList,
+                button = o.button,
                 isTouchDevice = false;
+
+            // De-highlight any previously highlighted shapes.
+            len = this.highlightedItems.length;
+            redrawRequired = len > 0;
+            for (h = 0; h < len; h++) {
+                this.highlightedItems[h].highlighted = false;
+            }
+            this.highlightedItems = [];
+
 
             // Alias PointerEvent event types to mouse and touch event types
             if (o.type === "pointerdown" && o.pointerType === "mouse") {
@@ -119,7 +131,7 @@ define(['knockout'],
                 x = o.clientX;
                 y = o.clientY;
             }
-            redrawRequired = false;
+
 
             // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
             // relative to the upper left corner of the canvas rather than the upper left corner of the page.
@@ -167,8 +179,8 @@ define(['knockout'],
                 // mouse, select, and open actions
                 this.pickedItem = pickList.topPickedObject();
                 if (this.pickedItem) {
-                    // Capture the initial mouse/touch points for comparison in mousemove/touchmove
-                    // to detemine if whether to initiate dragging of the picked item.
+                    // Capture the initial mouse/touch points for comparison in subsequent mousemove/touchmove
+                    // events to determine if whether to initiate dragging of the picked item.
                     this.startX = x;
                     this.startY = y;
                 }
@@ -178,12 +190,25 @@ define(['knockout'],
         };
 
         SelectController.prototype.handleMouseMove = function (pickList, x, y, eventType, button) {
-            var terrainObject;
+            var p, len,
+                terrainObject;
 
-            if (this.pickedItem) {
-                // Handle left-clicks and touch device
-                if (this.isMovable(this.pickedItem.userObject) && (button === 0 || eventType === "touchmove")) {
-                    // To prevent confustion with clicks and taps,
+            // Highlight the picked items by simply setting their highlight flag to true.
+            len = pickList.objects.length;
+            if (len > 0 && button === -1) {
+                for (p = 0; p < len; p++) {
+                    if (!pickList.objects[p].isTerrain) {
+                        // Set the highlighted flag
+                        pickList.objects[p].userObject.highlighted = true;
+                        // Keep track of highlighted items in order to de-highlight them later.
+                        this.highlightedItems.push(pickList.objects[p].userObject);
+                    }
+                }
+            }
+            // Move the selected item if left-button down or touch device
+            if (this.pickedItem && (button === 0 || eventType === "touchmove")) {
+                if (this.isMovable(this.pickedItem.userObject)) {
+                    // To prevent confusion with clicks and taps,
                     // start dragging only if the mouse or touch
                     // point has moved a few pixels.
                     if (!this.isDragging &&
