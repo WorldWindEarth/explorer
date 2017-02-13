@@ -119,9 +119,12 @@ define(['knockout'],
                 isTouchDevice = true;
                 // Use the first touches entry
                 // Note: x, y remain undefined for touchend
-                if (o.touches.length > 0) {
+                if (o.touches && o.touches.length > 0) {
                     x = o.touches[0].clientX;
                     y = o.touches[0].clientY;
+                } else {
+                    x = o.clientX;
+                    y = o.clientY;
                 }
             } else {  // Mouse events...
                 // Prevent handling of simulated mouse events on touch devices.
