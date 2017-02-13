@@ -120,7 +120,7 @@ define([
                 /** The image source url, stored/recalled in the persistant store */
                 this.source = args.imageSource;
                 /** DOM element id to display view when this marker is selected. */
-                //this.viewTemplateName = 'basic-marker-view-template';
+                this.viewTemplateName = 'basic-marker-view-template';
                 
                 
                 // Create the placemark property
