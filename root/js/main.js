@@ -18,6 +18,7 @@ requirejs.config({
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
         'moment': 'libs/moment/moment-2.14.1',
+        'd3': 'libs/d3/d3',
         'split': 'libs/split/split',
         'worldwind': 'libs/webworldwind/worldwind',
         'model': 'model' // root application path
