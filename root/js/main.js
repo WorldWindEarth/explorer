@@ -88,9 +88,7 @@ require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
                 includeExaggerationControls: config.showExaggerationControl,
                 includeFieldOfViewControls: config.showFieldOfViewControl
             },
-            globe,
-            sidebarSplitter,
-            outputSplitter;
+            globe;
 
         // Create the explorer's primary globe that's associated with the specified HTML5 canvas
         globe = new Globe(new WorldWind.WorldWindow("canvasOne"), globeOptions);
@@ -140,46 +138,6 @@ require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
         // Auto-scroll-into-view expanded dropdown menus
         $('.dropdown').on('shown.bs.dropdown', function (event) {
             event.target.scrollIntoView(false); // align to bottom
-        });
-
-        // -----------------------------------------------------------
-        // Add the window splitters
-        // -----------------------------------------------------------
-        sidebarSplitter = Split(['#left-sidebar', '#explorer'], {
-            direction: 'horizontal',
-            minSize: [160, 240],// pixels
-            sizes: [20, 80],    // percentages
-            gutterSize: 10
-        });
-        outputSplitter = Split(['#globe', '#output'], {
-            direction: 'vertical',
-            minSize: [100, 100],
-            sizes: [80, 20],
-            gutterSize: 10
-        });
-        // Add a handler to collapse the left side panel
-        $('#collapse-left-sidebar').on('click', sidebarSplitter, function (event) {
-            // Collapse the sidebar (1st item in splitter array
-            var splitter = event.data;
-            splitter.lastSizes = splitter.getSizes();
-            splitter.collapse(0);
-        });
-        // Add a handler to collapse the output panel
-        $('#collapse-output-panel').on('click', outputSplitter, function (event) {
-            // Collapse the output panel (2nd item in splitter array)
-            var splitter = event.data;
-            splitter.collapse(1);
-        });
-        // Add a handler to restore the left side panel
-        $('.left-sidebar-btn').on('click', sidebarSplitter, function (event) {
-            var splitter = event.data;
-            if ($('#left-sidebar').width() < 100) {
-                if (splitter.lastSizes === undefined) {
-                    splitter.setSizes([20, 80]);    // percentages
-                } else {
-                    splitter.setSizes(splitter.lastSizes);
-                }
-            }
         });
 
         // ------------------------------------------------------------
