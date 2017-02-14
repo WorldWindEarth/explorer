@@ -19,18 +19,21 @@
  * @author Bruce Schubert
  */
 define(['jquery',
-        'knockout',
-        'model/Constants',
-        'model/util/Log',
-        'model/markers/MarkerManager',
-        'model/util/Settings',
-        'worldwind'],
-    function ($,
-              ko,
-              constants,
-              log,
-              MarkerManager,
-              settings) {
+    'knockout',
+    'model/Constants',
+    'model/util/Log',
+    'model/markers/MarkerManager',
+    'model/util/Settings',
+    'model/weather/WeatherScoutManager',
+    'worldwind'],
+    function (
+        $,
+        ko,
+        constants,
+        log,
+        MarkerManager,
+        settings,
+        WeatherScoutManager) {
         "use strict";
         /**
          * This is the top-level Explorer singleton.
@@ -42,7 +45,7 @@ define(['jquery',
              * The Explorer version number.
              * @constant
              */
-            VERSION: "0.1.0",
+            VERSION: "0.2.0",
             /**
              * Prepares the singleton Explorer object for use.
              * @param {Globe} globe
@@ -52,7 +55,10 @@ define(['jquery',
 
                 this.globe = globe;
                 this.wwd = globe.wwd;
+
+                // Configure the manager of objects on the globe
                 this.markerManager = new MarkerManager(globe);
+                this.weatherManager = new WeatherScoutManager(globe);
 
                 // Configure the objects used to animate the globe when performing "go to" operations
                 this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
@@ -99,10 +105,6 @@ define(['jquery',
                     log.error("Explorer", "identifyFeaturesAtLatLon", "Invalid Latitude and/or Longitude.");
                     return;
                 }
-                //geoMacResource.identifyPoint(latitude, longitude, arg.layerId, function (json) {
-                //
-                //});
-
             },
             /**
              * Centers the globe on the given lat/lon via animation.
@@ -150,6 +152,7 @@ define(['jquery',
             restoreSession: function () {
                 log.info('Explorer', 'restoreSession', 'Restoring the model and view.');
                 this.markerManager.restoreMarkers();
+                this.weatherManager.restoreScouts();
                 this.restoreSessionView();
                 // Update all time sensitive objects
                 this.globe.updateDateTime(new Date());
@@ -169,6 +172,7 @@ define(['jquery',
                 log.info('Explorer', 'saveSession', 'Saving the model and view.');
                 this.saveSessionView();
                 this.markerManager.saveMarkers();
+                this.weatherManager.saveScouts();
             },
             // Internal method.
             saveSessionView: function () {

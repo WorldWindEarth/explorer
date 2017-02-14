@@ -142,6 +142,12 @@ body {
 /*Ensure JQuery UI dialogs are above other ui elements*/
 .ui-dialog { z-index: 1000 !important ;}
 
+
+/*vis.js library*/
+.vis-time-axis .vis-text {
+  color: #AAA;
+}
+
 .wrap-panel-heading {
     white-space: normal;
     -ms-word-wrap: break-word;
