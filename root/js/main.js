@@ -19,7 +19,7 @@ requirejs.config({
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
         'moment': 'libs/moment/moment-2.14.1',
         'd3': 'libs/d3/d3',
-        'split': 'libs/split/split',
+        'vis': 'libs/vis/v4.16.1/vis',
         'worldwind': 'libs/webworldwind/worldwind',
         'model': 'model' // root application path
     },
@@ -35,7 +35,7 @@ requirejs.config({
 /**
  * A top-level require call executed by the Application.
  */
-require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
+require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/Config',
     'model/Constants',
     'model/Explorer',
@@ -54,7 +54,7 @@ require(['knockout', 'jquery', 'bootstrap', 'split', 'worldwind',
     'model/globe/layers/UsgsContoursLayer',
     'model/globe/layers/UsgsImageryTopoBaseMapLayer',
     'model/globe/layers/UsgsTopoBaseMapLayer'],
-    function (ko, $, bootstrap, split, ww,
+    function (ko, $, bootstrap, ww,
         config,
         constants,
         explorer,
