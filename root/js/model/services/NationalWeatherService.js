@@ -95,96 +95,88 @@ define(['jquery',
         log,
         util) {
         "use strict";
-        var NationalWeatherService = {
-            //NDFD_REST_URI: "http://graphical.weather.gov/xml/sample_products/browser_interface/ndfdXMLclient.php?",
-            //NDFD_REST_URI: "https://graphical.weather.gov/xml/sample_products/browser_interface/ndfdXMLclient.php?",
-            //    NDFD_SOAP_URI: "https://graphical.weather.gov/xml/SOAP_server/ndfdXMLclient.php?whichClient=NDFDgen",
-            
-            /**
-             * See: https://www.html5rocks.com/en/tutorials/cors/
-             * See:https://www.nczonline.net/blog/2010/05/25/cross-domain-ajax-with-cross-origin-resource-sharing/
-             * @param {type} method
-             * @param {type} url
-             * @returns {XDomainRequest|XMLHttpRequest}
-             */
-            createCORSRequest: function (method, url) {
-                var xhr = new XMLHttpRequest();
-                if ("withCredentials" in xhr) {
-
-                    // Check if the XMLHttpRequest object has a "withCredentials" property.
-                    // "withCredentials" only exists on XMLHTTPRequest2 objects.
-                    xhr.open(method, url, false);
-                } else if (typeof XDomainRequest !== "undefined") {
-
-                    // Otherwise, check if XDomainRequest.
-                    // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
-                    xhr = new XDomainRequest();
-                    xhr.open(method, url);
-                } else {
-
-                    // Otherwise, CORS is not supported by the browser.
-                    xhr = null;
-                }
-                return xhr;
-            },
-
-//        var xhr = createCORSRequest('GET', url);
-//            if (!xhr) {
-//        throw new Error('CORS not supported');
-//        },
+        var NdfdService = {
             /** 
-             * NDFD Single Point query 
-             * */
-            ndfdPointForecast: function (latitude, longitude, callback) {
-//                var url = "https://graphical.weather.gov/xml/sample_products/browser_interface/ndfdXMLclient.php",
-                var url = "https://graphical.weather.gov/xml/SOAP_server/ndfdXMLclient.php",
-                    query = "lat=" + latitude
+             * NDFD Single Point time series query. 
+             * 
+             * ndfdXMLclient.php Interface
+             * Single Point Unsummarized Data: returns DWML-encoded NDFD data for a point.
+             *
+             * URL: https://graphical.weather.gov/xml/sample_products/browser_interface/ndfdXMLclient.php
+             * Proxy: /ndfd/xml/rest
+             * 
+             * @param {Number} latitude
+             * @param {Number} longitude
+             * @param {Array} elements Array of zero or more NDFD element names; may be null.
+             *  See: https://graphical.weather.gov/xml/docs/elementInputNames.php
+             * @param {Function} callback 
+             * @returns {jqXHR} 
+             */
+            getSinglePointTimeSeries: function (latitude, longitude, elements, callback) {
+                var url = "/ndfd/xml/rest/ndfdXMLclient.php",
+                    query,
+                    i, max, element;
+
+                query = "lat=" + latitude
                     + "&lon=" + longitude
-                    + "&product=time-series"
-                    + "&begin=" // empty: first available time
-                    + "&end="   // empty: last available time
-                    + "&Unit=e" // e: english or m: metric
-                    + "&temp=temp"
-                    + "&rh=rh"
-                    + "&wspd=wspd"
-                    + "&wdir=wdir"
-                    + "&sky=sky"
-                    + "&wgust=wgust"
-                    + "&wx=wx"
-                    + "&critfireo=critfireo"
-                    + "&callback=?";
+                    + "&begin="     // empty: first available time
+                    + "&end="       // empty: last available time
+                    + "&Unit=e";    // e: english or m: metric
+
+                max = elements ? elements.length : 0;
+                if (max === 0) {
+                    // The “glance” product returns all data between the start 
+                    // and end times for the parameters maxt, mint, sky, wx, and icons 
+                    query += "&product=glance";
+                } else {
+                    //  The “time-series” product returns all data between the 
+                    //  start and end times for the selected weather parameters.
+                    query += "&product=time-series";
+                    for (i = 0, max = elements.length; i < max; i++) {
+                        // The NDFD parameters that you are requesting.   
+                        // For valid inputs see the NDFD Element Names Page:
+                        // https://graphical.weather.gov/xml/docs/elementInputNames.php
+                        // Example:
+                        //  maxt=maxt&mint=mint 	
+                        element = elements[i];
+                        query += "&" + element + "=" + element;
+                    }
+                }
+
                 console.log(url + '?' + query);
-                $.ajax({
+                return $.ajax({
                     url: url,
                     data: query,
                     dataType: "xml",
-                    async: false,
+                    async: true,
                     /**
-                     * 
-                     * @param {Anything} data
+                     * Processes the XML result.
+                     * @param {Anything} xml
                      * @param {String} textStatus
                      * @param {jqXHR} jqXHR
                      */
-                    success: function (data, textStatus, jqXHR) {
-//                        var json = JSON.parse(response);
-//                        callback(json.feature);
-                        console.log(textStatus.toUpperCase() + ": " + data);
-                        callback(data);
+                    success: function (xml, textStatus, jqXHR) {
+                        console.log(textStatus.toUpperCase() + ": " + xml);
+                        if (callback) {
+                            callback(xml);
+                        }
                     },
                     /**
-                     * 
-                     * @param {jaXHR} jqXHR
+                     * Handles errors.
+                     * @param {jqXHR} jqXHR
                      * @param {String} textStatus
                      * @param {String} errorThrown
                      */
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(textStatus.toUpperCase() + ": " + errorThrown)
-                        callback(null);
+                        console.log(textStatus.toUpperCase() + ": " + errorThrown);
+                        if (callback) {
+                            callback(null);
+                        }
                     }
                 });
             }
 
         };
-        return NationalWeatherService;
+        return NdfdService;
     }
 );
