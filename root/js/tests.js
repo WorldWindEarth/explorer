@@ -24,13 +24,13 @@ require.config({
 // require the unit tests.
 require([
     'QUnit',
-    'tests/services/NationalWeatherServiceTest',
+    'tests/services/NdfdServiceTest',
     'tests/sun/SolarCalculatorTest'],
-    function (QUnit, NationalWeatherServiceTest, SolarCalculatorTest) {
+    function (QUnit, NdfdServiceTest, SolarCalculatorTest) {
 
         // Run the tests.
-        NationalWeatherServiceTest.run();
         SolarCalculatorTest.run();
+        NdfdServiceTest.run();
 
         // Start QUnit.
         QUnit.load();
