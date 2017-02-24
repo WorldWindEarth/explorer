@@ -142,33 +142,61 @@ define(['jquery',
                         query += "&" + element + "=" + element;
                     }
                 }
-
-                console.log(url + '?' + query);
+                
                 return $.ajax({
                     url: url,
                     data: query,
                     dataType: "xml",
-                    async: true,
-                    /**
-                     * Processes the XML result.
-                     * @param {Anything} xml
-                     * @param {String} textStatus
-                     * @param {jqXHR} jqXHR
-                     */
                     success: function (xml, textStatus, jqXHR) {
-                        console.log(textStatus.toUpperCase() + ": " + xml);
+                        //console.log(textStatus.toUpperCase() + ": " + xml);
                         if (callback) {
                             callback(xml);
                         }
                     },
-                    /**
-                     * Handles errors.
-                     * @param {jqXHR} jqXHR
-                     * @param {String} textStatus
-                     * @param {String} errorThrown
-                     */
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(textStatus.toUpperCase() + ": " + errorThrown);
+                        if (callback) {
+                            callback(null);
+                        }
+                    }
+                });
+            },
+
+            /** 
+             * NDFD Single Point glance query. 
+             * 
+             * ndfdXMLclient.php Interface
+             * Single Point Unsummarized Data: returns DWML-encoded NDFD data for a point.
+             *
+             * URL: https://graphical.weather.gov/xml/sample_products/browser_interface/ndfdXMLclient.php
+             * Proxy: /ndfd/xml/rest
+             * 
+             * @param {Number} latitude
+             * @param {Number} longitude
+             * @param {Function} callback Optional
+             * @returns {jqXHR} 
+             */
+            getSinglePointGlance: function (latitude, longitude, callback) {
+                var url = "/ndfd/xml/rest/ndfdXMLclient.php",
+                    query = "lat=" + latitude
+                    + "&lon=" + longitude
+                    + "&begin="     // empty: first available time
+                    + "&end="       // empty: last available time
+                    + "&Unit=e"     // e: english or m: metric
+                    + "&product=glance";
+
+                return $.ajax({
+                    url: url,
+                    data: query,
+                    dataType: "xml",
+                    success: function (xml, textStatus, jqXHR) {
+                        //console.log(textStatus.toUpperCase() + ": " + xml);
+                        if (callback) {
+                            callback(xml);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error(textStatus.toUpperCase() + ": " + errorThrown);
                         if (callback) {
                             callback(null);
                         }

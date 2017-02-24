@@ -24,7 +24,7 @@ require.config({
 // require the unit tests.
 require([
     'QUnit',
-    'tests/services/NdfdServiceTest',
+    'tests/weather/NdfdServiceTest',
     'tests/sun/SolarCalculatorTest'],
     function (QUnit, NdfdServiceTest, SolarCalculatorTest) {
 

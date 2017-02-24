@@ -141,9 +141,9 @@ define(['jquery', 'model/util/Log', 'worldwind'
 
             this.locations = this.parseLocations($data);
             this.timeLayouts = this.parseTimeLayouts($data);
-            this.paramters = this.parseParameters(this.locations, this.timeLayouts, $data);
-
+            this.parameters = this.parseParameters(this.locations, this.timeLayouts, $data);
         };
+
         /**
          * Traverses the data node to obtain the location values.
          * 
@@ -153,114 +153,390 @@ define(['jquery', 'model/util/Log', 'worldwind'
         NdfdForecast.prototype.parseLocations = function ($data) {
             var locations = [];
             $data.find('location').each(function () {
-                var key = $(this).find('location-key').text(),
-                    pt = $(this).find('point'),
-                    lat = pt.attr("latitude"),
-                    lon = pt.attr('longitude');
-                locations[locations.length] = {key: key, latitude: lat, longitude: lon};
+
+                var $key = $(this).find('location-key'),
+                    $point = $(this).find('point'),
+                    $city = $(this).find('city'),
+                    $nwsZone = $(this).find('nws-zone'),
+                    $area = $(this).find('area'),
+                    location = {
+                        key: $key.text()
+                    };
+
+                // The locations contains exactly one of the following child elements...
+
+                if ($point.length > 0) {
+                    //
+                    // Process  a point object
+                    //
+                    location.point = {
+                        latitude: Number($point.attr("latitude")),
+                        longitude: Number($point.attr("longitude"))
+                    };
+
+                } else if ($city.length > 0) {
+                    //
+                    // Assign a city object
+                    //
+                    location.city = {
+                        name: $city.text(),
+                        state: $city.attr('state')
+                    };
+
+                } else if ($nwsZone.length > 0) {
+                    //
+                    // Assign a NWS forecast zone
+                    //
+                    location.nwsZone = {name: $nwsZone.text(), state: $nwsZone.attr('state')};
+
+                } else if ($area.length > 0) {
+                    //
+                    // Process an area: a circle or rectangle
+                    //
+                    location.area = {
+                        type: $area.attr('area-type')
+                    };
+                    $area.find(location.area.type).each(function () {
+                        var $geom = $(this), $center, $radius;
+                        if (location.area.type === 'circle') {
+                            // Assign the circle components
+                            $center = $geom.find('point');
+                            $radius = $geom.find('radius');
+                            location.area.center = {
+                                latitude: Number($center.attr("latitude")),
+                                longitude: Number($center.attr("longitude"))};
+                            location.area.radius = $radius.text();
+                            location.area.units = $radius.attr('radius-units');
+                        } else if (location.area.type === 'rectangle') {
+                            // Assign the four geographic points that define the rectangle
+                            location.area.points = [];
+                            $geom.find('point').each(function () {
+                                location.area.points[location.area.points] = {
+                                    latitude: Number($(this).attr("latitude")),
+                                    longitude: Number($(this).attr("longitude"))};
+                            });
+                        }
+                    });
+                } else {
+                    throw new Error(log.error("NdfdForecast", "parseLocations", "No location dectected for: " + location.key));
+                }
+
+                locations.push(location);
             });
             return locations;
         };
         /**
          * Traverses the data node to obtain the time-layout arrays.
+         * 
          * @param {JQuery} $data The DWML data node
-         * @returns {Array} Multidimentional array [layout-key][times]
+         * @returns {Array} An array of time-layout ojects {layout-key, startValidTimes, endValidTimes (optional)]
          */
         NdfdForecast.prototype.parseTimeLayouts = function ($data) {
+
             var timeLayouts = [];   // return value
 
             // Process each time-layout node
             $data.find('time-layout').each(function () {
-                // Add a time layout object to the array
-                var key = $(this).find('layout-key').text();
-                timeLayouts[timeLayouts.length] = {key: key, times: []};
+                // Create a time layout object
+                var $this = $(this),
+                    $key = $this.find('layout-key'),
+                    $startTime = $this.find('start-valid-time'),
+                    $endTime = $this.find('end-valid-time'),
+                    timeLayout = {
+                        key: $key.text(),
+                        timeCooridinate: $this.attr('time-coordinate'),
+                        startValidTimes: []
+                    };
 
-                // Process each start-valid-time child node
-                $(this).find('start-valid-time').each(function () {
-                    // Add the time value to the array
-                    var layout = timeLayouts[timeLayouts.length - 1],
-                        times = layout.times,
-                        time = $(this).text();
-                    // Add the time value
-                    times[times.length] = time;
+                // Process the start-valid-time child nodes (one or more) and add them to the layout
+                $startTime.each(function () {
+                    var $time = $(this),
+                        periodName = $time.attr('period-name'), // optional attribute
+                        len = timeLayout.startValidTimes.push(new Date($time.text()));
+                    // Check for the optional period-name
+                    if (periodName) {
+                        if (timeLayout.periodNames === undefined) {
+                            timeLayout.periodNames = []; // create a new sparse array
+                        }
+                        // Add the period-name at the same array pos as its start-valid-time element
+                        timeLayout.periodNames[len - 1] = periodName;
+                    }
                 });
+
+                // Process the end-valid-time child nodes (zero or more) and add them to the layout
+                if ($endTime.length > 0) {
+                    timeLayout.endValidTimes = [];  // create the array
+                    $endTime.each(function () {
+                        timeLayout.endValidTimes.push(new Date($(this).text()));
+                    });
+                }
+
+                timeLayouts.push(timeLayout);
             });
             return timeLayouts;
         };
         /**
-         * Traverses the data node to obtain the parameters for each location.
+         * Traverses the data node to obtain the parameters for each location and time.
+         * 
+         * See: https://graphical.weather.gov/xml/DWMLgen/schema/parameters.xsd
+         * 
+         * @param {Array} locations Array of location objects
+         * @param {Array} timeLayouts Array of time-layout objects
          * @param {JQuery} $data The DWML data node
-         * @returns {Array} Multidimentional array [layout-key][times]
+         * 
+         * @returns {Array} Array of parameter objects
          */
         NdfdForecast.prototype.parseParameters = function (locations, timeLayouts, $data) {
-            var parameters = [];   // return value
-
-            // Process each 'parameters' node
+            var self = this,
+                parameters = [];   // return value
+            //
+            // Process the 'parameters' for each location
+            //
             $data.find('parameters').each(function () {
                 var $param = $(this),
-                    location = $param.attr('applicable-location');
-
-                // Process each child node
+                    locationKey = $param.attr('applicable-location'),
+                    location = self.getLocation(locationKey);
+               
                 $param.children().each(function () {
-
                     var $node = $(this),
-                        key = $node[0].tagName,
+                        $name = $node.children('name'),
+                        tagName = $node[0].tagName,
                         type = $node.attr('type'),
                         units = $node.attr('units'),
-                        timeLayout = $node.attr('time-layout'),
-                        name = $node.find('name').text();
+                        layoutKey = $node.attr('time-layout'),
+                        categoricalTable = $node.attr('catagorical-table'),
+                        conversionTable = $node.attr('conversion-table'),
+                        param;
+                                           
+                    //    
+                    // Build the parameters array entry
+                    //
+                    param = {
+                        parameter: tagName,
+                        location: location
+                    };
+                    if ($name.length > 0) {
+                        param.name = $name.text();
+                    }
+                    if (layoutKey) {
+                        param.timeLayout = self.getTimeLayout(layoutKey);
+                    }
+                    if (type) {
+                        param.type = type;
+                    }
+                    if (units) {
+                        param.units = units;
+                    }
+                    if (categoricalTable) {
+                        param.categoricalTable = categoricalTable;
+                    }
+                    if (conversionTable) {
+                        param.conversionTable = conversionTable;
+                    }
 
-                    // Add a parameter object
-                    parameters[parameters.length] = {
-                        key: key,
-                        type: type,
-                        units: units,
-                        timeLayout: timeLayout,
-                        name: name,
-                        values: []};
 
-                    // Process each value and add it to the parameter
-                    $node.find('value').each(function () {
+                    if (tagName==='weather') {
+                        //
+                        // Process the weather-conditions nodes: one per time period
+                        //
+                        $node.children('weather-conditions').each(function(){
+                            if (param.weatherConditions === undefined) {
+                                param.weatherConditions = [];
+                            }
+                            var values = [];
+                            
+                            // 0 or more values per weather-condition
+                            $(this).children('value').each(function () {
+                                var $value = $(this);
+                                values.push({
+                                    coverage: $value.attr('coverage'),
+                                    intensity: $value.attr('intensity'),
+                                    additive: $value.attr('additive'),
+                                    weatherType: $value.attr('weather-type'),
+                                    qualifier: $value.attr('qualifier')
+                                });
+                            }); 
+                            param.weatherConditions.push(values);
+                        });
+                    
 
-                        var parameter = parameters[parameters.length - 1],
-                            values = parameter.values,
-                            value = $(this).text();
-                        // Add the value to the parameter object
-                        values[values.length] = value;
+                    } else if (tagName === 'convective-hazard') {
+                        //
+                        // Process the outlook nodes: 0 or 1
+                        //
+                        $node.children('outlook').each(function () {
+                            var $outlook = $(this);
+                            param.outlook = {
+                                name: $outlook.children('name').text(),
+                                timeLayout: self.getTimeLayout($outlook.attr('time-layout')),
+                                values: []
+                            };
+                            $outlook.children('value').each(function () {
+                                param.outlook.values.push($(this).text());
+                            }); 
+                        });
+                        //
+                        // Process the severe-component nodes: 0 to 8 
+                        //
+                        $node.children('severe-component').each(function() {
+                            if (param.severeComponents === undefined) {
+                                param.severeComponents = [];
+                            }                            
+                            var $component = $(this),
+                                component = {
+                                    name: $component.children('name').text(),
+                                    timeLayout: self.getTimeLayout($component.attr('time-layout')),
+                                    type: $component.attr('type'),
+                                    units: $component.attr('units'),
+                                    values: []
+                                };
+                            $component.find('value').each(function(){
+                                var value = $(this).text();
+                                component.values.push(Number.isNaN(value) ? value : Number(value));
+                            });                             
+                            param.severeComponents.push(component);
+                        });
 
-                    });
-                    $node.find('weather-conditions').each(function () {
-                        var $cond = $(this),
-                            $value = $cond.find('value'),
-                            coverage = $value.attr('coverage'),
-                            intensity = $value.attr('intensity'),
-                            weatherType = $value.attr('weather-type'),
-                            qualifier = $value.attr('qualifier');
+                    } else if (tagName === 'climate-anomaly') {
+                        //
+                        // Process the weekly, monthly and seasonal nodes: 0-4 each
+                        //
+                        if (param.climateAnomalies === undefined) {
+                            param.climateAnomalies = [];
+                        }
+                        $node.children().each(function () {
+                            var $anomaly = $(this),
+                                anomaly = {
+                                    name: $anomaly.children('name').text(),
+                                    timeLayout: self.getTimeLayout($anomaly.attr('time-layout')),
+                                    period: $anomaly[0].tagName,
+                                    type: $anomaly.attr('type'),
+                                    units: $anomaly.attr('units'),
+                                    values: []
+                                };
+                                
+                            $anomaly.find('value').each(function(){
+                                var value = $(this).text();
+                                anomaly.values.push(Number.isNaN(value) ? value : Number(value));
+                            });
+                            param.climateAnomalies.push(anomaly);
+                        });
+                    } else if (tagName === 'hazard') {
+                        //
+                        // Process the hazard-conditions nodes
+                        //
+                        $node.children('hazard-conditions').each(function () {
+                            if (param.hazards === undefined) {
+                                param.hazards = [];
+                            }
+                            var $cond = $(this);
+                            param.hazards.push($cond.text());
+                        });
 
-                        // Add the value to the parameter object
-                        //values[values.length] = value;
+                    } else if (tagName === 'conditions-icon') {
+                        //
+                        // Process the icon-link nodes
+                        //
+                        $node.find('icon-link').each(function () {
+                            if (param.icons === undefined) {
+                                param.icons = [];
+                            }
+                            param.icons.push($(this).text());
+                        });
+                    } else {
+                        //
+                        // Process all other parameter 'value' nodes
+                        //
+                        $node.children('value').each(function() { 
+                        
+                            if (param.values === undefined) {
+                                param.values = [];
+                            }
+                            var $value = $(this),
+                                value = $value.text(),
+                                upperRange = $value.attr('upper-range'),
+                                lowerRange = $value.attr('lower-range'),
+                                idx;
 
-                    });
-                    $node.find('hazard-conditions').each(function () {
-                        var $cond = $(this),
-                            $value = $cond.find('value'),
+                            // Add the value as a String or a Number
+                            param.values.push(Number.isNaN(value) ? value : Number(value));
 
-                        // Add the value to the parameter object
-                        //values[values.length] = value;
+                            // Get the new value's position for use in the upper/lower range arrays
+                            idx = param.values.length - 1;
 
-                    });
-                    $node.find('icon-link').each(function () {
-                        var $cond = $(this),
-                            $value = $cond.find('value'),
+                            // Check for the optional upper-range attribute
+                            if (upperRange) {
+                                if (param.upperRange === undefined) {
+                                    param.upperRange = []; // create a new sparse array
+                                }
+                                // Add the upper range at the same array pos as the value
+                                param.upperRange[idx] = Number(upperRange);
+                            }
+                            // Check for the optional lower-range attribute
+                            if (lowerRange) {
+                                if (param.lowerRange === undefined) {
+                                    param.lowerRange = []; // create a new sparse array
+                                }
+                                // Add the lower range at the same array pos as the value
+                                param.lowerRange[idx] = Number(lowerRange);
+                            }
 
-                        // Add the value to the parameter object
-                        //values[values.length] = value;
+                            // TODO: test if value is xsi:nil, e.g. <visibility xsi:nil="true"/>
 
-                    });
+                        });
+                    }
+ 
+                    // Add a parameter object to the return array
+                    parameters.push(param);
                 });
             });
             return parameters;
         };
+
+        NdfdForecast.prototype.parseParameterNode = function ($node) {
+            
+        };
+
+        NdfdForecast.prototype.getAirTemps = function () {
+            var i, max, param, timeLayout,
+                j, numValues, airTemps = [];
+            for (i = 0, max = this.parameters.length; i < max; i++) {
+                param = this.parameters[i];
+                if (param.parameter === 'temperature' && param.type === 'apparent') {
+                    // Get the time layout for this parameter
+                    timeLayout = this.getTimeLayout(param.layoutKey);
+                    // Build the return array
+                    for (j = 0, numValues = param.values.length; j < numValues; j++) {
+                        airTemps.push([timeLayout[j], param.values[j]]);
+                    }
+                }
+            }
+            return airTemps;
+        };
+
+        NdfdForecast.prototype.getLocation = function (locationKey) {
+            var i, max, location;
+            for (i = 0, max = this.locations.length; i < max; i++) {
+                location = this.locations[i];
+                if (location.key === locationKey) {
+                    return location;
+                }
+            }
+            return null;
+        };
+
+        NdfdForecast.prototype.getTimeLayout = function (layoutKey) {
+            var i, max, layout;
+            for (i = 0, max = this.timeLayouts.length; i < max; i++) {
+                layout = this.timeLayouts[i];
+                if (layout.key === layoutKey) {
+                    return layout;
+                }
+            }
+            return null;
+        };
+
+
         return NdfdForecast;
     }
 );
