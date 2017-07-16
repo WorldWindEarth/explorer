@@ -69,7 +69,7 @@ define([],
             /**
              * The URL for the weather REST service.
              */
-            WEATHER_REST_SERVICE: "http://rhombus.emxsys.net/wmt-rest/rs/weather",
+            WEATHER_REST_SERVICE: "http://emxsys.net/wmt-rest/rs/weather",
             WEATHER_SCOUT_LABEL_LATLON: "weatherScoutLabelLatLon",
             WEATHER_SCOUT_LABEL_NAME: "weatherScoutLabelName",
             WEATHER_SCOUT_LABEL_NONE: "weatherScoutLabelNone",
