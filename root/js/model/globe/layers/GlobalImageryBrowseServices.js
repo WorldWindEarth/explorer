@@ -30,7 +30,7 @@ define([
             this.layers = {};
             
             var request = new XMLHttpRequest(),
-                url = 'http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml',
+                url = 'https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml',
                 wmtsCaps,
                 layerCaps,
                 i, max, layer,
