@@ -96,20 +96,20 @@ define(['knockout', 'model/Config', 'model/Constants', 'worldwind'],
             this.addBaseLayer(new WorldWind.BMNGLayer(), {
                 enabled: true,
                 hideInMenu: true,
-                detailHint: config.imageryDetailHint
+                detailControl: config.imagerydetailControl
             });
             this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {
                 enabled: false,
-                detailHint: config.imageryDetailHint
+                detailControl: config.imagerydetailControl
             });
             this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {
                 enabled: false,
-                detailHint: config.imageryDetailHint
+                detailControl: config.imagerydetailControl
             });
             this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {
                 enabled: true,
                 opacity: 0.7,
-                detailHint: config.imageryDetailHint
+                detailControl: config.imagerydetailControl
             });
 
             this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_MARKERS), {
@@ -243,9 +243,12 @@ define(['knockout', 'model/Config', 'model/Constants', 'worldwind'],
                 layer.isTemporal = true;
             }
 
-            // Apply the level-of-detail hint, if provided
-            if (opt.detailHint) {
-                layer.detailHint = opt.detailHint;
+            // Apply the level-of-detail control, if provided
+            // A request for higher resolution imagery is made when the texture 
+            // pixel size is greater than the detailControl value.
+            if (opt.detailControl) {
+                // layer default is 1.75
+                layer.detailControl = opt.detailControl;
             }
 
             // Apply the opacity, if provided

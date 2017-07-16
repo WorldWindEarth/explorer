@@ -164,7 +164,7 @@ define(['knockout',
 
 
             // Adjust the level of detail based on screen properties
-//            this.adjustTiledImageLayerDetailHints();
+            //this.adjustTiledImageLayerDetailHints();
 
 
             // Add optional reticule
@@ -480,14 +480,16 @@ define(['knockout',
         };
 
         /**
-         * Adjusts the level of detail to be proportional to the window size.
-         * If the window is twice the size of the base, then the detailHint should be 0.2;
-         * if the window half the size then the detail level should be -0.2.
+         * Adjusts the level of detail to be proportional to the window size. 
+         * When a layer's texture pixel size grows greater than the layer's 
+         * detailContol value a request for higher resolution imagery is made.
+         * If the window is twice the size of the base, then the detailHint should be 1.5;
+         * if the window half the size then the detail control level should be 2.0.
          */
         Globe.prototype.adjustTiledImageLayerDetailHints = function () {
             var width = $(this.wwd.canvas).width(),
                 i, len, layer,
-                detailHint;
+                detailControl;
 
             if (this.canvasWidth === width) {
                 return;
@@ -496,15 +498,9 @@ define(['knockout',
 
             if (width < 1000) {
                 // Mobile
-                detailHint = -0.1;
-//            } else if (width < 970) {
-//                detailHint = 0.0;
-//            } else if (width < 1170) {
-//                detailHint = 0.1;
-//            } else if (width < 1400) {
-//                detailHint = 0.15;
+                detailControl = 2.0;
             } else {
-                detailHint = util.linearInterpolation(width, 1000, 2000, 0, 0.4);
+                detailControl = util.linearInterpolation(width, 1000, 2000, 1.75, 1.25);
             }
 
             // $(window).width() / parseFloat($("body").css("font-size"));
@@ -513,7 +509,7 @@ define(['knockout',
             for (i = 0, len = this.wwd.layers.length; i < len; i++) {
                 layer = this.wwd.layers[i];
                 if (layer instanceof WorldWind.TiledImageLayer) {
-                    layer.detailHint = detailHint;
+                    layer.detailControl = detailControl;
                 }
             }
         };
