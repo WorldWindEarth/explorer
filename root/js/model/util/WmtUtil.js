@@ -72,7 +72,7 @@ define(['worldwind'],
                 return angleRad * WorldWind.EARTH_RADIUS;
             },
             /**
-             * 
+             * Linear interpolation.
              * @param {type} value
              * @param {type} value1
              * @param {type} value2
@@ -85,8 +85,9 @@ define(['worldwind'],
                 if (value === value1) {
                     return range1; 
                 }
-                var amount = (value1 - value2) / (value1 - value);
-                return ((1 - amount) * range1) + (amount * range2);
+                var amount = (value - value1) / (value2 - value1);
+//                return ((1 - amount) * range1) + (amount * range2);
+                return  range1 + amount * (range2 - range1);
             },
             /**
              * Generates a GUID-like string.
