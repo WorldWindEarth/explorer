@@ -17,11 +17,11 @@ define(['knockout'],
          * The view model for the Header panel.
          * @constructor
          */
-        function OutputViewModel() {
+        function HeaderViewModel() {
             var self = this;
-            self.appName = ko.observable("World Wind Explorer");
+            self.appName = ko.observable("WorldWind Explorer");
         }
 
-        return OutputViewModel;
+        return HeaderViewModel;
     }
 );
