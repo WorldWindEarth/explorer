@@ -46,7 +46,7 @@ define(['jquery',
                  * The Explorer version number.
                  * @constant
                  */
-                VERSION: "0.3.0",
+                VERSION: "0.2.0",
                 /**
                  * Prepares the singleton Explorer object for use.
                  * @param {Globe} globe
