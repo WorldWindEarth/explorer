@@ -19,6 +19,7 @@ requirejs.config({
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
         'moment': 'libs/moment/moment-2.14.1',
         'd3': 'libs/d3/d3',
+        'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         'vis': 'libs/vis/v4.16.1/vis',
         'worldwind': 'libs/webworldwind/worldwind',
         'model': 'model' // root application path
@@ -40,39 +41,35 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/Constants',
     'model/Explorer',
     'model/globe/Globe',
+    'views/BookmarkViewModel',
     'views/GlobeViewModel',
     'views/HeaderViewModel',
-    'views/HomeViewModel',
     'views/LayersViewModel',
     'views/MarkerEditor',
     'views/MarkersViewModel',
     'views/OutputViewModel',
     'views/ProjectionsViewModel',
     'views/SearchViewModel',
+    'views/SettingsViewModel',
     'views/WeatherScoutEditor',
-    'views/WeatherViewModel',
-    'model/globe/layers/UsgsContoursLayer',
-    'model/globe/layers/UsgsImageryTopoBaseMapLayer',
-    'model/globe/layers/UsgsTopoBaseMapLayer'],
+    'views/WeatherViewModel'],
     function (ko, $, bootstrap, ww,
         config,
         constants,
         explorer,
         Globe,
+        BookmarkViewModel,
         GlobeViewModel,
         HeaderViewModel,
-        HomeViewModel,
         LayersViewModel,
         MarkerEditor,
         MarkersViewModel,
         OuputViewModel,
         ProjectionsViewModel,
         SearchViewModel,
+        SettingsViewModel,
         WeatherScoutEditor,
-        WeatherViewModel,
-        UsgsContoursLayer,
-        UsgsImageryTopoBaseMapLayer,
-        UsgsTopoBaseMapLayer) { // this callback gets executed when all required modules are loaded
+        WeatherViewModel) { // this callback gets executed when all required modules are loaded
         "use strict";
         // ----------------
         // Setup the globe
@@ -82,37 +79,26 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
 
         // Define the configuration for the primary globe
         var globeOptions = {
-            showBackground: true,
-            showReticule: true,
-            showViewControls: true,
-            includePanControls: config.showPanControl,
-            includeRotateControls: true,
-            includeTiltControls: true,
-            includeZoomControls: true,
-            includeExaggerationControls: config.showExaggerationControl,
-            includeFieldOfViewControls: config.showFieldOfViewControl
-        },
+                showBackground: true,
+                showReticule: true,
+                showViewControls: true,
+                includePanControls: config.showPanControl,
+                includeRotateControls: true,
+                includeTiltControls: true,
+                includeZoomControls: true,
+                includeExaggerationControls: config.showExaggerationControl,
+                includeFieldOfViewControls: config.showFieldOfViewControl},
             globe;
 
         // Create the explorer's primary globe that's associated with the specified HTML5 canvas
         globe = new Globe(new WorldWind.WorldWindow("canvasOne"), globeOptions);
+        
+        // Load additional layers and layer options
+        globe.layerManager.loadDefaultLayers();
 
-        // Define the Globe's layers and layer options
-        globe.layerManager.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: true, detailControl: config.imagerydetailControl});
-        globe.layerManager.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
-        globe.layerManager.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: true, detailControl: config.imagerydetailControl});
-        globe.layerManager.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
-        globe.layerManager.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
-        globe.layerManager.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
-        //globe.layerManager.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
-
-        globe.layerManager.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
-
-        globe.layerManager.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_MARKERS), {enabled: true, pickEnabled: true});
-        globe.layerManager.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
-
-        // Initialize the Explorer object with a Globe to "explore"
+        // Initialize the Explorer object with a basic Globe to "explore"
         explorer.initialize(globe);
+
 
         // --------------------------------------------------------
         // Bind view models to the corresponding HTML elements
@@ -123,13 +109,14 @@ require(['knockout', 'jquery', 'bootstrap', 'worldwind',
         ko.applyBindings(new HeaderViewModel(), document.getElementById('header'));
         ko.applyBindings(new ProjectionsViewModel(globe), document.getElementById('projections'));
         ko.applyBindings(new SearchViewModel(globe), document.getElementById('search'));
-        ko.applyBindings(new HomeViewModel(globe), document.getElementById('home'));
         ko.applyBindings(new LayersViewModel(globe), document.getElementById('layers'));
         ko.applyBindings(new MarkersViewModel(globe, explorer.markerManager), document.getElementById('markers'));
+        ko.applyBindings(new SettingsViewModel(globe), document.getElementById('settings'));
         ko.applyBindings(new MarkerEditor(), document.getElementById('marker-editor'));
         ko.applyBindings(new WeatherViewModel(globe, explorer.weatherManager), document.getElementById('weather'));
         ko.applyBindings(new WeatherScoutEditor(), document.getElementById('weather-scout-editor'));
         ko.applyBindings(new OuputViewModel(globe), document.getElementById('output'));
+        ko.applyBindings(new BookmarkViewModel(globe), document.getElementById('bookmark'));
 
         // -----------------------------------------------------------
         // Add handlers to auto-expand/collapse the menus
