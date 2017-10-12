@@ -26,5 +26,7 @@ from the National Weather Service (US-only).
 
 ### Important Links
 - Live Demo: http://explorer.worldwind.earth
-- NASA Web World Wind SDK: https://github.com/NASAWorldWind/WebWorldWind
+- Explorer project: https://github.com/NASAWorldWindResearch/WorldWindExplorer
+- NASA WorldWind website: https://worldwind.arc.nasa.gov
+- NASA Web WorldWind SDK on GitHub: https://github.com/NASAWorldWind/WebWorldWind
 
