@@ -15,7 +15,8 @@
  * @param {WorldWind} ww object
  * @returns {LayerManager}
  */
-define(['knockout',
+define(['dragula',
+    'knockout',
     'model/Config',
     'model/Constants',
     'model/globe/layers/EnhancedWmsLayer',
@@ -24,7 +25,8 @@ define(['knockout',
     'model/globe/layers/UsgsContoursLayer',
     'model/globe/layers/UsgsImageryTopoBaseMapLayer',
     'model/globe/layers/UsgsTopoBaseMapLayer'],
-        function (ko,
+        function (dragula,
+                ko,
                 config,
                 constants,
                 EnhancedWmsLayer,
@@ -102,6 +104,11 @@ define(['knockout',
 
                     self.globe.redraw();
                 };
+
+                /**
+                 * Register the dragging containers
+                 */
+                this.drake = dragula();
             };
 
             /**
@@ -1160,6 +1167,14 @@ define(['knockout',
                 } else {
                     layers.splice(initialIndex, 1);
                 }
+            };
+
+            LayerManager.prototype.setupDragging = function () {
+                var el = document.getElementById('layer-item-container');
+                this.drake.containers.push(el);
+                this.drake.on('drop', function () {
+                    // TODO - synchronize the UI with the observable layer arrays
+                });
             };
 
             return LayerManager;
