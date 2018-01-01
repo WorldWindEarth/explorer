@@ -58,7 +58,6 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
              * @param {Object} layer The selected layer in the layer collection
              */
             this.onEditSettings = function (layer) {
-
                 $('#opacity-slider').slider({
                     animate: 'fast',
                     min: 0,
@@ -73,12 +72,22 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
 
                 $("#layer-settings-dialog").dialog({
                     autoOpen: false,
-                    title: layer.name()
+                    title: layer.name(),
+                    close: function (event, ui) {
+                        $('#move-up-button').off('click');
+                        $('#move-down-button').off('click');
+                        $('#move-top-button').off('click');
+                        $('#move-bottom-button').off('click');
+                    }
                 });
+                $('#opacity-slider').slider("option", "value", layer.opacity());
+                $('#move-up-button').on('click', function () { layerManager.moveLayer(layer, 'up'); });
+                $('#move-down-button').on('click', function () { layerManager.moveLayer(layer, 'down'); });
+                $('#move-top-button').on('click', function () { layerManager.moveLayer(layer, 'top'); });
+                $('#move-bottom-button').on('click', function () { layerManager.moveLayer(layer, 'bottom'); });
 
                 //console.log(layer.name() + ":  " + layer.opacity());
-                $("#opacity-slider").slider("option", "value", layer.opacity());
-                $("#layer-settings-dialog").dialog("open");
+                $('#layer-settings-dialog').dialog("open");
             };
 
 
@@ -108,13 +117,17 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                 layerManager.moveLayer(layer, "up");
             };
 
-            this.onMoveLayerToTop = function (layer) {
-                layerManager.moveLayer(layer, 0);
-            };
-
             this.onMoveLayerDown = function (layer) {
                 layerManager.moveLayer(layer, "down");
-            }
+            };
+
+            this.onMoveLayerToTop = function (layer) {
+                layerManager.moveLayer(layer, "top");
+            };
+
+            this.onMoveLayerToBottom = function (layer) {
+                layerManager.moveLayer(layer, "bottom");
+            };
 
             /**
              * Add the supplied layer from the server's capabilities to the active layers
@@ -162,7 +175,7 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                 }
                 oldIndex = layers.indexOf(droppedLayer);
                 newIndex = layers.indexOf(siblingLayer);
-                
+
                 if (oldIndex < 0) {
                     return; // error?
                 }
