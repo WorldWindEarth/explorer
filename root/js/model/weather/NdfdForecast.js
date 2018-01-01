@@ -171,7 +171,10 @@ define(['jquery', 'model/util/Log', 'worldwind'
                     //
                     location.point = {
                         latitude: Number($point.attr("latitude")),
-                        longitude: Number($point.attr("longitude"))
+                        longitude: Number($point.attr("longitude")),
+                    };
+                    location.toString = function () {
+                        return this.point.latitude + ", " + this.point.longitude
                     };
 
                 } else if ($city.length > 0) {
@@ -182,12 +185,21 @@ define(['jquery', 'model/util/Log', 'worldwind'
                         name: $city.text(),
                         state: $city.attr('state')
                     };
+                    location.toString = function () {
+                        return this.city.name + ", " + this.city.state
+                    };
 
                 } else if ($nwsZone.length > 0) {
                     //
                     // Assign a NWS forecast zone
                     //
-                    location.nwsZone = {name: $nwsZone.text(), state: $nwsZone.attr('state')};
+                    location.nwsZone = {
+                        name: $nwsZone.text(),
+                        state: $nwsZone.attr('state')
+                    };
+                    location.toString = function () {
+                        return this.nwsZone.name + ", " + this.nwsZone.state
+                    };
 
                 } else if ($area.length > 0) {
                     //
@@ -229,11 +241,11 @@ define(['jquery', 'model/util/Log', 'worldwind'
          * Traverses the data node to obtain the time-layout arrays.
          * 
          * @param {JQuery} $data The DWML data node
-         * @returns {Array} An array of time-layout ojects {layout-key, startValidTimes, endValidTimes (optional)]
+         * @returns {Array} An array of time-layout objects: [{layout-key, startValidTimes, endValidTimes (optional)}]
          */
         NdfdForecast.prototype.parseTimeLayouts = function ($data) {
 
-            var timeLayouts = [];   // return value
+            var timeLayouts = {};   // return value
 
             // Process each time-layout node
             $data.find('time-layout').each(function () {
@@ -271,10 +283,12 @@ define(['jquery', 'model/util/Log', 'worldwind'
                     });
                 }
 
-                timeLayouts.push(timeLayout);
+                // timeLayouts.push(timeLayout);
+                timeLayouts[$key.text()] = timeLayout;
             });
             return timeLayouts;
         };
+        
         /**
          * Traverses the data node to obtain the parameters for each location and time.
          * 
@@ -296,7 +310,7 @@ define(['jquery', 'model/util/Log', 'worldwind'
                 var $param = $(this),
                     locationKey = $param.attr('applicable-location'),
                     location = self.getLocation(locationKey);
-               
+
                 $param.children().each(function () {
                     var $node = $(this),
                         $name = $node.children('name'),
@@ -307,11 +321,12 @@ define(['jquery', 'model/util/Log', 'worldwind'
                         categoricalTable = $node.attr('catagorical-table'),
                         conversionTable = $node.attr('conversion-table'),
                         param;
-                                           
+
                     //    
                     // Build the parameters array entry
                     //
                     param = {
+                        // TODO: rename "parameter" to "element"
                         parameter: tagName,
                         location: location
                     };
@@ -334,17 +349,16 @@ define(['jquery', 'model/util/Log', 'worldwind'
                         param.conversionTable = conversionTable;
                     }
 
-
-                    if (tagName==='weather') {
+                    if (tagName === 'weather') {
                         //
                         // Process the weather-conditions nodes: one per time period
                         //
-                        $node.children('weather-conditions').each(function(){
+                        $node.children('weather-conditions').each(function () {
                             if (param.weatherConditions === undefined) {
                                 param.weatherConditions = [];
                             }
                             var values = [];
-                            
+
                             // 0 or more values per weather-condition
                             $(this).children('value').each(function () {
                                 var $value = $(this);
@@ -355,10 +369,10 @@ define(['jquery', 'model/util/Log', 'worldwind'
                                     weatherType: $value.attr('weather-type'),
                                     qualifier: $value.attr('qualifier')
                                 });
-                            }); 
+                            });
                             param.weatherConditions.push(values);
                         });
-                    
+
 
                     } else if (tagName === 'convective-hazard') {
                         //
@@ -373,15 +387,15 @@ define(['jquery', 'model/util/Log', 'worldwind'
                             };
                             $outlook.children('value').each(function () {
                                 param.outlook.values.push($(this).text());
-                            }); 
+                            });
                         });
                         //
                         // Process the severe-component nodes: 0 to 8 
                         //
-                        $node.children('severe-component').each(function() {
+                        $node.children('severe-component').each(function () {
                             if (param.severeComponents === undefined) {
                                 param.severeComponents = [];
-                            }                            
+                            }
                             var $component = $(this),
                                 component = {
                                     name: $component.children('name').text(),
@@ -390,10 +404,10 @@ define(['jquery', 'model/util/Log', 'worldwind'
                                     units: $component.attr('units'),
                                     values: []
                                 };
-                            $component.find('value').each(function(){
+                            $component.find('value').each(function () {
                                 var value = $(this).text();
                                 component.values.push(Number.isNaN(value) ? value : Number(value));
-                            });                             
+                            });
                             param.severeComponents.push(component);
                         });
 
@@ -414,8 +428,8 @@ define(['jquery', 'model/util/Log', 'worldwind'
                                     units: $anomaly.attr('units'),
                                     values: []
                                 };
-                                
-                            $anomaly.find('value').each(function(){
+
+                            $anomaly.find('value').each(function () {
                                 var value = $(this).text();
                                 anomaly.values.push(Number.isNaN(value) ? value : Number(value));
                             });
@@ -447,8 +461,8 @@ define(['jquery', 'model/util/Log', 'worldwind'
                         //
                         // Process all other parameter 'value' nodes
                         //
-                        $node.children('value').each(function() { 
-                        
+                        $node.children('value').each(function () {
+
                             if (param.values === undefined) {
                                 param.values = [];
                             }
@@ -485,7 +499,9 @@ define(['jquery', 'model/util/Log', 'worldwind'
 
                         });
                     }
- 
+                    param.toString = function () {
+                        return this.name;
+                    };
                     // Add a parameter object to the return array
                     parameters.push(param);
                 });
@@ -494,7 +510,7 @@ define(['jquery', 'model/util/Log', 'worldwind'
         };
 
         NdfdForecast.prototype.parseParameterNode = function ($node) {
-            
+
         };
 
         NdfdForecast.prototype.getAirTemps = function () {
@@ -514,7 +530,10 @@ define(['jquery', 'model/util/Log', 'worldwind'
             return airTemps;
         };
 
+
+
         NdfdForecast.prototype.getLocation = function (locationKey) {
+            // TODO: test for locationKey
             var i, max, location;
             for (i = 0, max = this.locations.length; i < max; i++) {
                 location = this.locations[i];
@@ -526,17 +545,86 @@ define(['jquery', 'model/util/Log', 'worldwind'
         };
 
         NdfdForecast.prototype.getTimeLayout = function (layoutKey) {
-            var i, max, layout;
-            for (i = 0, max = this.timeLayouts.length; i < max; i++) {
-                layout = this.timeLayouts[i];
-                if (layout.key === layoutKey) {
-                    return layout;
-                }
-            }
-            return null;
+            // TODO: Test for layoutKey
+//            var i, max, layout;
+//            for (i = 0, max = this.timeLayouts.length; i < max; i++) {
+//                layout = this.timeLayouts[i];
+//                if (layout.key === layoutKey) {
+//                    return layout;
+//                }
+//            }
+//            return null;
+            return this.timeLayouts[layoutKey];
         };
 
+        NdfdForecast.prototype.getHourlyTemperatureValues = function () {
+            return this.getWeather('temperature', 'hourly');
+        };
+        NdfdForecast.prototype.getRelativeHumidityValues = function () {
+            return this.getWeather('humidity', 'relative');
+        };
 
+        /**
+         * 
+         * @param {String} parameter Parameter name, e.g., "temperature"
+         * @param {String} type Parameter type, e.g., "hourly"
+         * @returns {Array} Array of time/value for the given parameter: [{startTime, endTime, value}] 
+         */
+        NdfdForecast.prototype.getWeather = function (parameter, type) {
+            var param = this.getParameter(parameter, type);
+            return this.getValues(param);
+        };
+        
+        /**
+         * 
+         * @param {String} parameter Parameter name, e.g., "temperature"
+         * @param {String} type Parameter type, e.g., "hourly"
+         * @returns {Array} Array of time/value for the given parameter: [{startTime, endTime, value}] 
+         */
+        NdfdForecast.prototype.getHourlyWeather = function (parameter, type) {
+            var wxValues = this.getWeather(parameter, type),
+                first = wxValues
+            
+            
+            return this.getValues(param);
+        };
+        
+        
+
+        NdfdForecast.prototype.getParameter = function (parameter, type) {
+            // TODO: Test validity of arguments
+            var i, max, param;
+            for (var i = 0, max = this.parameters.length; i < max; i++) {
+                param = this.parameters[i];
+                if (param.parameter === parameter && param.type === type) {
+                    return param;
+                }
+            }
+            // TODO: throw error if not found?
+            return null;
+        };
+        
+
+        NdfdForecast.prototype.getValues = function (wxParam) {
+            var timeLayout,
+                j, len, 
+                values = [];
+
+            if (wxParam) {
+                // Get the time layout for this parameter
+                timeLayout = wxParam.timeLayout;
+                // Build the array: get the values for each start time (end times are optional)
+                for (j = 0, len = timeLayout.startValidTimes.length; j < len; j++) {
+                    values.push({
+                        startTime: timeLayout.startValidTimes[j],
+                        endTime: timeLayout.endValidTimes ? timeLayout.endValidTimes[j] : null, 
+                        value: wxParam.values[j]
+                    });
+                }
+            }
+            return values;
+        };
+        
         return NdfdForecast;
     }
 );

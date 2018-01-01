@@ -113,7 +113,7 @@ define(['jquery',
              * @returns {jqXHR} 
              */
             getSinglePointTimeSeries: function (latitude, longitude, elements, callback) {
-                var url = "/ndfd/xml/rest/ndfdXMLclient.php",
+                var url = "http://emxsys.net/ndfd/xml/rest/ndfdXMLclient.php",
                     query,
                     i, max, element;
 
@@ -177,7 +177,7 @@ define(['jquery',
              * @returns {jqXHR} 
              */
             getSinglePointGlance: function (latitude, longitude, callback) {
-                var url = "/ndfd/xml/rest/ndfdXMLclient.php",
+                var url = "http://emxsys.net/ndfd/xml/rest/ndfdXMLclient.php",
                     query = "lat=" + latitude
                     + "&lon=" + longitude
                     + "&begin="     // empty: first available time

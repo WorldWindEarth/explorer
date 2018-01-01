@@ -36,6 +36,9 @@ define([
     'model/util/Selectable',
     'model/weather/symbols/WeatherMapSymbol',
     'model/services/WeatherService',
+    'model/weather/NdfdForecast',
+    'model/weather/NdfdService',
+
     'model/util/WmtUtil'],
     function (
         ko,
@@ -52,6 +55,8 @@ define([
         selectable,
         WeatherMapSymbol,
         WeatherService,
+        NdfdForecast,
+        ndfdService,
         util) {
         "use strict";
 
@@ -70,14 +75,14 @@ define([
         var WeatherScout = function (manager, position, params) {
             var args = params || {},
                 self = this;
-                
+
             publisher.makePublisher(this);
-            
+
             /** A reference to the globe; used by the WeatherMapSymbol. */
             this.globe = manager.globe;
-            
+
             // TODO: assert that the params object contains the required members, e.g. lat, lon.
-            
+
             // Make movable by the SelectController: Establishes the isMovable member.
             // Fires the EVENT_OBJECT_MOVE... events.
             movable.makeMovable(this);
@@ -89,39 +94,39 @@ define([
                 return true;    // return true to fire a EVENT_OBJECT_SELECTED event
             });
 
-            
+
             // Make openable via menus: Establishes the isOpenable member.
             openable.makeOpenable(this, function () { // define the function that opens the editor
-                   var $element = $("#weather-scout-editor"),        
-                        wxScoutEditor = ko.dataFor($element.get(0)); // get the view model bound to the element
-                    
-                    if (wxScoutEditor) {
-                        wxScoutEditor.open(this);
-                        return true; // return true to fire EVENT_OBJECT_OPENED event.
-                    }
-                    log.warning("WeatherScout","constructor","#weather-scout-editor element was not found.")
-                    return false; 
-             });
-            
+                var $element = $("#weather-scout-editor"),
+                    wxScoutEditor = ko.dataFor($element.get(0)); // get the view model bound to the element
+
+                if (wxScoutEditor) {
+                    wxScoutEditor.open(this);
+                    return true; // return true to fire EVENT_OBJECT_OPENED event.
+                }
+                log.warning("WeatherScout", "constructor", "#weather-scout-editor element was not found.")
+                return false;
+            });
+
             // Make deletable via menu: Establishes the isRemovable member.
             removable.makeRemovable(this, function () {
-                    // TODO: Could ask for confirmation; return false if veto'd
-                    // 
-                    // =================================
-                    // TODO: Unsubscribe to observables!
-                    // =================================
-                    
-                    manager.removeScout(self); // Removes the marker from the manager's observableArray
-                    return true;    // return true to fire a EVENT_OBJECT_REMOVED
+                // TODO: Could ask for confirmation; return false if veto'd
+                // 
+                // =================================
+                // TODO: Unsubscribe to observables!
+                // =================================
+
+                manager.removeScout(self); // Removes the marker from the manager's observableArray
+                return true;    // return true to fire a EVENT_OBJECT_REMOVED
             });
-            
+
             // Make context sensiive by the SelectController: shows the context menu.
             contextSensitive.makeContextSensitive(this, function () {
                 $.growl({title: "TODO", message: "Show menu with delete, open, and lock/unlock"});
             });
 
             // Observables:
-            
+
             /** The display name */
             this.name = ko.observable(args.name || 'Wx Scout');
             /** The movable mix-in state */
@@ -129,7 +134,7 @@ define([
             /** The latitude of this marker -- set be by the Movable interface during pick/drag operations. See SelectController */
             this.latitude(position.latitude)
             /** The longitude of this marker -- may be set by the Movable interface during pick/drag operations See SelectController */
-            this.longitude (position.longitude);
+            this.longitude(position.longitude);
             /** The lat/lon location string of this scout */
             this.location = ko.computed(function () {
                 return "Lat " + self.latitude().toPrecision(4).toString() + ", " + "Lon " + self.longitude().toPrecision(5).toString();
@@ -138,7 +143,7 @@ define([
             this.duration = ko.observable(72); // hours
 
             // Properties:
-            
+
             /** The unique id used to identify this particular weather object */
             this.id = args.id || util.guid();
             /** The renderable, symbolic representation of this object */
@@ -157,16 +162,16 @@ define([
 //            this.longitude.subscribe(function (newLon) {
 //                self.renderable.handleObjectMovedEvent(self);
 //            });          
-            
+
             this.globe.dateTime.subscribe(this.renderable.handleTimeChangedEvent);
-            
+
             // Self subscribe to move operations so we can update the forecast and place
             // when the move is finished. We don't want to update during the move itself.
             this.on(events.EVENT_OBJECT_MOVE_FINISHED, this.refresh);
 
             this.refresh();
         };
-        
+
         /**
          * Invalid Weather object
          */
@@ -223,8 +228,7 @@ define([
             // Use the earliest forecast if time arg is not provided
             if (!time) {
                 forecast = this.temporalWx[0];
-            }
-            else {
+            } else {
                 for (i = 0, max = this.temporalWx.length; i < max; i++) {
                     wxTime = this.temporalWx[i].time;
                     if (time.getTime() < wxTime.getTime()) {    // compare millisecs from epoch
@@ -244,13 +248,21 @@ define([
                 }
                 forecast = this.temporalWx[i];
             }
+//            return {
+//                time: new Date(forecast.time),
+//                airTemperatureF: parseInt(forecast.values[0], 10),
+//                relaltiveHumidityPct: parseInt(forecast.values[1], 10),
+//                windSpeedKts: parseInt(forecast.values[2], 10),
+//                windDirectionDeg: parseInt(forecast.values[3], 10),
+//                skyCoverPct: parseInt(forecast.values[4], 10)
+//            };
             return {
                 time: new Date(forecast.time),
-                airTemperatureF: parseInt(forecast.values[0], 10),
-                relaltiveHumidityPct: parseInt(forecast.values[1], 10),
-                windSpeedKts: parseInt(forecast.values[2], 10),
-                windDirectionDeg: parseInt(forecast.values[3], 10),
-                skyCoverPct: parseInt(forecast.values[4], 10)
+                airTemperatureF: forecast.values[0],
+                relaltiveHumidityPct: forecast.values[1],
+                windSpeedKts: forecast.values[2],
+                windDirectionDeg: forecast.values[3],
+                skyCoverPct: forecast.values[4]
             };
         };
         /**
@@ -269,7 +281,7 @@ define([
             var array = [],
                 forecast,
                 i, max;
-            
+
             if (!this.temporalWx) {
                 log.error('WeatherScout', 'getForecasts', 'missingWeatherData');
                 return array;
@@ -307,12 +319,26 @@ define([
             var self = this;
 
             // Get the weather forecast at this location
-            WeatherService.pointForecast(
+//            WeatherService.pointForecast(
+//                this.latitude(),
+//                this.longitude(),
+//                this.duration(),
+//                function (json) { // Callback to process JSON result
+//                    self.processForecast(json);
+//                    log.info('WeatherScout', 'refreshForecast', self.name() + ': EVENT_WEATHER_CHANGED');
+//                    self.fire(events.EVENT_WEATHER_CHANGED, self);
+//                    if (deferred) {
+//                        deferred.resolve(self);
+//                    }
+//                }
+//            );
+            ndfdService.getSinglePointTimeSeries(
                 this.latitude(),
                 this.longitude(),
-                this.duration(),
-                function (json) { // Callback to process JSON result
-                    self.processForecast(json);
+                ['temp', 'rh', 'wspd', 'wdir', 'sky'], // hourly temp, relative humidity, wind speed, wind dir, cloud cover
+                function (xml) { // Callback to process XML result
+                    var fcst = new NdfdForecast(xml);
+                    self.processForecast(fcst);
                     log.info('WeatherScout', 'refreshForecast', self.name() + ': EVENT_WEATHER_CHANGED');
                     self.fire(events.EVENT_WEATHER_CHANGED, self);
                     if (deferred) {
@@ -326,12 +352,12 @@ define([
          * Updates this object's place attributes. 
          */
         WeatherScout.prototype.refreshPlace = function (deferred) {
-            
+
             if (!this.latitude || !this.longitude) {
                 return;
             }
             var self = this,
-                i, max, item, place = [], 
+                i, max, item, place = [],
                 placename = '';
 
             // Get the place name(s) at this location
@@ -365,7 +391,7 @@ define([
                     }
                     // Update the placename property: toponym
                     self.toponym = placename;
-                    
+
                     log.info('WeatherScout', 'refreshPlace', self.name() + ': EVENT_PLACE_CHANGED');
                     self.fire(events.EVENT_PLACE_CHANGED, self);
                     if (deferred) {
@@ -379,21 +405,66 @@ define([
          * 
          * @param {type} json
          */
-        WeatherScout.prototype.processForecast = function (json) {
+//        WeatherScout.prototype.processForecast = function (json) {
+//            //Log.info('WeatherScout', 'processForecast', JSON.stringify(json));
+//
+//            var isoTime, i, max;
+//
+//            this.wxForecast = json;
+//            this.temporalWx = this.wxForecast.spatioTemporalWeather.spatialDomain.temporalDomain.temporalWeather;
+//            this.range = this.wxForecast.spatioTemporalWeather.range;
+//
+//            // Add a Date object to each temporal entry
+//            for (i = 0, max = this.temporalWx.length; i < max; i++) {
+//                // .@time doesn't work because of the '@', so we use ['@time']
+//                isoTime = this.temporalWx[i]['@time'];
+//                this.temporalWx[i].time = new Date(isoTime);
+//            }
+//        };
+        WeatherScout.prototype.processForecast = function (fcst) {
             //Log.info('WeatherScout', 'processForecast', JSON.stringify(json));
 
-            var isoTime, i, max;
+            var i, max, param,
+                airTemps = fcst.getWeather('temperature', 'hourly'),
+                humidity = fcst.getWeather('humidity', 'relative');
 
-            this.wxForecast = json;
-            this.temporalWx = this.wxForecast.spatioTemporalWeather.spatialDomain.temporalDomain.temporalWeather;
-            this.range = this.wxForecast.spatioTemporalWeather.range;
 
-            // Add a Date object to each temporal entry
-            for (i = 0, max = this.temporalWx.length; i < max; i++) {
-                // .@time doesn't work because of the '@', so we use ['@time']
-                isoTime = this.temporalWx[i]['@time'];
-                this.temporalWx[i].time = new Date(isoTime);
+            this.wxForecast = fcst;
+            this.temporalWx = [];
+
+            for (var i = 0, max = airTemps.length; i < max; i++) {
+                this.temporalWx.push({
+                    time: airTemps[i].startTime,
+                    values: [
+                        airTemps[i].value, 
+                        humidity[i].value, 
+                        Number.NaN, 
+                        Number.NaN, 
+                        Number.NaN]
+                });
             }
+//            
+//            for (var i = 0, max = fcst.parameters.length; i < max; i++) {
+//                param = fcst.parameters[i];
+//                if (param.parameter==='temperature' && param.type==='hourly') {
+//                    for (var j = 0, len = param.timeLayout.startValidTimes.length; j < len; j++) {
+//                        this.temporalWx.push({
+//                            time: param.timeLayout.startValidTimes[j],
+//                            values: [param.values[j],Number.NaN,Number.NaN,Number.NaN,Number.NaN]
+//                        });
+//                    }
+//                }
+//                if (param.parameter==='humidity' && param.type==='relative') {
+//                    for (var j = 0, len = param.timeLayout.startValidTimes.length; j < len; j++) {
+//                        this.temporalWx.push({
+//                            time: param.timeLayout.startValidTimes[j],
+//                            values: [param.values[j],Number.NaN,Number.NaN,Number.NaN,Number.NaN]
+//                        });
+//                    }
+//                }
+//                break;
+//                
+//            }
         };
 
         return WeatherScout;
