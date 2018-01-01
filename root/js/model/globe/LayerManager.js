@@ -1121,9 +1121,14 @@ define([
             if (index === "up") {
                 index = explorerLayerArray.indexOf(layerViewModel) - 1;
             }
-
             if (index === "down") {
                 index = explorerLayerArray.indexOf(layerViewModel) + 2;
+            }
+            if (index === "top") {
+                index = 0;
+            }
+            if (index === "bottom") {
+                index = explorerLayerArray().length;
             }
 
             // Index bounds check
