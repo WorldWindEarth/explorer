@@ -37,6 +37,8 @@
         <link rel="stylesheet" type="text/css" href="css/libs/fa/v4.6.2/font-awesome.min.css"/>
         <!-- Vis.js provides graphs and charting -->
         <link rel="stylesheet" type="text/css" href="css/libs/vis/vis.css"/>
+        <!-- Dragula provides layer dragging -->
+        <link rel="stylesheet" type="text/css" href="css/libs/dragula/dragula.css">
         <!-- Custom application specific styling -->
         <link rel="stylesheet" type="text/css" href="css/override.css"/>
 
@@ -189,7 +191,7 @@
                                 </h5>
                             </div>
                             <div class="panel-collapse collapse in" id="base-layers-panel">
-                                <div data-bind="template: { name: 'layer-template', foreach: baseLayers}"></div>
+                                <div data-bind="template: { name: 'layer-template', foreach: baseLayers}" id="base-layers-item-container"></div>
                             </div>
                         </div>
                         <div class="panel panel-default">
@@ -202,7 +204,7 @@
                                 </h5>
                             </div>
                             <div class="panel-collapse collapse in" id="overlay-layers-panel">
-                                <div data-bind="template: { name: 'layer-template', foreach: overlayLayers}"></div>
+                                <div data-bind="template: { name: 'layer-template', foreach: overlayLayers}" id="overlay-layers-item-container"></div>
                             </div>
                         </div>
                         <div class="panel panel-default">
@@ -215,7 +217,7 @@
                                 </h5>
                             </div>
                             <div class="panel-collapse collapse" id="data-layers-panel">
-                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: dataLayers}"></div>
+                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
                             </div>
                         </div>
                         <div class="panel panel-default">
@@ -228,7 +230,7 @@
                                 </h5>
                             </div>
                             <div class="panel-collapse collapse" id="effect-layers-panel">
-                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: effectsLayers}"></div>
+                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: effectsLayers}" id="effect-layers-item-container"></div>
                             </div>
                         </div>
                         <div class="panel panel-default">
@@ -241,7 +243,7 @@
                                 </h5>
                             </div>
                             <div class="panel-collapse collapse" id="widget-layers-panel">
-                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: widgetLayers}"></div>
+                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: widgetLayers}" id="widget-layers-item-container"></div>
                             </div>
                         </div>
                     </div>                  
@@ -310,7 +312,7 @@
                         <div data-bind="template: { name: 'marker-template', foreach: markers}"></div>
                     </div>
                 </div>
-                
+
 
                 <!--
                 Weather View (bound to WeatherViewModel)
@@ -329,8 +331,8 @@
                         <div data-bind="template: { name: 'weather-scout-template', foreach: weatherScouts}"></div>
                     </div>
                 </div> 
-                
-                
+
+
                 <!--
                 Settings tab (bound to SettingsViewModel)
                 -->      
@@ -495,7 +497,7 @@
                     <!--Layer name and visibility button-->
                     <button type="button"
                             class="btn btn-default layer-name wrap-panel-heading"
-                            style="display: block; width: 50%;"
+                            style="display: block; width: 70%;"
                             data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
                         <span class="glyphicon pull-left"
                               data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
@@ -504,35 +506,16 @@
                     <!--Settings button-->
                     <button type="button"
                             class="btn btn-default"
-                            style="display: block; width: 10%;"
+                            style="display: block; width: 15%;"
                             data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
                         <span class="glyphicon glyphicon-cog"></span>
                     </button>
                     <!--Zoom to layer button-->
                     <button type="button"
                             class="btn btn-default"
-                            style="display: block; width: 10%;"
+                            style="display: block; width: 15;"
                             data-bind="css: {active: $data.enabled()}, click: $root.onZoomToLayer">
                         <span class="glyphicon glyphicon-zoom-in"></span>
-                    </button>
-                    <!--Layer ordering buttons-->
-                    <button type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 10%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerUp">
-                        <span class="glyphicon glyphicon-arrow-up"></span>
-                    </button>
-                    <button type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 10%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerDown">
-                        <span class="glyphicon glyphicon-arrow-down"></span>
-                    </button>
-                    <button type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 10%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerToTop">
-                        <span class="glyphicon glyphicon-circle-arrow-up"></span>
                     </button>
                 </div>
                 <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
@@ -545,7 +528,7 @@
                 </div>
             </div>
         </script>
-        
+
         <!-- 
         Non-Sortable Layer Template
         This script renders the individual layer view model items in the Layers panel.
@@ -599,6 +582,38 @@
                 <div>
                     <!-- TODO not binding the url -->
                     <img data-bind="attr: {src: $data.legendUrl}"/>
+                </div>
+                Layer Ordering
+                <div class="btn-group btn-block">
+                    <!--Layer ordering buttons-->
+                    <button id="move-up-button" 
+                            type="button"
+                            class="btn btn-default"
+                            style="display: block; width: 25%;"
+                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerUp">
+                        <span class="glyphicon glyphicon-arrow-up"></span>
+                    </button>
+                    <button id="move-down-button"
+                            type="button"
+                            class="btn btn-default"
+                            style="display: block; width: 25%;"
+                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerDown">
+                        <span class="glyphicon glyphicon-arrow-down"></span>
+                    </button>
+                    <button id="move-top-button"
+                            type="button"
+                            class="btn btn-default"
+                            style="display: block; width: 25%;"
+                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerToTop">
+                        <span class="glyphicon glyphicon-circle-arrow-up"></span>
+                    </button>
+                    <button id="move-bottom-button"
+                            type="button"
+                            class="btn btn-default"
+                            style="display: block; width: 25%;"
+                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerToBottom">
+                        <span class="glyphicon glyphicon-circle-arrow-down"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -818,15 +833,15 @@
         // -----------------------------------------------------------
         var sidebarSplitter = Split(['#left-sidebar', '#explorer'], {
         direction: 'horizontal',
-                minSize: [160, 240], // pixels
-                sizes: [25, 75], // percentages
-                gutterSize: 10
+            minSize: [160, 240], // pixels
+            sizes: [25, 75], // percentages
+            gutterSize: 10
         });
         var outputSplitter = Split(['#globe', '#output'], {
         direction: 'vertical',
-                minSize: [100, 100],
-                sizes: [70, 30],
-                gutterSize: 10
+            minSize: [100, 100],
+            sizes: [70, 30],
+            gutterSize: 10
         });
         //sidebarSplitter.collapse(0); // collapse the sidebar (left) panel
         outputSplitter.collapse(1); // collapse the output (bottom) panel
