@@ -24,7 +24,8 @@ define([
     'worldwind',
     'model/globe/layers/UsgsContoursLayer',
     'model/globe/layers/UsgsImageryTopoBaseMapLayer',
-    'model/globe/layers/UsgsTopoBaseMapLayer'],
+    'model/globe/layers/UsgsTopoBaseMapLayer',
+    'url-search-params'],
     function (
         ko,
         config,
@@ -34,7 +35,8 @@ define([
         ww,
         UsgsContoursLayer,
         UsgsImageryTopoBaseMapLayer,
-        UsgsTopoBaseMapLayer) {
+        UsgsTopoBaseMapLayer,
+        URLSearchParams) {
         "use strict";
         /**
          *
@@ -55,7 +57,7 @@ define([
             /** WWSK GeoServer WFS endpoint
              * TODO: initialize from server REST settings
              */
-            this.localWfsServer = window.origin + "/geoserver/ows";
+            this.localWfsServer = window.location.origin + "/geoserver/ows";
 
             /** WWSK GeoServer WMS version
              * TODO: initialize from server REST settings
@@ -126,7 +128,17 @@ define([
             this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
 
             this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
+            
+//            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
+//            this.populateAvailableWmsLayers();
+//            // Asynchronysly load the WFS layers found in the WWSK GeoServer WFS
+//            this.populateAvailableWfsLayers();
+            
+            // Check if there are layers in the URL search string and enable them
+            this.setWmsLayersFromUrl();
+            
         };
+        
 
         /**
          * Background layers are always enabled and are not shown in the layer menu.
