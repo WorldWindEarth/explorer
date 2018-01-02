@@ -35,10 +35,11 @@ define(['jquery',
          *     <li><code>viewControlOrientation</code>: horizontal or vertical. Default vertical.
          *     <li><code>showPanControl</code>: Show pan (left/right/up/down) controls. Default false.
          *     <li><code>showExaggerationControl</code>: Show vertical exaggeration controls. Default false.
+         *     <li><code>imageryDetailControl</code>: Requests higher resolution imagery are made when the texture pixel size is greater than this value.
          * </ul>
          */
         var Config = {
-            imageryDetailHint: (window.screen.width < 768 ? -0.1 : (window.screen.width < 1024 ? 0.0 : (window.screen.width < 1280 ? 0.1 : 0.2))),
+            imageryDetailControl: (window.screen.width < 768 ? 2.0 : (window.screen.width < 1024 ? 1.75 : (window.screen.width < 1280 ? 1.6 : 1.5))),
             markerLabels: "Marker",
             startupLatitude: 34.29,
             startupLongitude: -119.29,
