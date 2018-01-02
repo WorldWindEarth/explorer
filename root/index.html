@@ -93,7 +93,7 @@
                         <!-- Output button -->
                         <li class="output-panel-btn">
                             <a href="#outputBtn" role="tab" data-toggle="tab">
-                                <span class="glyphicon glyphicon-info- visible-sm-block" aria-hidden="true"
+                                <span class="glyphicon glyphicon-info-sign visible-sm-block" aria-hidden="true"
                                       style="padding-top:4px; padding-bottom:4px"></span>
                                 <span class="hidden-sm" aria-hidden="true">Info</span>
                             </a>
@@ -217,7 +217,7 @@
                                 </h5>
                             </div>
                             <div class="panel-collapse collapse" id="data-layers-panel">
-                                <div data-bind="template: { name: 'unsorted-layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
+                                <div data-bind="template: { name: 'layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
                             </div>
                         </div>
                         <div class="panel panel-default">

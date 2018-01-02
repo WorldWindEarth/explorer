@@ -24,6 +24,7 @@ define(['jquery',
     'model/util/Log',
     'model/markers/MarkerManager',
     'model/util/Settings',
+    'url-search-params',
     'model/weather/WeatherScoutManager',
     'worldwind'],
         function (
@@ -33,6 +34,7 @@ define(['jquery',
                 log,
                 MarkerManager,
                 settings,
+                URLSearchParams,
                 WeatherScoutManager,
                 ww) {
             "use strict";
