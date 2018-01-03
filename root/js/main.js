@@ -22,7 +22,7 @@ requirejs.config({
         'd3': 'libs/d3/d3',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         'vis': 'libs/vis/v4.16.1/vis',
-        'worldwind': 'libs/webworldwind/worldwind',
+        'worldwind': 'libs/webworldwind/v0.9.0/worldwind',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
