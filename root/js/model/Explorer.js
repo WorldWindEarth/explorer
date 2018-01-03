@@ -69,7 +69,7 @@ define(['jquery',
 
                     // Internal. Intentionally not documented.
                     this.updateTimeout = null;
-                    this.updateInterval = 50;
+                    this.updateInterval = 200;   // throttle the spatial data updates to 5hz
 
                     // Setup to update each time the World Window is repainted.
                     this.wwd.redrawCallbacks.push(function () {
@@ -236,7 +236,8 @@ define(['jquery',
                     }
                 },
                 /**
-                 * handleRedraw updates the spatial view models.
+                 * handleRedraw is a callback used to update the spatial view models.
+                 * when the view is redrawn.
                  */
                 handleRedraw: function () {
                     var self = this;
