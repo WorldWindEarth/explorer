@@ -3,6 +3,8 @@
  * The MIT License - http://www.opensource.org/licenses/mit-license
  */
 
+/* global WorldWind */
+
 /**
  * The LayerManager manages categorical, observable lists of Layer objects. It itself observable,
  * and it injects some observable properties into the individual Layer objects.
@@ -115,19 +117,19 @@ define([
          */
         LayerManager.prototype.loadDefaultLayers = function () {
             // Define the Globe's default layers
-            this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl});
-            this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
-            this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: false, detailControl: config.imagerydetailControl});
-            this.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
-            this.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
-            this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
+            this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl}, 6);
+            this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl}, 5);
+            this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: false, detailControl: config.imagerydetailControl}, 4);
+            this.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl}, 3);
+            this.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl}, 2);
+            this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl}, 1);
             //this.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
 
             // TODO: Add Sentinel-2 layers from EOX (with attribution).
 
-            this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
+            this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false}, 1);
 
-            this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
+            this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true}, 1);
             
 //            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
 //            this.populateAvailableWmsLayers();
@@ -168,10 +170,12 @@ define([
          * Base layers are opaque and should be shown exclusive of other base layers.
          * @param {WorldWind.Layer} layer
          * @param {Object} options Optional
+         * @param {Number} preferredOrder HACK: a workaround to force the initial sort order
          */
-        LayerManager.prototype.addBaseLayer = function (layer, options) {
+        LayerManager.prototype.addBaseLayer = function (layer, options, preferredOrder) {
             // Determine the index of this layer within the WorldWindow
-            var index = this.backgroundLayers().length + this.baseLayers().length;
+            var index = this.backgroundLayers().length + this.baseLayers().length,
+                    layerViewModel;
 
             // Apply the supplied options to the base layer
             LayerManager.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_BASE);
@@ -180,7 +184,12 @@ define([
             this.globe.wwd.insertLayer(index, layer);
 
             // Add a proxy the the base layer observables
-            this.baseLayers.unshift(LayerManager.createLayerViewModel(layer));
+            // Add a proxy to the background layer observables
+            layerViewModel = LayerManager.createLayerViewModel(layer);
+            if (preferredOrder) {
+                layerViewModel.order(preferredOrder);
+            }
+            this.baseLayers.unshift(layerViewModel);
 
             this.globe.layerManager.sortLayers();
         };
