@@ -13,7 +13,7 @@ requirejs.config({
 // Path mappings for the logical module names
     paths: {
         'dragula': 'libs/dragula/dragula',
-        'knockout': 'libs/knockout/knockout-3.4.0.debug',
+        'knockout': 'libs/knockout/knockout-3.4.0',
         'jquery': 'libs/jquery/jquery-2.1.3',
         'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
@@ -21,8 +21,9 @@ requirejs.config({
         'moment': 'libs/moment/moment-2.14.1',
         'd3': 'libs/d3/d3',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
-        'vis': 'libs/vis/v4.16.1/vis',
-        'worldwind': 'libs/webworldwind/v0.9.0/worldwind',
+        'vis': 'libs/vis/v4.16.1/vis.min',
+        //'worldwind': 'libs/webworldwind/v0.9.0/worldwind',
+        'worldwind': '//files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
