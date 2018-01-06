@@ -14,12 +14,12 @@ requirejs.config({
     paths: {
         'dragula': 'libs/dragula/dragula',
         'knockout': 'libs/knockout/knockout-3.4.0',
-        'jquery': 'libs/jquery/jquery-2.1.3',
-        'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4',
+        'jquery': 'libs/jquery/jquery-2.1.3.min',
+        'jqueryui': 'libs/jquery-ui/jquery-ui-1.11.4.min',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
         'bootstrap': 'libs/bootstrap/v3.3.6/bootstrap',
-        'moment': 'libs/moment/moment-2.14.1',
-        'd3': 'libs/d3/d3',
+        'moment': 'libs/moment/moment-2.14.1.min',
+        'd3': 'libs/d3/d3.min',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         'vis': 'libs/vis/v4.16.1/vis.min',
         //'worldwind': 'libs/webworldwind/v0.9.0/worldwind',
@@ -37,6 +37,7 @@ requirejs.config({
 
 /**
  * A top-level require call executed by the Application.
+ * 
  */
 require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
     'model/Config',
