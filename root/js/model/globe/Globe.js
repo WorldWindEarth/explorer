@@ -174,7 +174,7 @@ define([
         this.layerManager.addOverlayLayer(this.timeZoneLayer, {
             enabled: true,
             pickEnabled: true,
-            hideInMenu: true
+            hideInMenu: false
         });
 
         // Add optional background layers
