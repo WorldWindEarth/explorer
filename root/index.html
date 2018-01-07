@@ -93,6 +93,16 @@
                                 <span class="hidden-sm" aria-hidden="true">Weather</span>
                             </a>
                         </li>                     
+                        <!-- Settings button -->
+                        <li class="left-sidebar-btn">
+                            <a href="#settings" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-cog visible-sm-block" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Settings</span>
+                            </a>
+                        </li>        
+                    </ul>
+                    <ul class="nav navbar-nav" role="tablist">                        
                         <!-- Output button -->
                         <li class="output-panel-btn">
                             <a href="#outputBtn" role="tab" data-toggle="tab">
@@ -101,25 +111,17 @@
                                 <span class="hidden-sm" aria-hidden="true">Info</span>
                             </a>
                         </li>
-                        <!-- Settings button -->
-                        <li class="left-sidebar-btn">
-                            <a href="#settings" role="tab" data-toggle="tab">
-                                <span class="glyphicon glyphicon-cog visible-sm-block" aria-hidden="true"
-                                      style="padding-top:4px; padding-bottom:4px"></span>
-                                <span class="hidden-sm" aria-hidden="true">Settings</span>
-                            </a>
-                        </li>                        
-                        <!-- Search box and button (bound to SearchViewModel)-->
-                        <form id="search" class="navbar-form navbar-left" role="search">
-                            <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Destination" id="searchText"
-                                       data-bind="value: searchText, valueUpdate: 'keyup', event: {keypress: onEnter}"/>
-                            </div>
-                            <button id="searchButton" class="btn btn-primary" type="submit"
-                                    data-bind="click: $root.performSearch">Go To
-                            </button>
-                        </form>
                     </ul>
+                    <!-- Search box and button (bound to SearchViewModel)-->
+                    <form id="search" class="navbar-form navbar-left" role="search">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Destination" id="searchText"
+                                   data-bind="value: searchText, valueUpdate: 'keyup', event: {keypress: onEnter}"/>
+                        </div>
+                        <button id="searchButton" class="btn btn-primary" type="submit"
+                                data-bind="click: $root.performSearch">Go To
+                        </button>
+                    </form>
                     <ul class="nav navbar-nav navbar-right">   
 
                         <!-- Share button-->
