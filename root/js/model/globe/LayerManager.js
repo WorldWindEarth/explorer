@@ -22,6 +22,7 @@ define([
     'model/Config',
     'model/Constants',
     'model/globe/layers/EnhancedWmsLayer',
+    'model/globe/LayerManagerHelper',
     'model/util/Log',
     'worldwind',
     'model/globe/layers/UsgsContoursLayer',
@@ -33,6 +34,7 @@ define([
         config,
         constants,
         EnhancedWmsLayer,
+        LayerManagerHelper,
         log,
         ww,
         UsgsContoursLayer,
@@ -93,6 +95,18 @@ define([
              * A collection of servers added to the layer manager by the user.
              */
             this.servers = ko.observableArray();
+            
+            /**
+             * An ordered list of the layer category arrays useful for iterating over all the layers. 
+             */
+            this.layerCategories = [
+                this.backgroundLayers,
+                this.baseLayers,
+                this.overlayLayers,
+                this.dataLayers,
+                this.effectsLayers,
+                this.widgetLayers
+            ];
 
             /**
              * Toggles a layer on and off.
@@ -130,17 +144,18 @@ define([
             this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false}, 1);
 
             this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true}, 1);
-            
+
 //            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
-//            this.populateAvailableWmsLayers();
+//            this.addAvailableWmsLayers();
 //            // Asynchronysly load the WFS layers found in the WWSK GeoServer WFS
-//            this.populateAvailableWfsLayers();
-            
+//            this.addAvailableWfsLayers();
+
             // Check if there are layers in the URL search string and enable them
             this.setWmsLayersFromUrl();
-            
+
+            this.sortLayers();
         };
-        
+
 
         /**
          * Background layers are always enabled and are not shown in the layer menu.
@@ -155,15 +170,15 @@ define([
                 };
 
             // Apply default options for a background layer if options are not supplied
-            LayerManager.applyOptionsToLayer(layer, options ? options : defaultOptions, constants.LAYER_CATEGORY_BACKGROUND);
+            LayerManagerHelper.applyOptionsToLayer(layer, options ? options : defaultOptions, constants.LAYER_CATEGORY_BACKGROUND);
 
             // Add the layer to the WorldWindow
             this.globe.wwd.insertLayer(index, layer);
 
             // Add a proxy to the background layer observables
-            this.backgroundLayers.unshift(LayerManager.createLayerViewModel(layer));
+            this.backgroundLayers.unshift(LayerManagerHelper.createLayerViewModel(layer));
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
 
         /**
@@ -175,23 +190,22 @@ define([
         LayerManager.prototype.addBaseLayer = function (layer, options, preferredOrder) {
             // Determine the index of this layer within the WorldWindow
             var index = this.backgroundLayers().length + this.baseLayers().length,
-                    layerViewModel;
+                layerViewModel;
 
             // Apply the supplied options to the base layer
-            LayerManager.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_BASE);
+            LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_BASE);
 
             // Add this layer to the WorldWindow
             this.globe.wwd.insertLayer(index, layer);
 
             // Add a proxy the the base layer observables
-            // Add a proxy to the background layer observables
-            layerViewModel = LayerManager.createLayerViewModel(layer);
+            layerViewModel = LayerManagerHelper.createLayerViewModel(layer);
             if (preferredOrder) {
                 layerViewModel.order(preferredOrder);
             }
             this.baseLayers.unshift(layerViewModel);
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
 
         /**
@@ -204,14 +218,14 @@ define([
             // Determine the index of this layer within the WorldWindow
             var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length;
 
-            LayerManager.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_OVERLAY);
+            LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_OVERLAY);
 
             this.globe.wwd.insertLayer(index, layer);
 
             // Add a proxy for this layer to the list of overlays
-            this.overlayLayers.unshift(LayerManager.createLayerViewModel(layer));
+            this.overlayLayers.unshift(LayerManagerHelper.createLayerViewModel(layer));
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
 
         /**
@@ -223,14 +237,14 @@ define([
             // Determine the index of this layer within the WorldWindow
             var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length;
 
-            LayerManager.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_EFFECT);
+            LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_EFFECT);
 
             this.globe.wwd.insertLayer(index, layer);
 
             // Add a proxy for this layer to the list of effects
-            this.effectsLayers.push(LayerManager.createLayerViewModel(layer));
+            this.effectsLayers.push(LayerManagerHelper.createLayerViewModel(layer));
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
 
         /**
@@ -242,14 +256,14 @@ define([
             var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length
                 + this.dataLayers().length;
 
-            LayerManager.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_DATA);
+            LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_DATA);
 
             this.globe.wwd.insertLayer(index, layer);
 
             // Add a proxy for this layer to the list of data layers
-            this.dataLayers.push(LayerManager.createLayerViewModel(layer));
+            this.dataLayers.push(LayerManagerHelper.createLayerViewModel(layer));
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
 
         /**
@@ -260,110 +274,16 @@ define([
             var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length
                 + this.dataLayers().length + this.widgetLayers().length;
 
-            LayerManager.applyOptionsToLayer(layer, options ? options : {
+            LayerManagerHelper.applyOptionsToLayer(layer, options ? options : {
                 hideInMenu: false,
                 enabled: true
             }, constants.LAYER_CATEGORY_WIDGET);
 
             this.globe.wwd.insertLayer(index, layer);
-            this.widgetLayers.push(LayerManager.createLayerViewModel(layer));
+            this.widgetLayers.push(LayerManagerHelper.createLayerViewModel(layer));
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
-
-        /**
-         * Finds the first layer with a matching name (displayName) attribute.
-         * @param {string} name The name to compare to the layer's displayName
-         * @returns A layer view model object or null if not found
-         */
-        LayerManager.prototype.findLayerViewModel = function (name) {
-            var layerViewModels = this.baseLayers,
-                i, len;
-
-            if (!name) {
-                return null;
-            }
-
-            for (i = 0, len = layerViewModels().length; i < len; i++) {
-                if (layerViewModels()[i].name() === name) {
-                    return layerViewModels()[i];
-                }
-            }
-            return null;
-        };
-
-        /**
-         * Applys or adds the options to the given layer.
-         * @param {WorldWind.Layer} layer The layer to update
-         * @param {Object} options The options to apply
-         * @param {String} category The category the layer should be assigned to
-         */
-        LayerManager.applyOptionsToLayer = function (layer, options, category) {
-            var opt = (options === undefined) ? {} : options;
-
-            // Explorer layer type
-            layer.category = category;
-
-            // Propagate enabled and pick options to the layer object
-            layer.enabled = opt.enabled === undefined ? true : opt.enabled;
-            layer.pickEnabled = opt.pickEnabled === undefined ? false : opt.enabled;
-
-            // Add refresh capability
-            if (opt.isTemporal) {
-                layer.isTemporal = true;
-            }
-
-            // Apply the level-of-detail control, if provided
-            // A request for higher resolution imagery is made when the texture 
-            // pixel size is greater than the detailControl value.
-            if (opt.detailControl) {
-                // layer default is 1.75
-                layer.detailControl = opt.detailControl;
-            }
-
-            // Apply the opacity, if provided
-            if (opt.opacity) {
-                layer.opacity = opt.opacity;
-            }
-
-            // Propagate (and invert) the visibilty of this layer in the UI
-            layer.showInMenu = opt.hideInMenu === undefined ? true : !opt.hideInMenu;
-
-        };
-
-        /**
-         * Creates a view model object to represent the layer within the UI.
-         * @param {Layer} layer A WorldWind layer object
-         * @returns {Object} A lightwieght view model with obserable properties, condusive to cloning
-         * in oj.ArrayTableDataSource containers
-         */
-        LayerManager.nextLayerId = 0;
-        LayerManager.createLayerViewModel = function (layer) {
-            var viewModel = {
-                wwLayer: layer,
-                id: ko.observable(LayerManager.nextLayerId++),
-                category: ko.observable(layer.category),
-                name: ko.observable(layer.displayName),
-                enabled: ko.observable(layer.enabled),
-                legendUrl: ko.observable(layer.legendUrl ? layer.legendUrl.url : ''),
-                opacity: ko.observable(layer.opacity),
-                order: ko.observable(),
-                showInMenu: ko.observable(layer.showInMenu)
-            };
-            // Forward changes from enabled and opacity observables to the the layer object
-            viewModel.enabled.subscribe(function (newValue) {
-                layer.enabled = newValue;
-            });
-            viewModel.opacity.subscribe(function (newValue) {
-                layer.opacity = newValue;
-            });
-
-            // Check if the layer has existing persistance properties
-            LayerManager.applyRestoreState(viewModel);
-
-            return viewModel;
-        };
-
         /**
          *
          * @param serverAddress
@@ -405,7 +325,7 @@ define([
                     if (wmsCapsDoc.version) { // if no version, then the URL doesn't point to a caps doc.
 
                         // Process the servers's capabilities document
-                        self.servers.push(self.loadServerCapabilites(serverAddress, wmsCapsDoc));
+                        self.servers.push(LayerManagerHelper.loadServerCapabilites(serverAddress, wmsCapsDoc));
 
                     } else {
                         alert(serverAddress +
@@ -423,108 +343,10 @@ define([
             request.send(null);
         };
 
-        LayerManager.nextServerId = 0;
-        LayerManager.prototype.loadServerCapabilites = function (serverAddress, wmsCapsDoc) {
-            var wmsService = wmsCapsDoc.service,
-                wmsLayers = wmsCapsDoc.capability.layers,
-                server = {
-                    id: LayerManager.nextServerId++,
-                    address: serverAddress,
-                    service: wmsService,
-                    title: ko.observable(wmsService.title && wmsService.title.length > 0 ? wmsService.title : serverAddress),
-                    layers: ko.observableArray()
-                },
-                result, i, numLayers;
-
-
-            // Don't show the top-level layer if it's a grouping layer with the same title as the server title.
-            // The NEO server is set up this way, for example.
-            if ((wmsLayers.length === 1) && (wmsLayers[0].layers) &&
-                (wmsLayers[0].title === wmsCapsDoc.service.title) && !(wmsLayers[0].name && wmsLayers[0].name.length > 0)) {
-                wmsLayers = wmsLayers[0].layers;
-            }
-
-            this.assembleLayers(wmsLayers, server.layers);
-
-            return server;
-        };
-
-        /**
-         *
-         * @param {type} wmsLayers Array of layer capabilities
-         * @param {observableArray} layerNodes Array of layer nodes
-         * @returns {observableArray}
-         */
-        LayerManager.prototype.assembleLayers = function (wmsLayers, layerNodes) {
-
-            for (var i = 0; i < wmsLayers.length; i++) {
-                var layer = wmsLayers[i],
-                    isLayer = ko.observable(layer.name && layer.name.length > 0 || false),
-                    node = {
-                        title: layer.title,
-                        abstract: layer.abstract,
-                        layerCaps: layer,
-                        isChecked: ko.observable(false),
-                        isFolder: !isLayer,
-                        isLayer: isLayer,
-                        layers: ko.observableArray()   // children
-                    };
-
-                if (layer.layers && layer.layers.length > 0) {
-                    this.assembleLayers(layer.layers, node.layers);
-                }
-
-                layerNodes.push(node);
-            }
-
-            return layerNodes;
-        };
-
         LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
-            if (layerCaps.name) {
-                var config = WorldWind.WmsLayer.formLayerConfiguration(layerCaps, null);
-                var layer;
 
-                if (config.timeSequences &&
-                    (config.timeSequences[config.timeSequences.length - 1] instanceof WorldWind.PeriodicTimeSequence)) {
-                    var timeSequence = config.timeSequences[config.timeSequences.length - 1];
-                    config.levelZeroDelta = new WorldWind.Location(180, 180);
-                    layer = new WorldWind.WmsTimeDimensionedLayer(config);
-                    layer.opacity = 0.8;
-                    layer.time = timeSequence.startTime;
-//                        this.timeSeriesPlayer.timeSequence = timeSequence;
-//                        this.timeSeriesPlayer.layer = layer;
-                    layer.timeSequence = timeSequence;
-
-                    //for (var t = timeSequence.currentTime; t != null; t = timeSequence.next()) {
-                    //    console.log(t.toISOString());
-                    //}
-                    //timeSequence.reset();
-
-                } else if (config.timeSequences &&
-                    (config.timeSequences[config.timeSequences.length - 1] instanceof Date)) {
-                    timeSequence = config.timeSequences[config.timeSequences.length - 1];
-                    config.levelZeroDelta = new WorldWind.Location(180, 180);
-                    layer = new WorldWind.WmsTimeDimensionedLayer(config);
-                    layer.opacity = 0.8;
-                    layer.time = config.timeSequences[0];
-//                        this.timeSeriesPlayer.timeSequence = new WorldWind.BasicTimeSequence(config.timeSequences);
-//                        this.timeSeriesPlayer.layer = layer;
-                    layer.timeSequence = timeSequence;
-                } else {
-                    layer = new EnhancedWmsLayer(config, null);
-//                        layer = new WorldWind.WmsLayer(config, null);
-//                        this.timeSeriesPlayer.timeSequence = null;
-//                        this.timeSeriesPlayer.layer = null;
-                }
-
-                if (layerCaps.styles && layerCaps.styles.length > 0
-                    && layerCaps.styles[0].legendUrls && layerCaps.styles[0].legendUrls.length > 0) {
-                    // Add the legend url to the layer object so we can
-                    // draw an image using the url as the image source
-                    layer.legendUrl = layerCaps.styles[0].legendUrls[0];
-                }
-
+            var layer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
+            if (layer) {
                 // TODO: pass in category; add to selected category
                 layer.enabled = true;
                 if (category === constants.LAYER_CATEGORY_BASE) {
@@ -536,13 +358,14 @@ define([
                 } else {
                     this.addBaseLayer(layer);
                 }
-
-                return layer;
             }
-
-            return null;
+            return layer;
         };
 
+        /**
+         * 
+         * @param {WorldWind.Layer} layer
+         */
         LayerManager.prototype.removeLayer = function (layer) {
 
             // Remove the legend if there is one
@@ -576,9 +399,41 @@ define([
 
             this.globe.redraw();
 
-            this.globe.layerManager.sortLayers();
+            this.synchronizeLayers();
         };
 
+        /**
+         * Finds the first layer with a matching name (displayName) attribute.
+         * @param {string} name The name to compare to the layer's displayName
+         * @returns A layer view model object or null if not found
+         */
+        LayerManager.prototype.findLayer = function (name) {
+            var layer;
+            
+            if (!name) {
+                return null;
+            }
+            
+            layer = LayerManagerHelper.findLayerViewModel(name, this.baseLayers);
+            
+            if (!layer) {
+                layer = LayerManagerHelper.findLayerViewModel(name, this.overlayLayers);
+            }
+            if (!layer) {
+                layer = LayerManagerHelper.findLayerViewModel(name, this.dataLayers);
+            }
+            if (!layer) {
+                layer = LayerManagerHelper.findLayerViewModel(name, this.backgroundLayers);
+            }
+            if (!layer) {
+                layer = LayerManagerHelper.findLayerViewModel(name, this.effectsLayers);
+            }
+            if (!layer) {
+                layer = LayerManagerHelper.findLayerViewModel(name, this.widgetLayers);
+            }
+
+            return layer;
+        };
         /**
          * saves the managed layers to local storage as JSON objects. 
          */
@@ -608,27 +463,8 @@ define([
             } else {
                 console.log("a local storage object was not found, layer state will not persist");
             }
-
         };
 
-        /**
-         * Restores the state for a layer from local storage.
-         * @param {type} layerViewModel An individual layer view model object.
-         */
-        LayerManager.applyRestoreState = function (layerViewModel) {
-            var persistSettingsString = localStorage.getItem(layerViewModel.category()), persistSettings, layerSettings;
-            if (persistSettingsString) {
-                persistSettings = JSON.parse(persistSettingsString);
-                for (var i = 0; i < persistSettings.length; i++) {
-                    layerSettings = persistSettings[i];
-                    if (layerSettings.name == layerViewModel.name()) {
-                        layerViewModel.enabled(layerSettings.enabled);
-                        layerViewModel.opacity(layerSettings.opacity);
-                        layerViewModel.order(layerSettings.order);
-                    }
-                }
-            }
-        };
 
         /**
          * Returns a "layers=name 1,name 2,name n" URI conponent suituable for a url parameter.
@@ -650,7 +486,9 @@ define([
             return param;
         };
 
-
+        /**
+         * Set the enabled state of layers to those in the URL.
+         */
         LayerManager.prototype.setWmsLayersFromUrl = function () {
 
             /** Store URL parameters from the web browser
@@ -692,7 +530,7 @@ define([
                 for (i = 0, len = requestedLayers.length; i < len; i++) {
                     // Layer names are URI encoded to allow special chars in the URL
                     layerName = decodeURIComponent(requestedLayers[i]);
-                    layerViewModel = this.findLayerViewModel(layerName);
+                    layerViewModel = LayerManagerHelper.findLayerViewModel(layerName, this.baseLayers);
 
                     if (layerViewModel) {
                         layerViewModel.enabled(true);
@@ -706,6 +544,9 @@ define([
 
         };
 
+        /**
+         * Adds the layers defined in the URL
+         */
         LayerManager.prototype.populateWmsLayerFromUrl = function () {
 
             /** Store URL parameters from the web browser
@@ -723,6 +564,7 @@ define([
              * see: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
              */
 
+            var self = this;
             // The '.slice(1)' operation removes the question mark separator.
             var urlParameters = new URLSearchParams(window.location.search.slice(1));
 
@@ -752,7 +594,7 @@ define([
                                 } else {
                                     wmsLayerConfig = WorldWind.WmsLayer.formLayerConfiguration(namedLayers[layerIndex]);
                                     // Using the EnhancedWmsLayer which uses GeoServer vendor params in the GetMap URL
-                                    globe.layerManager.addBaseLayer(new EnhancedWmsLayer(wmsLayerConfig, null), {
+                                    self.addBaseLayer(new EnhancedWmsLayer(wmsLayerConfig, null), {
                                         enabled: false,
                                         detailControl: config.imagerydetailControl
                                     });
@@ -783,7 +625,10 @@ define([
             };
         };
 
-        LayerManager.prototype.populateAvailableWmsLayers = function () {
+        /**
+         * Add WMS layers from an associated WorldWind Server Kit (WWSK) server.
+         */
+        LayerManager.prototype.addAvailableWmsLayers = function () {
             var requestUrl = this.localWmsServer + "?SERVICE=WMS&VERSION=" + this.localWmsVersion + "&REQUEST=GetCapabilities";
             var self = this;
             var layerGenerator = function (myGlobe) {
@@ -799,7 +644,7 @@ define([
                                 wmsLayerConfig = WorldWind.WmsLayer.formLayerConfiguration(namedLayers[i]);
 
                                 // Using the EnhancedWmsLayer which uses GeoServer vendor params in the GetMap URL
-                                globe.layerManager.addBaseLayer(new EnhancedWmsLayer(wmsLayerConfig, null), {
+                                self.addBaseLayer(new EnhancedWmsLayer(wmsLayerConfig, null), {
                                     enabled: false,
                                     detailControl: config.imagerydetailControl
                                 });
@@ -820,7 +665,10 @@ define([
 
         };
 
-        LayerManager.prototype.populateAvailableWfsLayers = function () {
+        /**
+         * Add WFS layers from an associated WorldWind Server Kit (WWSK) server.
+         */
+        LayerManager.prototype.addAvailableWfsLayers = function () {
             var wfsGetCapabilitiesUrl = this.localWfsServer + "?SERVICE=WFS&VERSION=" + this.localWfsVersion + "&REQUEST=DescribeFeatureType",
                 wfsCapabilitiesRetriever,
                 wfsFeatureUrl,
@@ -900,108 +748,11 @@ define([
         /**
          * Moves the WorldWindow camera to the center coordinates of the layer, and then zooms in (or out)
          * to provide a view of the layer as complete as possible.
-         * @param layer the layer from the layer manager that the user selected for zooming in.
-         * TODO: Make this to work when Sector/Bounding box crosses the 180° meridian
+         * @param {Object} layer A layerViewModel that the user selected for zooming
          */
-        LayerManager.prototype.zoomToLayer = function (layer) {
+        LayerManagerHelper.zoomToLayer = function (layer) {
 
-            // Verify layer sector (bounding box in 2D terms) existence and
-            // do not center the camera if layer covers the whole globe.
-            var layerSector = layer.wwLayer.bbox; // property of EnhancedWmsLayer
-            // layerSector = setTestSector(layerSector, "hawaii"); // Test with known sectors
-            if (layerSector == null) { // null or undefined.
-                $.growl.error({message: "No Layer sector / bounding box defined!"});
-                return;
-            }
-
-            // Comparing each boundary of the sector to verify layer global coverage.
-            if (layerSector.maxLatitude === 90 &&
-                layerSector.minLatitude === -90 &&
-                layerSector.maxLongitude === 180 &&
-                layerSector.minLongitude === -180) {
-                $.growl.notice({message: "The selected layer covers the full globe. No camera centering needed."});
-                return;
-            }
-
-            // Obtain layer center
-            var layerCenterPosition = findLayerCenter(layerSector);
-            // Move camera to position
-            this.globe.goto(layerCenterPosition.latitude, layerCenterPosition.longitude, defineZoomLevel(layerSector));
-
-            // Classical formula to obtain middle point between two coordinates
-            function findLayerCenter(layerSector) {
-                var centerLatitude = (layerSector.maxLatitude + layerSector.minLatitude) / 2;
-                var centerLongitude = (layerSector.maxLongitude + layerSector.minLongitude) / 2;
-                var layerCenter = new WorldWind.Position(centerLatitude, centerLongitude);
-                return layerCenter;
-            }
-
-            // Zoom level is obtained following this simple method: Calculate approx arc length of the
-            // sectors' diagonal, and set that as the range (altitude) of the camera.
-            function defineZoomLevel(layerSector) {
-                var verticalBoundary = layerSector.maxLatitude - layerSector.minLatitude;
-                var horizontalBoundary = layerSector.maxLongitude - layerSector.minLongitude;
-
-                // Calculate diagonal angle between boundaries (simple pythagoras formula, we don't need to
-                // consider vectors or great circles).
-                var diagonalAngle = Math.sqrt(Math.pow(verticalBoundary, 2) + Math.pow(horizontalBoundary, 2));
-
-                // If the diagonal angle is equal or more than an hemisphere (180°) don't change zoom level.
-                // Else, use the diagonal arc length as camera altitude.
-                if (diagonalAngle >= 180) {
-                    return null;
-                } else {
-                    // Gross approximation of longitude of arc in km
-                    // (assuming spherical Earth with radius of 6,371 km. Accuracy is not needed for this).
-                    var diagonalArcLength = (diagonalAngle / 360) * (2 * 3.1416 * 6371000);
-                    return diagonalArcLength;
-                }
-            }
-
-            // Predefined known sectors. For testing purposes only
-            // obtained with: http://boundingbox.klokantech.com/
-            function setTestSector(layerSector, place) {
-                switch (place) {
-                    case "switzerland":
-                        layerSector.maxLatitude = 47.8084;
-                        layerSector.minLatitude = 45.818;
-                        layerSector.maxLongitude = 10.4921;
-                        layerSector.minLongitude = 5.9559;
-                        break;
-
-                    case "mexico":
-                        layerSector.maxLatitude = 33.1;
-                        layerSector.minLatitude = 12.0;
-                        layerSector.maxLongitude = -85.8;
-                        layerSector.minLongitude = -117.3;
-                        break;
-
-                    case "new zealand":
-                        layerSector.maxLatitude = -34.65;
-                        layerSector.minLatitude = -47.31;
-                        layerSector.maxLongitude = 178.75;
-                        layerSector.minLongitude = 163.78;
-                        break;
-
-                    case "hawaii":
-                        layerSector.maxLatitude = 22.95;
-                        layerSector.minLatitude = 18.07;
-                        layerSector.maxLongitude = -154.3;
-                        layerSector.minLongitude = -161.25;
-                        break;
-
-                    case "madagascar":
-                        layerSector.maxLatitude = -11.97;
-                        layerSector.minLatitude = -25.9;
-                        layerSector.maxLongitude = 51.28;
-                        layerSector.minLongitude = 42.41;
-                        break;
-                    default:
-                        console.log("Place name error");
-                }
-
-                return layerSector;
-            }
+            LayerManagerHelper.zoomToLayer(layer, this.globe);
 
         };
 
@@ -1010,14 +761,8 @@ define([
          * with the WorldWind layers.
          */
         LayerManager.prototype.sortLayers = function () {
-            var explorerLayerCategories = [
-                this.backgroundLayers,
-                this.baseLayers,
-                this.overlayLayers,
-                this.dataLayers,
-                this.widgetLayers,
-                this.effectsLayers
-            ], i, len = explorerLayerCategories.length,
+            var i, 
+                len = this.layerCategories.length,
                 byOrderValue = function (a, b) {
                     // if an order value is provided use it
                     if (a.order && !isNaN(a.order()) && b.order && !isNaN(b.order())) {
@@ -1032,10 +777,10 @@ define([
                 };
 
             for (i = 0; i < len; i++) {
-                explorerLayerCategories[i].sort(byOrderValue);
+                this.layerCategories[i].sort(byOrderValue);
             }
 
-            this.globe.layerManager.synchronizeLayers();
+            this.synchronizeLayers();
         };
 
         /**
@@ -1053,7 +798,7 @@ define([
             ], i, len = explorerLayerCategories.length;
 
             for (i = 0; i < len; i++) {
-                this.globe.layerManager.synchronizeLayerCategory(explorerLayerCategories[i]);
+                this.synchronizeLayerCategory(explorerLayerCategories[i]);
             }
         };
 
@@ -1159,38 +904,13 @@ define([
             }
 
             // Update the layer manager order
-            LayerManager.moveLayerInArray(layerViewModel, index, explorerLayerArray);
+            LayerManagerHelper.moveLayerInArray(layerViewModel, index, explorerLayerArray);
 
             // Synchronize the layer ordering
-            this.globe.layerManager.synchronizeLayers();
+            this.synchronizeLayers();
         };
 
-        LayerManager.moveLayerInArray = function (layer, moveToIndex, layers) {
-            var initialIndex = layers.indexOf(layer);
-            if (initialIndex < 0) {
-                // TODO - it didn't find it, what does this mean...
-                console.log('TODO - index not found');
-                return;
-            }
 
-            if (moveToIndex < 0) {
-                return;
-            }
-
-            if (initialIndex === moveToIndex) {
-                // no need to move
-                return;
-            }
-
-            layers.splice(moveToIndex, 0, layer);
-            if (initialIndex > moveToIndex) {
-                // layer moved 'up' the following indices are off by one
-                layers.splice(initialIndex + 1, 1);
-            } else {
-                layers.splice(initialIndex, 1);
-            }
-        };
-        
         return LayerManager;
     }
 );
