@@ -1,4 +1,4 @@
-# WorldWind Explorer
+# NASA WorldWind Explorer
 An HTML5/JavaScript geo-browser built from the NASA WebWorldWind SDK using the Knockout and Bootstrap libraries.
 
 ## Overview
@@ -28,6 +28,16 @@ as well as 2D maps.
 ### Objectives
 - Be a useful web application in its own right
 - Be an example of a NASA WebWorldWind SDK base project that is easy to fork and customize.
+
+### Open Source Credits
+- NASA WorldWind
+- Knockout
+- Bootstrap
+- JQuery
+- Dragula
+- SplitJS
+- Vis
+- Moment
 
 ### Important Links
 - Live Demo: http://explorer.worldwind.earth
