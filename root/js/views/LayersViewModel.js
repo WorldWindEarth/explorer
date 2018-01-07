@@ -11,8 +11,16 @@
  * @param {type} $
  * @returns {LayersViewModel}
  */
-define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/LayerManager', 'model/Constants', 'model/util/Log'],
-    function (ko, $, jqueryui, boostrap, dragula, LayerManager, constants, log) {
+define([
+    'knockout',
+    'jquery',
+    'jqueryui',
+    'bootstrap',
+    'dragula',
+    'model/Constants',
+    'model/util/Log'],
+    function (
+        ko, $, jqueryui, bootstrap, dragula, constants, log) {
 
         /**
          * The view model for the Layers panel.
@@ -22,18 +30,15 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
         function LayersViewModel(globe) {
             var self = this,
                 layerManager = globe.layerManager;
-
             // Create view data sources from the LayerManager's observable arrays
             this.baseLayers = layerManager.baseLayers;
             this.overlayLayers = layerManager.overlayLayers;
             this.dataLayers = layerManager.dataLayers;
             this.effectsLayers = layerManager.effectsLayers;
             this.widgetLayers = layerManager.widgetLayers;
-
             // Layer type options
             this.optionValues = ["WMS Layer", "WMTS Layer", "KML file", "Shapefile"];
             this.selectedOptionValue = ko.observable(self.optionValues[0]);
-
             /**
              * An observable array of servers
              */
@@ -51,8 +56,6 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                 layer.enabled(!layer.enabled());
                 globe.redraw();
             };
-
-
             /**
              * Opens a dialog to edit the layer settings.
              * @param {Object} layer The selected layer in the layer collection
@@ -69,7 +72,6 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                     },
                     step: 0.1
                 });
-
                 $("#layer-settings-dialog").dialog({
                     autoOpen: false,
                     title: layer.name(),
@@ -81,16 +83,21 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                     }
                 });
                 $('#opacity-slider').slider("option", "value", layer.opacity());
-                $('#move-up-button').on('click', function () { layerManager.moveLayer(layer, 'up'); });
-                $('#move-down-button').on('click', function () { layerManager.moveLayer(layer, 'down'); });
-                $('#move-top-button').on('click', function () { layerManager.moveLayer(layer, 'top'); });
-                $('#move-bottom-button').on('click', function () { layerManager.moveLayer(layer, 'bottom'); });
-
+                $('#move-up-button').on('click', function () {
+                    layerManager.moveLayer(layer, 'up');
+                });
+                $('#move-down-button').on('click', function () {
+                    layerManager.moveLayer(layer, 'down');
+                });
+                $('#move-top-button').on('click', function () {
+                    layerManager.moveLayer(layer, 'top');
+                });
+                $('#move-bottom-button').on('click', function () {
+                    layerManager.moveLayer(layer, 'bottom');
+                });
                 //console.log(layer.name() + ":  " + layer.opacity());
                 $('#layer-settings-dialog').dialog("open");
             };
-
-
             /**
              * Opens the Add Layer dialog.
              */
@@ -99,36 +106,27 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                     autoOpen: false,
                     title: "Add Layer"
                 });
-
                 $("#add-layer-dialog").dialog("open");
             };
-
-
             this.onAddServer = function () {
                 layerManager.addWmsServer(self.serverAddress());
                 return true;
             };
-
             this.onZoomToLayer = function (layer) {
                 layerManager.zoomToLayer(layer);
             };
-
             this.onMoveLayerUp = function (layer) {
                 layerManager.moveLayer(layer, "up");
             };
-
             this.onMoveLayerDown = function (layer) {
                 layerManager.moveLayer(layer, "down");
             };
-
             this.onMoveLayerToTop = function (layer) {
                 layerManager.moveLayer(layer, "top");
             };
-
             this.onMoveLayerToBottom = function (layer) {
                 layerManager.moveLayer(layer, "bottom");
             };
-
             /**
              * Add the supplied layer from the server's capabilities to the active layers
              */
@@ -141,7 +139,7 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                     // Find the first layer with a displayName matching the title
                     layer = layerManager.findLayer(layerNode.layerCaps.title);
                     if (layer) {
-                        layerManager.removeLayer(layer);
+                        layerManager.removeLayer(layer.wwLayer);
                     } else {
                         log.error("LayersViewModel", "onServerLayerClicked",
                             "Could not find a layer to removed named " + layerNode.layerCaps.title);
@@ -149,7 +147,6 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                 }
                 return true;
             };
-
             /**
              * Handle drop event from the Dragula dragger.
              * 
@@ -161,21 +158,18 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
             this.onDropLayer = function (dropped, target, source, sibling) {
                 var droppedName = $(dropped).find('.layer').text(),
                     siblingName = $(sibling).find('.layer').text(),
-                    droppedLayer = layerManager.findLayerViewModel(droppedName),
-                    siblingLayer = layerManager.findLayerViewModel(siblingName),
+                    droppedLayer = layerManager.findLayer(droppedName),
+                    siblingLayer = layerManager.findLayer(siblingName),
                     layers, oldIndex, newIndex;
-
                 // Remove the element created by dragula; let knockout manage the DOM
                 $(dropped).remove();
-
                 if (source.id === 'base-layers-item-container') {
                     layers = self.baseLayers;
                 } else if (source.id === 'overlay-layers-item-container') {
-                    layers = self.overlayLayers
+                    layers = self.overlayLayers;
                 }
                 oldIndex = layers.indexOf(droppedLayer);
                 newIndex = layers.indexOf(siblingLayer);
-
                 if (oldIndex < 0) {
                     return; // error?
                 }
@@ -186,10 +180,8 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
                 // Remove/add the item in the obserable array to update the DOM
                 layers.splice(oldIndex, 1);
                 layers.splice(oldIndex > newIndex ? newIndex : newIndex - 1, 0, droppedLayer);
-
                 layerManager.synchronizeLayers();
             };
-
             //
             // Setup dragging
             //
@@ -202,7 +194,6 @@ define(['knockout', 'jquery', 'jqueryui', 'bootstrap', 'dragula', 'model/globe/L
             this.drake.containers.push(document.getElementById('base-layers-item-container'));
             this.drake.containers.push(document.getElementById('overlay-layers-item-container'));
             this.drake.on('drop', this.onDropLayer);
-
         }
 
         return LayersViewModel;
