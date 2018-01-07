@@ -47,6 +47,30 @@ define([
             this.serverAddress = ko.observable("https://neowms.sci.gsfc.nasa.gov/wms/wms"); // CORS is disabled now in here
             // self.serverAddress = ko.observable("https://worldwind25.arc.nasa.gov/wms");
 
+            this.baseLayersCount = ko.observable(this.baseLayers().length);
+            this.baseLayers.subscribe(function (changes) {
+                this.baseLayersCount(this.baseLayers().length);
+            }, this, "change");
+            
+            this.overlayLayersCount = ko.observable(this.overlayLayers().length);
+            this.overlayLayers.subscribe(function (changes) {
+                this.overlayLayersCount(this.overlayLayers().length);
+            }, this, "change");
+            
+            this.dataLayersCount = ko.observable(this.dataLayers().length);
+            this.dataLayers.subscribe(function (changes) {
+                this.dataLayersCount(this.dataLayers().length);
+            }, this, "change");
+            
+            this.effectsLayersCount = ko.observable(this.effectsLayers().length);
+            this.effectsLayers.subscribe(function (changes) {
+                this.effectsLayersCount(this.effectsLayers().length);
+            }, this, "change");
+            
+            this.widgetLayersCount = ko.observable(this.widgetLayers().length);
+            this.widgetLayers.subscribe(function (changes) {
+                this.widgetLayersCount(this.widgetLayers().length);
+            }, this, "change");
 
             /**
              * Toggles the selected layer's visibility on/off
