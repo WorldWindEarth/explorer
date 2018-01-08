@@ -344,58 +344,64 @@ define([
         };
 
     /**
-     * 
+     * Add a layer from a GetCapabilties entry
      * @param {type} layerCaps
      * @param {type} category
      * @returns {EnhancedWmsLayer|WorldWind.WmsTimeDimensionedLayer|LayerManagerHelperL#31.LayerManagerHelper.createLayerFromCapabilities.layer|LayerManagerL#32.LayerManager.prototype.addLayerFromCapabilities.layer}
      */
-        LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
+        LayerManager.prototype.addLayerFromCapabilities = function (layewwLayer, category) {
 
-            var layer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
-            if (layer.timeSequence) {
-                this.globe.dateTime.subscribe(function(newDateTime) {
-                    var startTime = layer.timeSequence.startTime,
-                        intervalMs = layer.timeSequence.intervalMilliseconds,
+            var wwLayer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
+            if (wwLayer.timeSequence) {
+                // EXPERIMENTAL 
+                // subscribing this layer to the globe's current time
+                wwLayer.dateTimeSubscription = this.globe.dateTime.subscribe(function(newDateTime) {
+                    var startTime = wwLayer.timeSequence.startTime,
+                        intervalMs = wwLayer.timeSequence.intervalMilliseconds,
                         elapsedMs, newTime;
                     if (intervalMs && startTime < newDateTime) {
                         elapsedMs = newDateTime.getTime() - startTime.getTime();
-                        layer.time = layer.timeSequence.getTimeForScale(elapsedMs/intervalMs);
+                        wwLayer.time = wwLayer.timeSequence.getTimeForScale(elapsedMs/intervalMs);
                     }
-                    //this.globe.redraw();
+                    this.globe.redraw();
                 }, this);
             }
-            if (layer) {
+            if (wwLayer) {
                 // TODO: pass in category; add to selected category
-                layer.enabled = true;
+                wwLayer.enabled = true;
                 if (category === constants.LAYER_CATEGORY_BASE) {
-                    this.addBaseLayer(layer);
+                    this.addBaseLayer(wwLayer);
                 } else if (category === constants.LAYER_CATEGORY_OVERLAY) {
-                    this.addOverlayLayer(layer);
+                    this.addOverlayLayer(wwLayer);
                 } else if (category === constants.LAYER_CATEGORY_DATA) {
-                    this.addDataLayer(layer);
+                    this.addDataLayer(wwLayer);
                 } else {
-                    this.addBaseLayer(layer);
+                    this.addBaseLayer(wwLayer);
                 }
             }
-            return layer;
+            return wwLayer;
         };
 
         /**
          * 
-         * @param {WorldWind.Layer} layer
+         * @param {WorldWind.Layer} wwLayer
          */
-        LayerManager.prototype.removeLayer = function (layer) {
+        LayerManager.prototype.removeLayer = function (wwLayer) {
 
+            // Remove the Knockout subscription to date/time notifications
+            if (wwLayer.dateTimeSubscription) {
+                wwLayer.dateTimeSubscription.dispose();
+            }
             // Remove the legend if there is one
-            if (layer.companionLayer) {
-                this.globe.wwd.removeLayer(layer.companionLayer);
+            if (wwLayer.companionLayer) {
+                this.globe.wwd.removeLayer(wwLayer.companionLayer);
             }
             // Remove the layer from the globe
-            this.globe.wwd.removeLayer(layer);
+            this.globe.wwd.removeLayer(wwLayer);
 
             // Remove the layer from the knockout observable array
-            var category = layer.category,
-                name = layer.displayName,
+            var category = wwLayer.category,
+                name = wwLayer.displayName,
                 pred = function (item) {
                     return item.name() === name
                 };
