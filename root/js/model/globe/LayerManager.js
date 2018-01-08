@@ -131,19 +131,19 @@ define([
          */
         LayerManager.prototype.loadDefaultLayers = function () {
             // Define the Globe's default layers
-            this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl}, 6);
-            this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl}, 5);
-            this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: false, detailControl: config.imagerydetailControl}, 4);
-            this.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl}, 3);
-            this.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl}, 2);
-            this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl}, 1);
+            this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl});
+            this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
+            this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: false, detailControl: config.imagerydetailControl});
+            this.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
+            this.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
+            this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
             //this.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
 
             // TODO: Add Sentinel-2 layers from EOX (with attribution).
 
-            this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false}, 1);
+            this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
 
-            this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true}, 1);
+            this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
 
 //            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
 //            this.addAvailableWmsLayers();
@@ -152,7 +152,7 @@ define([
 
             // Check if there are layers in the URL search string and enable them
             this.setWmsLayersFromUrl();
-
+            
             this.sortLayers();
         };
 
@@ -343,9 +343,27 @@ define([
             request.send(null);
         };
 
+    /**
+     * 
+     * @param {type} layerCaps
+     * @param {type} category
+     * @returns {EnhancedWmsLayer|WorldWind.WmsTimeDimensionedLayer|LayerManagerHelperL#31.LayerManagerHelper.createLayerFromCapabilities.layer|LayerManagerL#32.LayerManager.prototype.addLayerFromCapabilities.layer}
+     */
         LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
 
             var layer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
+            if (layer.timeSequence) {
+                this.globe.dateTime.subscribe(function(newDateTime) {
+                    var startTime = layer.timeSequence.startTime,
+                        intervalMs = layer.timeSequence.intervalMilliseconds,
+                        elapsedMs, newTime;
+                    if (intervalMs && startTime < newDateTime) {
+                        elapsedMs = newDateTime.getTime() - startTime.getTime();
+                        layer.time = layer.timeSequence.getTimeForScale(elapsedMs/intervalMs);
+                    }
+                    //this.globe.redraw();
+                }, this);
+            }
             if (layer) {
                 // TODO: pass in category; add to selected category
                 layer.enabled = true;
@@ -434,6 +452,16 @@ define([
 
             return layer;
         };
+        
+        /**
+         * Moves the WorldWindow camera to the center coordinates of the layer, and then zooms in (or out)
+         * to provide a view of the layer as complete as possible.
+         * @param {Object} layer A layerViewModel that the user selected for zooming
+         */
+        LayerManagerHelper.zoomToLayer = function (layer) {
+            LayerManagerHelper.zoomToLayer(layer, this.globe);
+        };
+        
         /**
          * saves the managed layers to local storage as JSON objects. 
          */
@@ -465,6 +493,177 @@ define([
             }
         };
 
+
+        /**
+         * Sets the sort order used by sortLayers
+         */
+        LayerManager.prototype.updateLayerSortOrder = function () {
+            var i, j, layers, numLayers, numArrays = this.layerCategories.length;
+            // Process each observable array in our list
+            for (i = 0; i < numArrays; i++) {
+                layers = this.layerCategories[i];
+                numLayers = layers().length;
+                for (j = 0; j < numLayers; j++) {
+                    // Set the order
+                    layers()[j].order(j);
+                }
+            }
+        };
+
+
+        /**
+         * Sorts the layers by their provided order (if specified) and then synchronizes the Explorer layers
+         * with the WorldWind layers.
+         */
+        LayerManager.prototype.sortLayers = function () {
+            var i, 
+                len = this.layerCategories.length,
+                byOrderValue = function (a, b) {
+                    // if an order value is provided use it
+                    if (a.order && !isNaN(a.order()) && b.order && !isNaN(b.order())) {
+                        return a.order() - b.order();
+                    } else if (a.order && !isNaN(a.order())) {
+                        return -1;
+                    } else if (b.order && !isNaN(b.order())) {
+                        return 1;
+                    } else {
+                        return 0;
+                        //return a.name().localeCompare(b.name());
+                    }
+                };
+
+            for (i = 0; i < len; i++) {
+                this.layerCategories[i].sort(byOrderValue);
+            }
+
+            this.synchronizeLayers();
+        };
+        /**
+         * Synchronizes the Explorer layer arrays with the WorldWind layers. This method will reverse the ordering
+         * of the base, background, and overlay arrays in order to match the expected visibility.
+         */
+        LayerManager.prototype.synchronizeLayers = function () {
+            var explorerLayerCategories = [
+                this.backgroundLayers,
+                this.baseLayers,
+                this.overlayLayers,
+                this.dataLayers,
+                this.widgetLayers,
+                this.effectsLayers
+            ], i, len = explorerLayerCategories.length;
+
+            for (i = 0; i < len; i++) {
+                this.synchronizeLayerCategory(explorerLayerCategories[i]);
+            }
+        };
+
+        /**
+         * Synchronizes the provided Explorer layer category with corresponding WorldWind layers. The method
+         * will reverse the ordering of the base, background, and overlay arrays in order to match expected 
+         * visibility.
+         */
+        LayerManager.prototype.synchronizeLayerCategory = function (layerCategory) {
+            var i, explorerLayerLength = layerCategory().length, wwStartIndex = Number.MAX_SAFE_INTEGER,
+                explorerLayer, wwInsertionIndex;
+
+            if (explorerLayerLength === 0) {
+                return; // there is nothing to sort in this layer
+            }
+
+            // Find the minimum index for this layer category in the WorldWind layer array
+            for (i = 0; i < explorerLayerLength; i++) {
+                wwStartIndex = Math.min(wwStartIndex, this.globe.wwd.layers.indexOf(layerCategory()[i].wwLayer));
+            }
+
+            // Stop and log an error if a start index was not found
+            if (isNaN(wwStartIndex) || wwStartIndex === Number.MAX_SAFE_INTEGER) {
+                console.error('Unable to determine initial index ');
+                return;
+            }
+
+            // Remove all of the layers of this layer category from the WorldWindow layers
+            for (i = 0; i < explorerLayerLength; i++) {
+                this.globe.wwd.removeLayer(layerCategory()[i].wwLayer);
+            }
+
+            // Iterate through the layer category layers and populate the ordered WorldWind layer array
+            for (i = 0; i < explorerLayerLength; i++) {
+                explorerLayer = layerCategory()[i];
+
+                // The category type determines if the layer should be added to the end or beginning of the
+                // WorldWind layers
+                if (explorerLayer.category() === constants.LAYER_CATEGORY_BACKGROUND ||
+                    explorerLayer.category() === constants.LAYER_CATEGORY_BASE ||
+                    explorerLayer.category() === constants.LAYER_CATEGORY_OVERLAY) {
+                    wwInsertionIndex = wwStartIndex; // index expression of the unshift method
+                } else {
+                    wwInsertionIndex = wwStartIndex + i; // index expression of the push method
+                }
+                this.globe.wwd.insertLayer(wwInsertionIndex, explorerLayer.wwLayer);
+            }
+        };
+
+        /**
+         * Moves the provided layer to the provided index of the layer category the layer belongs. Moves the
+         * WorldWind layer in concert to maintain list synchronicity between the order layers are displayed
+         * in the layer manager and WorldWind.
+         * @param layerViewModel the Explorer layer manager layer to be moved
+         * @param index the index to move the layer to in its specific layer category, or "up" and "down" to
+         * move the layer above or below its neighbor
+         */
+        LayerManager.prototype.moveLayer = function (layerViewModel, index) {
+            var explorerLayerArray, i, len;
+
+            if (!layerViewModel) {
+                return;
+            }
+
+            if (index == null || index < 0) {
+                return;
+            }
+
+            // Determine the corresponding layer array
+            switch (layerViewModel.category()) {
+                case constants.LAYER_CATEGORY_BACKGROUND:
+                    explorerLayerArray = this.backgroundLayers;
+                    break;
+                case constants.LAYER_CATEGORY_BASE:
+                    explorerLayerArray = this.baseLayers;
+                    break;
+                case constants.LAYER_CATEGORY_OVERLAY:
+                    explorerLayerArray = this.overlayLayers;
+                    break;
+                default:
+                    console.log("moving the layer isn't support for " + layerViewModel.category());
+                    return;
+            }
+
+            // Convert the up and down indices to a numerical index
+            if (index === "up") {
+                index = explorerLayerArray.indexOf(layerViewModel) - 1;
+            }
+            if (index === "down") {
+                index = explorerLayerArray.indexOf(layerViewModel) + 2;
+            }
+            if (index === "top") {
+                index = 0;
+            }
+            if (index === "bottom") {
+                index = explorerLayerArray().length;
+            }
+
+            // Index bounds check
+            if (index < 0 || index > explorerLayerArray().length) {
+                console.error("layer move outside of bounds");
+                return;
+            }
+
+            // Update the layer manager order
+            LayerManagerHelper.moveLayerInArray(layerViewModel, index, explorerLayerArray);
+
+            // Synchronize the layer ordering
+            this.synchronizeLayers();
+        };
 
         /**
          * Returns a "layers=name 1,name 2,name n" URI conponent suituable for a url parameter.
@@ -744,171 +943,6 @@ define([
 
         };
 
-
-        /**
-         * Moves the WorldWindow camera to the center coordinates of the layer, and then zooms in (or out)
-         * to provide a view of the layer as complete as possible.
-         * @param {Object} layer A layerViewModel that the user selected for zooming
-         */
-        LayerManagerHelper.zoomToLayer = function (layer) {
-
-            LayerManagerHelper.zoomToLayer(layer, this.globe);
-
-        };
-
-        /**
-         * Sorts the layers by their provided order (if specified) and then synchronizes the Explorer layers
-         * with the WorldWind layers.
-         */
-        LayerManager.prototype.sortLayers = function () {
-            var i, 
-                len = this.layerCategories.length,
-                byOrderValue = function (a, b) {
-                    // if an order value is provided use it
-                    if (a.order && !isNaN(a.order()) && b.order && !isNaN(b.order())) {
-                        return a.order() - b.order();
-                    } else if (a.order && !isNaN(a.order())) {
-                        return -1;
-                    } else if (b.order && !isNaN(b.order())) {
-                        return 1;
-                    } else {
-                        return a.name().localeCompare(b.name());
-                    }
-                };
-
-            for (i = 0; i < len; i++) {
-                this.layerCategories[i].sort(byOrderValue);
-            }
-
-            this.synchronizeLayers();
-        };
-
-        /**
-         * Synchronizes the Explorer layer arrays with the WorldWind layers. This method will reverse the ordering
-         * of the base, background, and overlay arrays in order to match the expected visibility.
-         */
-        LayerManager.prototype.synchronizeLayers = function () {
-            var explorerLayerCategories = [
-                this.backgroundLayers,
-                this.baseLayers,
-                this.overlayLayers,
-                this.dataLayers,
-                this.widgetLayers,
-                this.effectsLayers
-            ], i, len = explorerLayerCategories.length;
-
-            for (i = 0; i < len; i++) {
-                this.synchronizeLayerCategory(explorerLayerCategories[i]);
-            }
-        };
-
-        /**
-         * Synchronizes the provided Explorer layer category with corresponding WorldWind layers. The method
-         * will reverse the ordering of the base, background, and overlay arrays in order to match expected 
-         * visibility.
-         */
-        LayerManager.prototype.synchronizeLayerCategory = function (layerCategory) {
-            var i, explorerLayerLength = layerCategory().length, wwStartIndex = Number.MAX_SAFE_INTEGER,
-                explorerLayer, wwInsertionIndex;
-
-            if (explorerLayerLength === 0) {
-                return; // there is nothing to sort in this layer
-            }
-
-            // Find the minimum index for this layer category in the WorldWind layer array
-            for (i = 0; i < explorerLayerLength; i++) {
-                wwStartIndex = Math.min(wwStartIndex, this.globe.wwd.layers.indexOf(layerCategory()[i].wwLayer));
-            }
-
-            // Stop and log an error if a start index was not found
-            if (isNaN(wwStartIndex) || wwStartIndex === Number.MAX_SAFE_INTEGER) {
-                console.error('Unable to determine initial index ');
-                return;
-            }
-
-            // Remove all of the layers of this layer category from the WorldWindow layers
-            for (i = 0; i < explorerLayerLength; i++) {
-                this.globe.wwd.removeLayer(layerCategory()[i].wwLayer);
-            }
-
-            // Iterate through the layer category layers and populate the ordered WorldWind layer array
-            for (i = 0; i < explorerLayerLength; i++) {
-                explorerLayer = layerCategory()[i];
-
-                // The category type determines if the layer should be added to the end or beginning of the
-                // WorldWind layers
-                if (explorerLayer.category() === constants.LAYER_CATEGORY_BACKGROUND ||
-                    explorerLayer.category() === constants.LAYER_CATEGORY_BASE ||
-                    explorerLayer.category() === constants.LAYER_CATEGORY_OVERLAY) {
-                    wwInsertionIndex = wwStartIndex; // index expression of the unshift method
-                } else {
-                    wwInsertionIndex = wwStartIndex + i; // index expression of the push method
-                }
-                this.globe.wwd.insertLayer(wwInsertionIndex, explorerLayer.wwLayer);
-            }
-        };
-
-        /**
-         * Moves the provided layer to the provided index of the layer category the layer belongs. Moves the
-         * WorldWind layer in concert to maintain list synchronicity between the order layers are displayed
-         * in the layer manager and WorldWind.
-         * @param layerViewModel the Explorer layer manager layer to be moved
-         * @param index the index to move the layer to in its specific layer category, or "up" and "down" to
-         * move the layer above or below its neighbor
-         */
-        LayerManager.prototype.moveLayer = function (layerViewModel, index) {
-            var explorerLayerArray, i, len;
-
-            if (!layerViewModel) {
-                return;
-            }
-
-            if (index == null || index < 0) {
-                return;
-            }
-
-            // Determine the corresponding layer array
-            switch (layerViewModel.category()) {
-                case constants.LAYER_CATEGORY_BACKGROUND:
-                    explorerLayerArray = this.backgroundLayers;
-                    break;
-                case constants.LAYER_CATEGORY_BASE:
-                    explorerLayerArray = this.baseLayers;
-                    break;
-                case constants.LAYER_CATEGORY_OVERLAY:
-                    explorerLayerArray = this.overlayLayers;
-                    break;
-                default:
-                    console.log("moving the layer isn't support for " + layerViewModel.category());
-                    return;
-            }
-
-            // Convert the up and down indices to a numerical index
-            if (index === "up") {
-                index = explorerLayerArray.indexOf(layerViewModel) - 1;
-            }
-            if (index === "down") {
-                index = explorerLayerArray.indexOf(layerViewModel) + 2;
-            }
-            if (index === "top") {
-                index = 0;
-            }
-            if (index === "bottom") {
-                index = explorerLayerArray().length;
-            }
-
-            // Index bounds check
-            if (index < 0 || index > explorerLayerArray().length) {
-                console.error("layer move outside of bounds");
-                return;
-            }
-
-            // Update the layer manager order
-            LayerManagerHelper.moveLayerInArray(layerViewModel, index, explorerLayerArray);
-
-            // Synchronize the layer ordering
-            this.synchronizeLayers();
-        };
 
 
         return LayerManager;
