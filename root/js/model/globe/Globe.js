@@ -171,7 +171,7 @@ define([
 
         // Add TimeZone support
         this.timeZoneLayer = new TimeZoneLayer();
-        this.layerManager.addOverlayLayer(this.timeZoneLayer, {
+        this.layerManager.addEffectLayer(this.timeZoneLayer, {
             enabled: true,
             pickEnabled: true,
             hideInMenu: false
