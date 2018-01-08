@@ -158,7 +158,7 @@ define([
                 var layer;
                 if (!layerNode.isChecked()) {
                     // TODO: Open dialog to select a layer category
-                    layerManager.addLayerFromCapabilities(layerNode.layerCaps, constants.LAYER_CATEGORY_BASE);
+                    layerManager.addLayerFromCapabilities(layerNode.layerCaps, constants.LAYER_CATEGORY_OVERLAY);
                 } else {
                     // Find the first layer with a displayName matching the title
                     layer = layerManager.findLayer(layerNode.layerCaps.title);
