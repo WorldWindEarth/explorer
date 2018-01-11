@@ -349,7 +349,7 @@ define([
      * @param {type} category
      * @returns {EnhancedWmsLayer|WorldWind.WmsTimeDimensionedLayer|LayerManagerHelperL#31.LayerManagerHelper.createLayerFromCapabilities.layer|LayerManagerL#32.LayerManager.prototype.addLayerFromCapabilities.layer}
      */
-        LayerManager.prototype.addLayerFromCapabilities = function (layewwLayer, category) {
+        LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
 
             var wwLayer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
             if (wwLayer.timeSequence) {
