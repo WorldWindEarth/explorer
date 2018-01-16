@@ -23,7 +23,7 @@ requirejs.config({
         'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'libs/moment/moment-2.14.1.min',
         'd3': window.DEBUG ? 'libs/d3/d3' : 'libs/d3/d3.min',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
-        'vis': window.DEBUG ?  'libs/vis/v4.16.1/vis' : 'libs/vis/v4.16.1/vis.min',
+        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'libs/vis/v4.16.1/vis.min',
         'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : '//files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
         'model': 'model' // root application path
     },
@@ -49,6 +49,7 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
     'views/GlobeViewModel',
     'views/HeaderViewModel',
     'views/LayersViewModel',
+    'views/LayerSettings',
     'views/MarkerEditor',
     'views/MarkersViewModel',
     'views/OutputViewModel',
@@ -66,6 +67,7 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
         GlobeViewModel,
         HeaderViewModel,
         LayersViewModel,
+        LayerSettings,
         MarkerEditor,
         MarkersViewModel,
         OuputViewModel,
@@ -83,26 +85,57 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
 
         // Define the configuration for the primary globe
         var globeOptions = {
-                showBackground: true,
-                showReticule: true,
-                showViewControls: true,
-                includePanControls: config.showPanControl,
-                includeRotateControls: true,
-                includeTiltControls: true,
-                includeZoomControls: true,
-                includeExaggerationControls: config.showExaggerationControl,
-                includeFieldOfViewControls: config.showFieldOfViewControl},
+            showBackground: true,
+            showReticule: true,
+            showViewControls: true,
+            includePanControls: config.showPanControl,
+            includeRotateControls: true,
+            includeTiltControls: true,
+            includeZoomControls: true,
+            includeExaggerationControls: config.showExaggerationControl,
+            includeFieldOfViewControls: config.showFieldOfViewControl},
             globe;
 
         // Create the explorer's primary globe that's associated with the specified HTML5 canvas
         globe = new Globe(new WorldWind.WorldWindow("canvasOne"), globeOptions);
-        
+
         // Load additional layers and layer options
         globe.layerManager.loadDefaultLayers();
 
         // Initialize the Explorer object with a basic Globe to "explore"
         explorer.initialize(globe);
 
+        // --------------------------------------------------------
+        // Custom Knockout binding for JQuery slider 
+        // See: http://knockoutjs.com/documentation/custom-bindings.html
+        // --------------------------------------------------------
+        ko.bindingHandlers.slider = {
+            init: function (element, valueAccessor, allBindings) {
+                var options = allBindings().sliderOptions || {};
+                // Initialize a slider with the given options
+                $(element).slider(options);
+                
+                // Register a listener on completed changes to the slider                
+                $(element).on( "slidechange", function( event, ui ) {
+                    var observable = valueAccessor();
+                    observable(ui.value);
+                } );
+                // Resister a listener on mouse moves to the handle
+                $(element).on( "slide", function( event, ui ) {
+                    var observable = valueAccessor();
+                    observable(ui.value);
+                });
+                // Cleanup - See http://knockoutjs.com/documentation/custom-bindings-disposal.html
+                ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
+                    $(element).slider("destroy");
+                });
+            },
+            update: function (element, valueAccessor) {
+                // Update the slider when the bound value changes
+                var value = ko.unwrap(valueAccessor());
+                $(element).slider("value", isNaN(value) ? 0 : value);
+            }
+        };
 
         // --------------------------------------------------------
         // Bind view models to the corresponding HTML elements
@@ -121,6 +154,7 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
         ko.applyBindings(new WeatherScoutEditor(), document.getElementById('weather-scout-editor'));
         ko.applyBindings(new OuputViewModel(globe), document.getElementById('output'));
         ko.applyBindings(new BookmarkViewModel(globe), document.getElementById('bookmark'));
+        ko.applyBindings(new LayerSettings(globe), document.getElementById('layer-settings-dialog'));
 
         // -----------------------------------------------------------
         // Add handlers to auto-expand/collapse the menus
