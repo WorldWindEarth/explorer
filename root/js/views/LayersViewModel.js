@@ -51,22 +51,22 @@ define([
             this.baseLayers.subscribe(function (changes) {
                 this.baseLayersCount(this.baseLayers().length);
             }, this, "change");
-            
+
             this.overlayLayersCount = ko.observable(this.overlayLayers().length);
             this.overlayLayers.subscribe(function (changes) {
                 this.overlayLayersCount(this.overlayLayers().length);
             }, this, "change");
-            
+
             this.dataLayersCount = ko.observable(this.dataLayers().length);
             this.dataLayers.subscribe(function (changes) {
                 this.dataLayersCount(this.dataLayers().length);
             }, this, "change");
-            
+
             this.effectsLayersCount = ko.observable(this.effectsLayers().length);
             this.effectsLayers.subscribe(function (changes) {
                 this.effectsLayersCount(this.effectsLayers().length);
             }, this, "change");
-            
+
             this.widgetLayersCount = ko.observable(this.widgetLayers().length);
             this.widgetLayers.subscribe(function (changes) {
                 this.widgetLayersCount(this.widgetLayers().length);
@@ -85,43 +85,12 @@ define([
              * @param {Object} layer The selected layer in the layer collection
              */
             this.onEditSettings = function (layer) {
-                $('#opacity-slider').slider({
-                    animate: 'fast',
-                    min: 0,
-                    max: 1,
-                    orientation: 'horizontal',
-                    slide: function (event, ui) {
-                        //console.log(layer.name() + ":  " + layer.opacity());
-                        layer.opacity(ui.value);
-                    },
-                    step: 0.1
-                });
-                $("#layer-settings-dialog").dialog({
-                    autoOpen: false,
-                    title: layer.name(),
-                    close: function (event, ui) {
-                        $('#move-up-button').off('click');
-                        $('#move-down-button').off('click');
-                        $('#move-top-button').off('click');
-                        $('#move-bottom-button').off('click');
-                    }
-                });
-                $('#opacity-slider').slider("option", "value", layer.opacity());
-                $('#move-up-button').on('click', function () {
-                    layerManager.moveLayer(layer, 'up');
-                });
-                $('#move-down-button').on('click', function () {
-                    layerManager.moveLayer(layer, 'down');
-                });
-                $('#move-top-button').on('click', function () {
-                    layerManager.moveLayer(layer, 'top');
-                });
-                $('#move-bottom-button').on('click', function () {
-                    layerManager.moveLayer(layer, 'bottom');
-                });
-                //console.log(layer.name() + ":  " + layer.opacity());
-                $('#layer-settings-dialog').dialog("open");
+                // 
+                var $element = $("#layer-settings-dialog"),
+                    dialog = ko.dataFor($element.get(0));
+                dialog.open(layer);
             };
+
             /**
              * Opens the Add Layer dialog.
              */
