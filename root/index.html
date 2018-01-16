@@ -58,7 +58,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                     <a href="https://worldwind.arc.nasa.gov" target="_blank">
+                    <a href="https://worldwind.arc.nasa.gov" target="_blank">
                         <img class="navbar-brand" id="nasa-logo" src="css/images/nasa-logo.svg" alt="NASA"/>
                     </a>                    
                     <a class="navbar-brand"
@@ -566,59 +566,91 @@
                         <span class="glyphicon glyphicon-zoom-in"></span>
                     </button>
                 </div>
+                <!--Additional layer info-->
                 <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
                     <div class="well">
                         <!--Controls and Legend-->
                         <div>
-                            <img data-bind="attr: {src: $data.legendUrl}"/>
+                            <!--<img data-bind="attr: {src: $data.legendUrl}"/>-->
                         </div>
                     </div>
                 </div>
             </div>
         </script>
 
+        <!-- ================================================================ -->
+                
         <!--
         Layer Settings Dialog
         -->
         <div style="display: none">
             <div id="layer-settings-dialog">
-                Opacity
-                <div id="opacity-slider" auto-focus></div>
-                <div>
-                    <!-- TODO not binding the url -->
-                    <img data-bind="attr: {src: $data.legendUrl}"/>
+                <div id="layer-opacity">
+                    Opacity
+                    <div id="layer-opacity-slider" 
+                        data-bind="slider: opacity, sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
+                    </div>
                 </div>
-                Layer Ordering
-                <div class="btn-group btn-block">
-                    <!--Layer ordering buttons-->
-                    <button id="move-up-button" 
-                            type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 25%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerUp">
-                        <span class="glyphicon glyphicon-arrow-up"></span>
-                    </button>
-                    <button id="move-down-button"
-                            type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 25%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerDown">
-                        <span class="glyphicon glyphicon-arrow-down"></span>
-                    </button>
-                    <button id="move-top-button"
-                            type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 25%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerToTop">
-                        <span class="glyphicon glyphicon-circle-arrow-up"></span>
-                    </button>
-                    <button id="move-bottom-button"
-                            type="button"
-                            class="btn btn-default"
-                            style="display: block; width: 25%;"
-                            data-bind="css: {active: $data.enabled()}, click: $root.onMoveLayerToBottom">
-                        <span class="glyphicon glyphicon-circle-arrow-down"></span>
-                    </button>
+                <div id="layer-ordering">
+                    Layer Ordering
+                    <div class="btn-group btn-block">
+                        <!--Layer ordering buttons-->
+                        <button id="layer-move-top-button"
+                                type="button"
+                                class="btn btn-default"
+                                style="display: block; width: 25%;"
+                                data-bind="click: onMoveLayerToTop">
+                            <span class="glyphicon glyphicon-circle-arrow-up"></span>
+                        </button>
+                        <button id="layer-move-up-button" 
+                                type="button"
+                                class="btn btn-default"
+                                style="display: block; width: 25%;"
+                                data-bind="click: onMoveLayerUp">
+                            <span class="glyphicon glyphicon-arrow-up"></span>
+                        </button>
+                        <button id="layer-move-down-button"
+                                type="button"
+                                class="btn btn-default"
+                                style="display: block; width: 25%;"
+                                data-bind="click: onMoveLayerDown">
+                            <span class="glyphicon glyphicon-arrow-down"></span>
+                        </button>
+                        <button id="layer-move-bottom-button"
+                                type="button"
+                                class="btn btn-default"
+                                style="display: block; width: 25%;"
+                                data-bind="click: onMoveLayerToBottom">
+                            <span class="glyphicon glyphicon-circle-arrow-down"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="timeSeriesPlayer">
+                    <span>Time Series</span>
+                    <div class="btn-group ">
+                        <button id="timeSeriesForward" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-step-forward"></span>
+                        </button>
+                        <button id="timeSeriesPlay" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-play"></span>
+                        </button>
+                        <button id="timeSeriesBackward" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-step-backward"></span>
+                        </button>
+                    </div>
+                    <div id="timeSeriesSlider" style="margin-top: 10px; margin-left: 10px; margin-bottom: 10px; background: #337ab7;" class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all">
+                        <span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0" style="bottom: 100%;"></span>
+                    </div>
+                    <span id="timeSeriesDisplay" style="position: absolute; width: 300px; color: yellow; text-shadow: black 0px 0px 2px; top: 89.765625px; left: 36.390625px;">Tue, 30 Aug 2016</span>
+                    <div class="btn-group">
+                        <button id="timeSeriesRepeat" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-refresh"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="layer-settings-legend" data-bind="if: legendUrl">
+                    <span>Legend</span>
+                    <img data-bind="attr: {src: legendUrl}"/>
                 </div>
             </div>
         </div>
@@ -670,6 +702,9 @@
             <!-- /ko -->
         </script>  
 
+
+        <!-- ================================================================ -->
+
         <!--
         Marker Editor Dialog
         -->
@@ -704,6 +739,8 @@
                         data-bind="click: $parent.removeWeatherScout"></button>
             </div>
         </script>
+
+        <!-- ================================================================ -->
 
         <!--
         Weather Scout Editor Dialog
@@ -851,47 +888,47 @@
 
         // Add a handler to collapse the left side panel
         $('#collapse-left-sidebar').on('click', sidebarSplitter, function (event) {
-            // Collapse the sidebar (1st item in splitter array
-            var splitter = event.data;
-            splitter.lastSizes = splitter.getSizes();
-            splitter.collapse(0);
+        // Collapse the sidebar (1st item in splitter array
+        var splitter = event.data;
+        splitter.lastSizes = splitter.getSizes();
+        splitter.collapse(0);
         });
         // Add a handler to collapse the output panel
         $('#collapse-output-panel').on('click', outputSplitter, function (event) {
-           // Collapse the output panel (2nd item in splitter array)
-            var splitter = event.data;
-            splitter.collapse(1);
+        // Collapse the output panel (2nd item in splitter array)
+        var splitter = event.data;
+        splitter.collapse(1);
         });
         // Add a handler to toggle the left side panel
         $('.left-sidebar-btn').on('click', sidebarSplitter, function (event) {
-            var splitter = event.data;
-            if ($('#left-sidebar').width() < 100) {
-                // Expand the sidebar
-                if (splitter.lastSizes === undefined) {
-                    splitter.setSizes([25, 75]); // percentages
-                } else {
-                    splitter.setSizes(splitter.lastSizes);
-                }
-            } else if ($(this).is('.active')) {
-                // Collapse the sidebar (first index in the splitter array)
-                splitter.lastSizes = splitter.getSizes();
-                splitter.collapse(0);
-            }
+        var splitter = event.data;
+        if ($('#left-sidebar').width() < 100) {
+        // Expand the sidebar
+        if (splitter.lastSizes === undefined) {
+        splitter.setSizes([25, 75]); // percentages
+        } else {
+        splitter.setSizes(splitter.lastSizes);
+        }
+        } else if ($(this).is('.active')) {
+        // Collapse the sidebar (first index in the splitter array)
+        splitter.lastSizes = splitter.getSizes();
+        splitter.collapse(0);
+        }
         });
         // Add a handler to toggle the output panel
         $('.output-panel-btn').on('click', outputSplitter, function (event) {
-            var splitter = event.data;
-            if ($('#output').height() < 100) {
-                // Expand the panel
-                if (splitter.lastSizes === undefined) {
-                    splitter.setSizes([70, 30]); // percentages
-                } else {
-                    splitter.setSizes(splitter.lastSizes);
-                }
-            } else {
-                // Collapse the panel (second index in the splitter array)
-                splitter.collapse(1);
-            }
+        var splitter = event.data;
+        if ($('#output').height() < 100) {
+        // Expand the panel
+        if (splitter.lastSizes === undefined) {
+        splitter.setSizes([70, 30]); // percentages
+        } else {
+        splitter.setSizes(splitter.lastSizes);
+        }
+        } else {
+        // Collapse the panel (second index in the splitter array)
+        splitter.collapse(1);
+        }
         });
     </script>
 
