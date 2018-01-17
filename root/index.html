@@ -171,6 +171,8 @@
                     <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
                 </button>
 
+                <!-- ================================================================ -->
+                
                 <!--
                 Layers View (bound to LayersViewModel)
                 This is the default "active" tab
@@ -300,6 +302,8 @@
                     </div>
                 </div>
 
+                <!-- ================================================================ -->
+
                 <!--
                 Markers View (bound to MarkersViewModel)
                 -->
@@ -318,6 +322,7 @@
                     </div>
                 </div>
 
+                <!-- ================================================================ -->
 
                 <!--
                 Weather View (bound to WeatherViewModel)
@@ -337,6 +342,7 @@
                     </div>
                 </div> 
 
+                <!-- ================================================================ -->
 
                 <!--
                 Settings tab (bound to SettingsViewModel)
@@ -367,6 +373,9 @@
             Explorer
             -->
             <div id="explorer" class="split split-horizontal">
+
+                <!-- ================================================================ -->
+
                 <!--
                 Globe View (bound to the GlobeViewModel)
                 -->
@@ -468,8 +477,11 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ================================================================ -->
+
                 <!--
-                Output View (bound to the OutputViewModel)
+                Info View (bound to the OutputViewModel)
                 -->
                 <div id="output" class="split split-vertical">
                     <!--Button to collapse output panel-->
@@ -581,9 +593,9 @@
         <!-- ================================================================ -->
                 
         <!--
-        Layer Settings Dialog
+        Layer Settings View/Dialog
         -->
-        <div style="display: none">
+<!--        <div style="display: none">
             <div id="layer-settings-dialog">
                 <div id="layer-opacity">
                     Opacity
@@ -594,7 +606,7 @@
                 <div id="layer-ordering">
                     Layer Ordering
                     <div class="btn-group btn-block">
-                        <!--Layer ordering buttons-->
+                        Layer ordering buttons
                         <button id="layer-move-top-button"
                                 type="button"
                                 class="btn btn-default"
@@ -627,33 +639,31 @@
                 </div>
                 <div id="timeSeriesPlayer">
                     <span>Time Series</span>
-                    <div class="btn-group ">
-                        <button id="timeSeriesForward" type="button" class="btn btn-sm btn-primary">
-                            <span class="glyphicon glyphicon-step-forward"></span>
+                    <div class="btn-group btn-block">
+                        <button id="timeSeriesBackward" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-step-backward"></span>
                         </button>
                         <button id="timeSeriesPlay" type="button" class="btn btn-sm btn-primary">
                             <span class="glyphicon glyphicon-play"></span>
                         </button>
-                        <button id="timeSeriesBackward" type="button" class="btn btn-sm btn-primary">
-                            <span class="glyphicon glyphicon-step-backward"></span>
+                        <button id="timeSeriesForward" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-step-forward"></span>
+                        </button>
+                        <button id="timeSeriesRepeat" type="button" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-refresh"></span>
                         </button>
                     </div>
                     <div id="timeSeriesSlider" style="margin-top: 10px; margin-left: 10px; margin-bottom: 10px; background: #337ab7;" class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all">
                         <span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0" style="bottom: 100%;"></span>
                     </div>
-                    <span id="timeSeriesDisplay" style="position: absolute; width: 300px; color: yellow; text-shadow: black 0px 0px 2px; top: 89.765625px; left: 36.390625px;">Tue, 30 Aug 2016</span>
-                    <div class="btn-group">
-                        <button id="timeSeriesRepeat" type="button" class="btn btn-sm btn-primary">
-                            <span class="glyphicon glyphicon-refresh"></span>
-                        </button>
-                    </div>
+                    <span id="timeSeriesDisplay" style="position: absolute; width: 300px; color: yellow; text-shadow: black 0px 0px 2px;"></span>
                 </div>
                 <div id="layer-settings-legend" data-bind="if: legendUrl">
-                    <span>Legend</span>
+                    Legend
                     <img data-bind="attr: {src: legendUrl}"/>
                 </div>
             </div>
-        </div>
+        </div>-->
 
         <!-- ================================================================ -->
 
@@ -706,7 +716,7 @@
         <!-- ================================================================ -->
 
         <!--
-        Marker Editor Dialog
+        Marker Editor View/Dialog
         -->
         <div style="display: none">
             <div id="marker-editor">
@@ -832,8 +842,10 @@
         </li>
     </script>
 
+     <!-- ================================================================ -->
+
     <!--
-    Bookmark Dialog (bound to the BookmarkDialog view model)
+    Bookmark View/Dialog (bound to the BookmarkDialog view model)
     -->
     <div style="display: none">
         <div id="bookmark-dialog">

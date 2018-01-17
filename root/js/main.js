@@ -6,6 +6,11 @@
 
 /*global require, requirejs, WorldWind */
 
+/**
+ * Set DEBUG true to use debug versions of the libraries; set false to use
+ * the minified versions for production.
+ * @type Boolean
+ */
 window.DEBUG = true;
 
 /**
@@ -40,7 +45,10 @@ requirejs.config({
  * A top-level require call executed by the Application.
  * 
  */
-require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
+require([
+    'knockout', 
+    'jquery', 
+    'worldwind',
     'model/Config',
     'model/Constants',
     'model/Explorer',
@@ -58,7 +66,7 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
     'views/SettingsViewModel',
     'views/WeatherScoutEditor',
     'views/WeatherViewModel'],
-    function (dragula, ko, $, bootstrap, ww,
+    function (ko, $, ww,
         config,
         constants,
         explorer,
@@ -106,7 +114,7 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
         explorer.initialize(globe);
 
         // --------------------------------------------------------
-        // Custom Knockout binding for JQuery slider 
+        // Add a custom Knockout binding for JQuery slider 
         // See: http://knockoutjs.com/documentation/custom-bindings.html
         // --------------------------------------------------------
         ko.bindingHandlers.slider = {
@@ -154,7 +162,8 @@ require(['dragula', 'knockout', 'jquery', 'bootstrap', 'worldwind',
         ko.applyBindings(new WeatherScoutEditor(), document.getElementById('weather-scout-editor'));
         ko.applyBindings(new OuputViewModel(globe), document.getElementById('output'));
         ko.applyBindings(new BookmarkViewModel(globe), document.getElementById('bookmark'));
-        ko.applyBindings(new LayerSettings(globe), document.getElementById('layer-settings-dialog'));
+
+        new LayerSettings(globe, "layer-settings-dialog", "js/views/layer-settings.html");
 
         // -----------------------------------------------------------
         // Add handlers to auto-expand/collapse the menus
