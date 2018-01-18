@@ -139,7 +139,7 @@ define([
 
                 this.placemark = new WorldWind.Placemark(position, true, normalAttributes); // eye distance scaling enabled
                 this.placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                this.placemark.eyeDistanceScalingThreshold = 2000000;
+                this.placemark.eyeDistanceScalingThreshold = 4000000;
                 this.placemark.highlightAttributes = highlightAttributes;
                 this.placemark.label = this.name();
                 // Configure the placemark to return this marker object when the placemark is picked, 
