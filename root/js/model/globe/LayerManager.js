@@ -141,7 +141,7 @@ define([
 
             // TODO: Add Sentinel-2 layers from EOX (with attribution).
 
-            this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
+            //this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
 
             this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
 
