@@ -329,7 +329,8 @@ define([
                 navigator.roll = navigator.lastRoll;
             }
             // Clamp latitude to between -90 and +90, and normalize longitude to between -180 and +180.
-            navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -90, 90);
+            // HACK: Clamping to +/-89.999 to avoid bug that locks up app when looking at the poles.
+            navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -89.999, 89.999);
             navigator.lookAtLocation.longitude = WorldWind.Angle.normalizedDegreesLongitude(navigator.lookAtLocation.longitude);
             // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
             // range is zero.
