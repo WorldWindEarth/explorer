@@ -1,5 +1,6 @@
 <!--
-Layer Settings View/Dialog
+LayerSettings view fragment.
+This view fragment is a JQuery dialog.
 -->
 <div style="display: none">
     <div id="layer-settings-dialog">
@@ -15,51 +16,72 @@ Layer Settings View/Dialog
                 <!--Layer ordering buttons-->
                 <button id="layer-move-top-button"
                         type="button"
-                        class="btn btn-default"
-                        style="display: block; width: 25%;"
+                        class="btn btn-primary"
+                        style="width: 25%;"
                         data-bind="click: onMoveLayerToTop">
                     <span class="glyphicon glyphicon-circle-arrow-up"></span>
                 </button>
                 <button id="layer-move-up-button" 
                         type="button"
-                        class="btn btn-default"
-                        style="display: block; width: 25%;"
+                        class="btn btn-primary"
+                        style="width: 25%;"
                         data-bind="click: onMoveLayerUp">
                     <span class="glyphicon glyphicon-arrow-up"></span>
                 </button>
                 <button id="layer-move-down-button"
                         type="button"
-                        class="btn btn-default"
-                        style="display: block; width: 25%;"
+                        class="btn btn-primary"
+                        style="width: 25%;"
                         data-bind="click: onMoveLayerDown">
                     <span class="glyphicon glyphicon-arrow-down"></span>
                 </button>
                 <button id="layer-move-bottom-button"
                         type="button"
-                        class="btn btn-default"
-                        style="display: block; width: 25%;"
+                        class="btn btn-primary"
+                        style="width: 25%;"
                         data-bind="click: onMoveLayerToBottom">
                     <span class="glyphicon glyphicon-circle-arrow-down"></span>
                 </button>
             </div>
         </div>
-        <div id="timeSeriesPlayer">
+        <div id="layer-timeseries-player" data-bind="if: timeSequence">
             <span>Time Series</span>
             <div class="btn-group btn-block">
-                <button id="timeSeriesBackward" type="button" class="btn btn-sm btn-primary">
+                <button id="layer-timeseries-back" 
+                        type="button" 
+                        class="btn btn-sm btn-primary" 
+                        style="width: 25%;"
+                        data-bind="click: onStepBackward">
                     <span class="glyphicon glyphicon-step-backward"></span>
                 </button>
-                <button id="timeSeriesPlay" type="button" class="btn btn-sm btn-primary">
-                    <span class="glyphicon glyphicon-play"></span>
+                <button id="layer-timeseries-play" 
+                        type="button" 
+                        class="btn btn-sm btn-primary" 
+                        style="width: 25%;"
+                        data-bind="click: onPlay">
+                    <span class="glyphicon"
+                          data-bind="css: { 'glyphicon-play': !isPlaying(), 'glyphicon-stop': isPlaying }"></span>
                 </button>
-                <button id="timeSeriesForward" type="button" class="btn btn-sm btn-primary">
+                <button id="layer-timeseries-forward" 
+                        type="button" 
+                        class="btn btn-sm btn-primary" 
+                        style="width: 25%;"
+                        data-bind="click: onStepForward">
                     <span class="glyphicon glyphicon-step-forward"></span>
                 </button>
-                <button id="timeSeriesRepeat" type="button" class="btn btn-sm btn-primary">
-                    <span class="glyphicon glyphicon-refresh"></span>
+                <button id="layer-timeseries-repeat" 
+                        type="button" 
+                        class="btn btn-sm btn-primary" 
+                        style="width: 25%;"
+                        data-bind="click: onRepeat">
+                    <span class="glyphicon"
+                          data-bind="css: { 'glyphicon-repeat': !isRepeating(), 'glyphicon-refresh': isRepeating }"></span>
                 </button>
             </div>
-            <div id="timeSeriesSlider" style="margin-top: 10px; margin-left: 10px; margin-bottom: 10px; background: #337ab7;" class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all">
+            <div id="layer-timeseries-slider" 
+                 style="margin-top: 10px; margin-left: 10px; margin-bottom: 10px; background: #337ab7;" 
+                 class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"
+                 data-bind="slider: currentTimeScale, sliderOptions: {animate: 'fast', min: 0, max: 100, orientation: 'horizontal'}">
                 <span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0" style="bottom: 100%;"></span>
             </div>
             <!--<span id="timeSeriesDisplay" style="position: absolute; width: 300px; color: yellow; text-shadow: black 0px 0px 2px;"></span>-->
