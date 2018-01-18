@@ -329,8 +329,8 @@ define([
                 navigator.roll = navigator.lastRoll;
             }
             // Clamp latitude to between -90 and +90, and normalize longitude to between -180 and +180.
-            // HACK: Clamping to +/-89.999 to avoid bug that locks up app when looking at the poles.
-            navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -89.999, 89.999);
+            // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
+            navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -89.9, 89.9);
             navigator.lookAtLocation.longitude = WorldWind.Angle.normalizedDegreesLongitude(navigator.lookAtLocation.longitude);
             // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
             // range is zero.
@@ -365,6 +365,13 @@ define([
          * @returns {Boolean}
          */
         navigator.validateEyePosition = function () {
+            if (isNaN(navigator.lookAtLocation.latitude)) {
+                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");                
+            }
+            if (isNaN(navigator.lookAtLocation.longitude)) {
+                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");                
+                return false;
+            }
             var wwd = navigator.worldWindow,
                     navigatorState = navigator.intermediateState(),
                     eyePoint = navigatorState.eyePoint,
@@ -461,7 +468,7 @@ define([
                 pickList, i, len, pickedObject,
                 userObject, layer, record;
 
-        this.timeZoneLayer.pickEnabled = true;
+        //this.timeZoneLayer.pickEnabled = true;
         pickList = this.wwd.pick(canvasCenter);
         if (pickList.hasNonTerrainObjects()) {
 
@@ -665,10 +672,14 @@ define([
      * @param {Function} callback Optional.
      */
     Globe.prototype.goto = function (latitude, longitude, range, callback) {
+        //log.info("Globe", "goto", "Lat: " + latitude+ ", Lon: " + longitude + ", Range: " + range);
         if (typeof latitude !== "number" || typeof longitude !== "number" || isNaN(latitude) || isNaN(longitude)) {
             log.error("Globe", "gotoLatLon", "Invalid Latitude and/or Longitude.");
             return;
         }
+        // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
+        latitude = WorldWind.WWMath.clamp(latitude, -89.9, 89.9);
+        
         var self = this;
         if (this.isAnimating) {
             this.goToAnimator.cancel();
@@ -689,10 +700,14 @@ define([
      * @param {Number} range Optional.
      */
     Globe.prototype.lookAt = function (latitude, longitude, range) {
+        //log.info("Globe", "lookAt", "Lat: " + latitude+ ", Lon: " + longitude + ", Range: " + range);
         if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
             log.error("Globe", "lookAt", "Invalid Latitude and/or Longitude.");
             return;
         }
+        // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
+        latitude = WorldWind.WWMath.clamp(latitude, -89.9, 89.9);
+
         this.wwd.navigator.lookAtLocation.latitude = latitude;
         this.wwd.navigator.lookAtLocation.longitude = longitude;
         if (range) {
