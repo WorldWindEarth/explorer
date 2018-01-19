@@ -44,9 +44,8 @@ define([
              */
             this.servers = layerManager.servers;
             // Setting a default server address to some interesting data
-            this.serverAddress = ko.observable("https://neowms.sci.gsfc.nasa.gov/wms/wms"); // CORS is disabled now in here
-            // self.serverAddress = ko.observable("https://worldwind25.arc.nasa.gov/wms");
-
+           this.serverAddress = ko.observable("https://neowms.sci.gsfc.nasa.gov/wms/wms");
+           //this.serverAddress = ko.observable("http://apps.ecmwf.int/wms/?token=public"); 
             this.baseLayersCount = ko.observable(this.baseLayers().length);
             this.baseLayers.subscribe(function (changes) {
                 this.baseLayersCount(this.baseLayers().length);
