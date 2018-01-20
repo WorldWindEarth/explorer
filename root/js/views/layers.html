@@ -1,0 +1,266 @@
+<!--
+Layers List (bound to LayersViewModel)
+-->
+
+<div id="layers" class="tab-pane active" role="tabpanel">
+    <div class="section-heading">
+        <h4 class="sub-header">
+            <span class="glyphicon glyphicon-list" aria-hidden="true" style="padding-right:5px;"></span>
+            Layers
+            <a class="section-toggle" data-toggle="collapse" href="#layers-body">
+            </a>
+        </h4>
+    </div>
+    <div id="layers-body" class="section-body collapse in">
+        <!--TODO: This entire section could be driven by an observable array-->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" href="#base-layers-panel" aria-expanded="false"
+                       aria-controls="base-layers-panel">
+                        Base Maps (<span data-bind="text: baseLayersCount()"></span>)
+                    </a>
+                </h5>
+            </div>
+            <div class="panel-collapse collapse in" id="base-layers-panel">
+                <div data-bind="template: { name: 'layer-template', foreach: baseLayers}" id="base-layers-item-container"></div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" href="#overlay-layers-panel" aria-expanded="false"
+                       aria-controls="overlay-layers-panel">
+                        Overlays (<span data-bind="text: overlayLayersCount()"></span>)
+                    </a>
+                </h5>
+            </div>
+            <div class="panel-collapse collapse in" id="overlay-layers-panel">
+                <div data-bind="template: { name: 'layer-template', foreach: overlayLayers}" id="overlay-layers-item-container"></div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" href="#data-layers-panel" aria-expanded="false"
+                       aria-controls="data-layers-panel">
+                        Datasets (<span data-bind="text: dataLayersCount()"></span>)
+                    </a>
+                </h5>
+            </div>
+            <div class="panel-collapse collapse" id="data-layers-panel">
+                <div data-bind="template: { name: 'layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" href="#effect-layers-panel" aria-expanded="false"
+                       aria-controls="effect-layers-panel">
+                        Effects (<span data-bind="text: effectsLayersCount()"></span>)
+                    </a>
+                </h5>
+            </div>
+            <div class="panel-collapse collapse" id="effect-layers-panel">
+                <div data-bind="template: { name: 'unsorted-layer-template', foreach: effectsLayers}" id="effect-layers-item-container"></div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" href="#widget-layers-panel" aria-expanded="false"
+                       aria-controls="widget-layers-panel">
+                        Widgets (<span data-bind="text: widgetLayersCount()"></span>)
+                    </a>
+                </h5>
+            </div>
+            <div class="panel-collapse collapse" id="widget-layers-panel">
+                <div data-bind="template: { name: 'unsorted-layer-template', foreach: widgetLayers}" id="widget-layers-item-container"></div>
+            </div>
+        </div>
+    </div>                  
+    <!--
+                            <div>
+                                <button type="button"
+                                        class="btn btn-primary btn-sm"
+                                        data-bind="click: onAddLayer">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                    Add Layer
+                                </button>
+                            </div>
+    -->
+    <div class="section-heading">
+        <h4 class="sub-header">
+            Servers
+        </h4>
+    </div>
+    <!--Display the server address text box and the add server button-->
+    <div class="input-group">
+        <input id="add-server-text" type="text"
+               data-bind="value: serverAddress"
+               placeholder="Add new server URL"/>
+        <button type="button" id="add-server-button"
+                class="btn btn-primary btn-sm"
+                data-bind="click: onAddServer">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            Add Server
+        </button>
+    </div>
+    <!--Display the servers and their capabilities-->
+    <div class="panel-group" role="tablist" aria-multiselectable="true" id="servers">
+        <!-- ko template: { name: 'server-template', foreach: servers } -->
+        <!-- /ko -->
+    </div>
+
+    <!--
+    Add Layer Dialog
+    -->
+    <div style="display: none">
+        <div id="add-layer-dialog">
+            Layer Type:
+            <select data-bind="options: optionValues, value: selectedOptionValue"></select>
+            <div>
+                Server Address:
+                <input style="display: block"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================ -->
+
+<!-- 
+Sortable Layer Template
+This script renders the individual layer view model items in the Layers panel.
+-->
+<script type="text/html" id="layer-template">
+    <!--Conditionally show the layer if showInMenu is true-->
+    <div data-bind="if: $data.showInMenu()">
+        <div class="btn-group btn-block">
+            <!--Layer name and visibility button-->
+            <button type="button"
+                    class="btn btn-default layer-name wrap-panel-heading"
+                    style="display: block; width: 70%;"
+                    data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
+                <span class="glyphicon pull-left"
+                      data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
+                <span class="layer" data-bind="text: $data.name()"></span>
+            </button>
+            <!--Settings button-->
+            <button type="button"
+                    class="btn btn-default"
+                    style="display: block; width: 15%;"
+                    data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
+                <span class="glyphicon glyphicon-cog"></span>
+            </button>
+            <!--Zoom to layer button-->
+            <button type="button"
+                    class="btn btn-default"
+                    style="display: block; width: 15%;"
+                    data-bind="css: {active: $data.enabled()}, click: $root.onZoomToLayer">
+                <span class="glyphicon glyphicon-zoom-in"></span>
+            </button>
+        </div>
+        <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
+            <div class="well">
+                <!--Controls and Legend-->
+                <div>
+                    <img data-bind="attr: {src: $data.legendUrl}"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!-- 
+Non-Sortable Layer Template
+This script renders the individual layer view model items in the Layers panel.
+-->
+<script type="text/html" id="unsorted-layer-template">
+    <!--Conditionally show the layer if showInMenu is true-->
+    <div data-bind="if: $data.showInMenu()">
+        <div class="btn-group btn-block">
+            <!--Layer name and visibility button-->
+            <button type="button"
+                    class="btn btn-default layer-name wrap-panel-heading"
+                    style="display: block; width: 70%;"
+                    data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
+                <span class="glyphicon pull-left"
+                      data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
+                <span class="layer" data-bind="text: $data.name()"></span>
+            </button>
+            <!--Settings button-->
+            <button type="button"
+                    class="btn btn-default"
+                    style="display: block; width: 15%;"
+                    data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
+                <span class="glyphicon glyphicon-cog"></span>
+            </button>
+            <!--Zoom to layer button-->
+            <button type="button"
+                    class="btn btn-default"
+                    style="display: block; width: 15%;"
+                    data-bind="css: {active: $data.enabled()}, click: $root.onZoomToLayer">
+                <span class="glyphicon glyphicon-zoom-in"></span>
+            </button>
+        </div>
+        <!--Additional layer info-->
+        <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
+            <div class="well">
+                <!--Controls and Legend-->
+                <div>
+                    <!--<img data-bind="attr: {src: $data.legendUrl}"/>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<!-- ================================================================ -->
+
+<!--
+Server Template
+This server-template script renders a server's tab content
+-->
+<script type="text/html" id="server-template">
+    <!-- ko if: layers().length -->
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab"
+             data-bind=" attr: {id: 'server-panel-' + $index}">
+            <h5 class="panel-title wrap-panel-heading">
+                <a data-toggle="collapse"
+                   aria-expanded="true"
+                   data-bind="text:$data.title,
+                            attr: {'aria-controls': 'server-layers-' + $data.id, href:'#server-layers-' + $data.id}">
+                </a>
+                <a href="#">
+                    <small><span class="pull-right glyphicon glyphicon-remove clickable_space"></span></small>
+                </a>
+            </h5>
+        </div>
+        <div class="panel-collapse collapse in" role="tabpanel"
+             data-bind="attr: {id:'server-layers-' + $data.id, 'aria-labelledby': 'server-panel-' + $index()}">
+            <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
+            <!-- /ko -->
+        </div>
+    </div>
+    <!-- /ko -->
+</script>
+
+<!--
+Server Layer Template
+This server-layer-template script recursively renders a server's layer list items
+-->
+<script type="text/html" id="server-layer-template">
+    <li>
+        <input type="checkbox" data-bind="click: $root.onServerLayerClicked, checked: isChecked, visible: isLayer"/>
+        <span data-bind="text: title"></span>
+        <!-- ko if: layers().length -->
+        <ul>
+            <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
+            <!-- /ko -->
+        </ul>
+        <!-- /ko -->
+    </li>
+</script>
