@@ -1,0 +1,15 @@
+<!-- 
+Projections view fragment bound to ProjectionsViewModel
+-->
+<!--Dropdown list of projections-->
+<li id="projections" class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+       aria-expanded="false"><span data-bind="text: currentProjection"></span> <span
+            class="caret"></span></a>
+    <!-- Bind the list to the 'projections' observableArray -->
+    <ul id="projections-menu" class="dropdown-menu" data-bind="foreach: $root.projections">
+        <li data-bind="click: $root.changeProjection">
+            <a><span data-bind="text: $data"></span></a>
+        </li>
+    </ul>
+</li>

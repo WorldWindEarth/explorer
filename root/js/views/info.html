@@ -1,0 +1,11 @@
+<!--
+Info View (bound to the InfoViewModel)
+-->
+<div id="info">
+    <div style="height: 100%; overflow-y: hidden;" data-bind="template: {
+                            if: viewTemplateName()!==null,
+                            name: viewTemplateName,
+                            data: selectedItem
+                            }">
+    </div>
+</div>

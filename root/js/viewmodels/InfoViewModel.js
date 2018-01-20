@@ -5,23 +5,25 @@
  */
 
 /**
- * Output content module
+ * Info content module
  *
  * @param {type} ko
  * @param {type} $
- * @returns {OutputViewModel}
+ * @returns {InfoViewModel}
  */
-define(['knockout', 
-    'jquery',
-    'views/WeatherScoutView'],
+define(['knockout',
+    'jquery'
+        //'viewmodels/WeatherScoutView'
+],
     function (ko, $,
-        WeatherScoutView) {
+        //WeatherScoutView
+        ) {
 
         /**
          * The view model for the Output panel.
          * @constructor
          */
-        function OutputViewModel(globe) {
+        function InfoViewModel(globe, viewElementId, viewUrl, appendToId) {
             var self = this;
 
             this.globe = globe;
@@ -30,7 +32,7 @@ define(['knockout',
             this.selectedItem = this.globe.selectController.lastSelectedItem;
 
             // Load the Knockout custom binding used in the #weather-scout-view-template
-            this.wxScoutView = new WeatherScoutView();
+            //this.wxScoutView = new WeatherScoutView();
 
             // The viewTemplate defines the content displayed in the output pane.
             this.viewTemplateName = ko.observable(null);
@@ -46,8 +48,27 @@ define(['knockout',
                     }
                 }
             });
+
+            //
+            // Load the view html into the DOM and apply the Knockout bindings
+            //
+            $.ajax({
+                async: false,
+                dataType: 'html',
+                url: viewUrl,
+                success: function (data) {
+                    // Load the view html into the specified DOM element
+                    $("#" + appendToId).append(data);
+
+                    // Update the view member
+                    self.view = document.getElementById(viewElementId);
+
+                    // Binds the view to this view model.
+                    ko.applyBindings(self, self.view);
+                }
+            });
         }
 
-        return OutputViewModel;
+        return InfoViewModel;
     }
 );

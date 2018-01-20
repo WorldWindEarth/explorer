@@ -5,7 +5,7 @@
  */
 
 /**
- * WeatherScout content module.
+ * D3 PROTOTYPE - WeatherScout content module.
  *
  * @param {type} ko
  * @param {type} $
