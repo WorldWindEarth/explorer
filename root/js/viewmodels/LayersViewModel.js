@@ -27,9 +27,12 @@ define([
          * @param {Globe} globe The globe that provides the layer manager.
          * @constructor
          */
-        function LayersViewModel(globe) {
+        function LayersViewModel(globe, viewElementId, viewUrl, appendToId) {
             var self = this,
                 layerManager = globe.layerManager;
+
+            this.view = null;
+
             // Create view data sources from the LayerManager's observable arrays
             this.baseLayers = layerManager.baseLayers;
             this.overlayLayers = layerManager.overlayLayers;
@@ -44,9 +47,8 @@ define([
              */
             this.servers = layerManager.servers;
             // Setting a default server address to some interesting data
-            this.serverAddress = ko.observable("https://neowms.sci.gsfc.nasa.gov/wms/wms"); // CORS is disabled now in here
-            // self.serverAddress = ko.observable("https://worldwind25.arc.nasa.gov/wms");
-
+            this.serverAddress = ko.observable("https://neowms.sci.gsfc.nasa.gov/wms/wms");
+            //this.serverAddress = ko.observable("http://apps.ecmwf.int/wms/?token=public"); 
             this.baseLayersCount = ko.observable(this.baseLayers().length);
             this.baseLayers.subscribe(function (changes) {
                 this.baseLayersCount(this.baseLayers().length);
@@ -176,6 +178,24 @@ define([
                 layerManager.synchronizeLayers();
             };
             //
+            // Load the view html into the DOM and apply the Knockout bindings
+            //
+            $.ajax({
+                async: false,
+                dataType: 'html',
+                url: viewUrl,
+                success: function (data) {
+                    // Load the view html into the specified DOM element
+                    $("#" + appendToId).append(data);
+
+                    // Update the view member
+                    self.view = document.getElementById(viewElementId);
+
+                    // Binds the view to this view model.
+                    ko.applyBindings(self, self.view);
+                }
+            });
+            //
             // Setup dragging
             //
             this.drake = dragula({
@@ -187,6 +207,7 @@ define([
             this.drake.containers.push(document.getElementById('base-layers-item-container'));
             this.drake.containers.push(document.getElementById('overlay-layers-item-container'));
             this.drake.on('drop', this.onDropLayer);
+
         }
 
         return LayersViewModel;

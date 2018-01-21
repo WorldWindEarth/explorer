@@ -468,7 +468,7 @@ define([
                 pickList, i, len, pickedObject,
                 userObject, layer, record;
 
-        //this.timeZoneLayer.pickEnabled = true;
+        this.timeZoneLayer.pickEnabled = true;
         pickList = this.wwd.pick(canvasCenter);
         if (pickList.hasNonTerrainObjects()) {
 

@@ -10,8 +10,8 @@
  * Search content module
  */
 define(['knockout',
-        'jquery',
-        'worldwind'],
+    'jquery',
+    'worldwind'],
     function (ko, $, ww) {
         "use strict";
         /**
@@ -19,20 +19,22 @@ define(['knockout',
          * @param {Globe} globe The globe that provides the supported projections
          * @constructor
          */
-        function SearchViewModel(globe) {
+        function SearchViewModel(globe, viewElementId) {
             var self = this,
                 wwd = globe.wwd;
 
-            self.geocoder = new WorldWind.NominatimGeocoder();
-            self.goToAnimator = new WorldWind.GoToAnimator(wwd);
-            self.searchText = ko.observable('');
-            self.onEnter = function (data, event) {
+            this.geocoder = new WorldWind.NominatimGeocoder();
+            this.goToAnimator = new WorldWind.GoToAnimator(wwd);
+            this.searchText = ko.observable('');
+
+            this.onEnter = function (data, event) {
                 if (event.keyCode === 13) {
                     self.performSearch();
                 }
                 return true;
             };
-            self.performSearch = function () {
+
+            this.performSearch = function () {
                 var queryString = self.searchText();
                 if (queryString) {
                     var latitude, longitude;
@@ -52,6 +54,10 @@ define(['knockout',
                     }
                 }
             };
+
+            // Binds the view to this view model.
+            ko.applyBindings(this, document.getElementById(viewElementId));
+
         }
         return SearchViewModel;
     }

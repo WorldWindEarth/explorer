@@ -34,13 +34,13 @@ define(['knockout', 'jquery'],
              * @type {Element}
              */
             this.view = null;
-            
+
             /**
              * The Globe that renders the layer.
              * @type {Globe}
              */
             this.globe = globe;
-            
+
             /**
              * The layer manager for the layer.
              * @type {LayerManager}
@@ -117,7 +117,7 @@ define(['knockout', 'jquery'],
             });
 
         }
-        ;
+        
 
         /**
          * Opens the Layer Settings dialog

@@ -1,0 +1,31 @@
+<!--
+Settings tab (bound to SettingsViewModel)
+-->      
+<div id="settings" class="tab-pane" role="tabpanel">
+    <div class="section-heading">
+        <h4 class="sub-header">
+            <span class="glyphicon glyphicon-cog" aria-hidden="true" style="padding-right:5px;"></span>
+            Settings
+            <a class="section-toggle" data-toggle="collapse" href="#settings-body"></a>
+        </h4>
+    </div>
+    <div id="settings-body" class="section-body collapse in">
+        <div class="panel panel-default">
+            <div class="panel-heading">Date/Time Settings</div>
+            <div class="panel-body">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: timeZoneDetectEnabled">
+                        Auto Detect Time Zone
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: use24Time">
+                        Use 24 Time
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>  

@@ -46,39 +46,38 @@ requirejs.config({
  * 
  */
 require([
-    'knockout', 
-    'jquery', 
+    'knockout',
+    'jquery',
+    'jqueryui',
     'worldwind',
     'model/Config',
     'model/Constants',
     'model/Explorer',
     'model/globe/Globe',
-    'views/BookmarkViewModel',
-    'views/GlobeViewModel',
-    'views/HeaderViewModel',
-    'views/LayersViewModel',
-    'views/LayerSettings',
-    'views/MarkerEditor',
-    'views/MarkersViewModel',
-    'views/OutputViewModel',
-    'views/ProjectionsViewModel',
-    'views/SearchViewModel',
-    'views/SettingsViewModel',
-    'views/WeatherScoutEditor',
-    'views/WeatherViewModel'],
-    function (ko, $, ww,
+    'viewmodels/BookmarkViewModel',
+    'viewmodels/GlobeViewModel',
+    'viewmodels/InfoViewModel',
+    'viewmodels/LayersViewModel',
+    'viewmodels/LayerSettings',
+    'viewmodels/MarkerEditor',
+    'viewmodels/MarkersViewModel',
+    'viewmodels/ProjectionsViewModel',
+    'viewmodels/SearchViewModel',
+    'viewmodels/SettingsViewModel',
+    'viewmodels/WeatherScoutEditor',
+    'viewmodels/WeatherViewModel'],
+    function (ko, $, jqueryui, ww,
         config,
         constants,
         explorer,
         Globe,
         BookmarkViewModel,
         GlobeViewModel,
-        HeaderViewModel,
+        InfoViewModel,
         LayersViewModel,
         LayerSettings,
         MarkerEditor,
         MarkersViewModel,
-        OuputViewModel,
         ProjectionsViewModel,
         SearchViewModel,
         SettingsViewModel,
@@ -105,7 +104,7 @@ require([
             globe;
 
         // Create the explorer's primary globe that's associated with the specified HTML5 canvas
-        globe = new Globe(new WorldWind.WorldWindow("canvasOne"), globeOptions);
+        globe = new Globe(new WorldWind.WorldWindow("globe-canvas"), globeOptions);
 
         // Load additional layers and layer options
         globe.layerManager.loadDefaultLayers();
@@ -122,14 +121,14 @@ require([
                 var options = allBindings().sliderOptions || {};
                 // Initialize a slider with the given options
                 $(element).slider(options);
-                
+
                 // Register a listener on completed changes to the slider                
-                $(element).on( "slidechange", function( event, ui ) {
+                $(element).on("slidechange", function (event, ui) {
                     var observable = valueAccessor();
                     observable(ui.value);
-                } );
+                });
                 // Resister a listener on mouse moves to the handle
-                $(element).on( "slide", function( event, ui ) {
+                $(element).on("slide", function (event, ui) {
                     var observable = valueAccessor();
                     observable(ui.value);
                 });
@@ -146,24 +145,29 @@ require([
         };
 
         // --------------------------------------------------------
-        // Bind view models to the corresponding HTML elements
+        // Initialize the view models with their assigned views
         // --------------------------------------------------------
-        ko.applyBindings(new GlobeViewModel(globe, {
+        new GlobeViewModel(globe, {
             markerManager: explorer.markerManager,
-            weatherManager: explorer.weatherManager}), document.getElementById('globe'));
-        ko.applyBindings(new HeaderViewModel(), document.getElementById('header'));
-        ko.applyBindings(new ProjectionsViewModel(globe), document.getElementById('projections'));
-        ko.applyBindings(new SearchViewModel(globe), document.getElementById('search'));
-        ko.applyBindings(new LayersViewModel(globe), document.getElementById('layers'));
-        ko.applyBindings(new MarkersViewModel(globe, explorer.markerManager), document.getElementById('markers'));
-        ko.applyBindings(new SettingsViewModel(globe), document.getElementById('settings'));
-        ko.applyBindings(new MarkerEditor(), document.getElementById('marker-editor'));
-        ko.applyBindings(new WeatherViewModel(globe, explorer.weatherManager), document.getElementById('weather'));
-        ko.applyBindings(new WeatherScoutEditor(), document.getElementById('weather-scout-editor'));
-        ko.applyBindings(new OuputViewModel(globe), document.getElementById('output'));
-        ko.applyBindings(new BookmarkViewModel(globe), document.getElementById('bookmark'));
+            weatherManager: explorer.weatherManager},
+            "globe", "js/views/globe.html", "globe");
 
+        new SearchViewModel(globe, "search");
+        new BookmarkViewModel(globe, "bookmark", "js/views/bookmark.html", "right-navbar");
+        new ProjectionsViewModel(globe, "projections", "js/views/projections.html", "right-navbar");
+
+        // Tab Panels
+        new LayersViewModel(globe, "layers", "js/views/layers.html", "left-sidebar");
+        new MarkersViewModel(globe, explorer.markerManager, "markers", "js/views/markers.html", "left-sidebar");
+        new WeatherViewModel(globe, explorer.weatherManager, "weather", "js/views/weather.html", "left-sidebar");
+        new SettingsViewModel(globe, "settings", "js/views/settings.html", "left-sidebar");
+        new InfoViewModel(globe, "info", "js/views/info.html", "info-panel");
+
+        // Dialogs
         new LayerSettings(globe, "layer-settings-dialog", "js/views/layer-settings.html");
+        new MarkerEditor("marker-editor", "js/views/marker-editor.html");
+        new WeatherScoutEditor("weather-scout-editor", "js/views/weather-scout-editor.html");
+
 
         // -----------------------------------------------------------
         // Add handlers to auto-expand/collapse the menus

@@ -12,8 +12,8 @@
  * @returns {ProjectionsViewModel}
  */
 define(['knockout',
-        'jquery',
-        'model/Constants'],
+    'jquery',
+    'model/Constants'],
     function (ko, $, constants) {
 
         /**
@@ -21,10 +21,10 @@ define(['knockout',
          * @param {Globe} globe The globe that provides the supported projections
          * @constructor
          */
-        function ProjectionsViewModel(globe) {
+        function ProjectionsViewModel(globe, viewElementId, viewUrl, appendToId) {
             var self = this;
 
-            self.projections = ko.observableArray([
+            this.projections = ko.observableArray([
                 constants.PROJECTION_NAME_3D,
                 constants.PROJECTION_NAME_EQ_RECT,
                 constants.PROJECTION_NAME_MERCATOR,
@@ -37,15 +37,33 @@ define(['knockout',
             ]);
 
             // Track the current projection
-            self.currentProjection = ko.observable('3D');
+            this.currentProjection = ko.observable('3D');
 
             // Projection click handler
-            self.changeProjection = function (projectionName) {
+            this.changeProjection = function (projectionName) {
                 // Capture the selection
                 self.currentProjection(projectionName);
                 // Change the projection
                 globe.setProjection(projectionName);
             };
+
+
+            // Load the view html into the DOM and apply the Knockout bindings
+            $.ajax({
+                async: false,
+                dataType: 'html',
+                url: viewUrl,
+                success: function (data) {
+                    // Load the view html into the specified DOM element
+                    $("#" + appendToId).append(data);
+
+                    // Update the view member
+                    self.view = document.getElementById(viewElementId);
+
+                    // Binds the view to this view model.
+                    ko.applyBindings(self, self.view);
+                }
+            });
         }
 
         return ProjectionsViewModel;
