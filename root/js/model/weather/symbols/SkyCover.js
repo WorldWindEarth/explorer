@@ -12,10 +12,11 @@ define(['model/Constants',
               ww) {
         "use strict";
 
-        var SkyCoverPlacemark = function (latitude, longitude, skyCoverPct, eyeDistanceScaling) {
-            WorldWind.Placemark.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), eyeDistanceScaling);
+        var SkyCoverPlacemark = function (latitude, longitude, skyCoverPct, eyeDistanceScalingThreshold) {
+            WorldWind.Placemark.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), true); // eye distance scaling enabled
 
             this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+            this.eyeDistanceScalingThreshold = eyeDistanceScalingThreshold;
 
             this.attributes = new WorldWind.PlacemarkAttributes(null);
             this.attributes.depthTest = false;
@@ -33,7 +34,7 @@ define(['model/Constants',
             this.attributes.labelAttributes.depthTest = false;
             this.highlightAttributes = new WorldWind.PlacemarkAttributes(this.attributes);
             //this.highlightAttributes.imageScale = placemarkAttr.imageScale * 1.2;
-            //this.eyeDistanceScalingThreshold = 2500000;
+            this.eyeDistanceScalingThreshold = eyeDistanceScalingThreshold;
 
             this.updateSkyCoverImage(skyCoverPct);
 
