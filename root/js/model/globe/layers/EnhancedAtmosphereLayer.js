@@ -27,9 +27,9 @@ define(['worldwind'],
 
             this.displayName = "Atmosphere & Day/Night";
 
-            // Update the light location based on the Globe's current sunlight member
-            globe.sunlight.subscribe(function (sunlight) {
-                self.lightLocation = new WorldWind.Position(sunlight.subsolarLatitude, sunlight.subsolarLongitude, 1.5e11); // 1 au: 149,597,870,700 meters
+            // Update the star and sun location  based on the Globe's current time
+            globe.dateTime.subscribe(function (newDateTime) {
+                self.time = newDateTime; 
             });
         };
         // Inherit the AtmosphereLayer methods
