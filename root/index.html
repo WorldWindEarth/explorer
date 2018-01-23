@@ -62,8 +62,8 @@
                         <img class="navbar-brand" id="nasa-logo" src="css/images/nasa-logo.svg" alt="NASA"/>
                     </a>                    
                     <a class="navbar-brand"
-                       href="https://github.com/NASAWorldWindResearch/WorldWindExplorer" target="_blank">
-                        WorldWind Explorer
+                       href="http://worldwind.earth" target="_blank">
+                        Explorer
                     </a>
                 </div>
                 <!-- Navigation links, Projections and Search Box -->
@@ -153,17 +153,23 @@
             </div>
             <!-- =========================SPLITTER============================== -->
             <!--
-            Explorer
+            Explorer window
             -->
             <div id="explorer" class="split split-horizontal">
+                <!--
+                Globe canvas
+                -->
                 <div id="globe" class="split split-vertical" style="height: 100%;">
                     <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
-                    <canvas id="globe-canvas" tabindex='1'
+                    <canvas id="globe-canvas" tabindex='1' style="background-color: black"
                             data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
                         Try Chrome or FireFox.
                     </canvas>
                 </div>
                 <!-- =========================SPLITTER================================ -->
+                <!--
+                Info Panel
+                -->
                 <div id="info-panel" class="split split-vertical">
                     <!--Button to collapse info panel-->
                     <button type="button" id="collapse-info-panel"
