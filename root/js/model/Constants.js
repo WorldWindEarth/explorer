@@ -50,9 +50,9 @@ define([],
             MARKER_LABEL_PLACE: "markerLabelPlace",
             /**
              * The maximum range that the globe can be zoomed out to.
-             * @default 20,000,000 meters.
+             * @default 40,000,000 meters.
              */
-            NAVIGATOR_MAX_RANGE: 20000000,
+            NAVIGATOR_MAX_RANGE: 40000000,
             PROJECTION_NAME_3D: "3D",
             PROJECTION_NAME_EQ_RECT: "Equirectangular",
             PROJECTION_NAME_MERCATOR: "Mercator",
