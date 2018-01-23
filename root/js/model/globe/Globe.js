@@ -41,6 +41,7 @@ define([
     'model/Constants',
     'model/Events',
     'model/globe/layers/EnhancedAtmosphereLayer',
+    'model/globe/layers/EnhancedStarFieldLayer',
     'model/globe/EnhancedTextSupport',
     'model/globe/layers/EnhancedViewControlsLayer',
     'model/globe/KeyboardControls',
@@ -64,6 +65,7 @@ define([
         constants,
         events,
         EnhancedAtmosphereLayer,
+        EnhancedStarFieldLayer,
         EnhancedTextSupport,
         EnhancedViewControlsLayer,
         KeyboardControls,
@@ -180,13 +182,17 @@ define([
         // Add optional background layers
         if (showBackground || showBackground === undefined) {
             // Set the background color to variable shade of blue
-            this.layerManager.addBackgroundLayer(new SkyBackgroundLayer(this.wwd), {
+            this.layerManager.addEffectLayer(new EnhancedStarFieldLayer(this), {
                 enabled: true,
-                hideInMenu: true
+                hideInMenu: false
             });
+//            this.layerManager.addEffectLayer(new SkyBackgroundLayer(this.wwd), {
+//                enabled: false,
+//                hideInMenu: false
+//            });
             // Add the optional Day/Night mode and Atmosphere effect
             this.layerManager.addEffectLayer(new EnhancedAtmosphereLayer(this), {
-                enabled: false,
+                enabled: true,
                 hideInMenu: false
             });
         }
