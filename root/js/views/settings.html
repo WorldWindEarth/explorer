@@ -9,6 +9,7 @@ Settings tab (bound to SettingsViewModel)
             <a class="section-toggle" data-toggle="collapse" href="#settings-body"></a>
         </h4>
     </div>
+    <!--Date/Time-->
     <div id="settings-body" class="section-body collapse in">
         <div class="panel panel-default">
             <div class="panel-heading">Date/Time Settings</div>
@@ -23,6 +24,42 @@ Settings tab (bound to SettingsViewModel)
                     <label>
                         <input type="checkbox" data-bind="checked: use24Time">
                         Use 24 Time
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!--Globe background-->
+        <div class="panel panel-default">
+            <div class="panel-heading">Background</div>
+            <div class="panel-body">
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="optBackground" value="blue" data-bind="checked: backgroundColor">
+                        Blue 
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="optBackground" value="black" data-bind="checked: backgroundColor">
+                        Black 
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: starsBackgroundEnabled">
+                        Show Stars
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!--Effects -->
+        <div class="panel panel-default">
+            <div class="panel-heading">Effects</div>
+            <div class="panel-body">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: atmosphereBackgroundEnabled">
+                        Show Atmosphere & Day/Night
                     </label>
                 </div>
             </div>
