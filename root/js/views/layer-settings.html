@@ -10,7 +10,7 @@ This view fragment is a JQuery dialog.
                  data-bind="slider: opacity, sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
             </div>
         </div>
-        <div id="layer-ordering">
+        <div id="layer-ordering" data-bind="if: sortable">
             Layer Ordering
             <div class="btn-group btn-block">
                 <!--Layer ordering buttons-->

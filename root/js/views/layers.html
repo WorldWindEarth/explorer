@@ -18,12 +18,12 @@ Layers List (bound to LayersViewModel)
                 <h5 class="panel-title">
                     <a data-toggle="collapse" href="#base-layers-panel" aria-expanded="false"
                        aria-controls="base-layers-panel">
-                        Base Maps (<span data-bind="text: baseLayersCount()"></span>)
+                        Base Maps <span class="badge pull-right" data-bind="text: baseLayersCount()"></span>
                     </a>
                 </h5>
             </div>
             <div class="panel-collapse collapse in" id="base-layers-panel">
-                <div data-bind="template: { name: 'layer-template', foreach: baseLayers}" id="base-layers-item-container"></div>
+                <div class="list-group" data-bind="template: { name: 'layer-template', foreach: baseLayers}" id="base-layers-item-container"></div>
             </div>
         </div>
         <div class="panel panel-default">
@@ -31,7 +31,7 @@ Layers List (bound to LayersViewModel)
                 <h5 class="panel-title">
                     <a data-toggle="collapse" href="#overlay-layers-panel" aria-expanded="false"
                        aria-controls="overlay-layers-panel">
-                        Overlays (<span data-bind="text: overlayLayersCount()"></span>)
+                        Overlays <span class="badge pull-right" data-bind="text: overlayLayersCount()"></span>
                     </a>
                 </h5>
             </div>
@@ -44,7 +44,7 @@ Layers List (bound to LayersViewModel)
                 <h5 class="panel-title">
                     <a data-toggle="collapse" href="#data-layers-panel" aria-expanded="false"
                        aria-controls="data-layers-panel">
-                        Datasets (<span data-bind="text: dataLayersCount()"></span>)
+                        Datasets <span class="badge pull-right"  data-bind="text: dataLayersCount()"></span>
                     </a>
                 </h5>
             </div>
@@ -57,7 +57,7 @@ Layers List (bound to LayersViewModel)
                 <h5 class="panel-title">
                     <a data-toggle="collapse" href="#effect-layers-panel" aria-expanded="false"
                        aria-controls="effect-layers-panel">
-                        Effects (<span data-bind="text: effectsLayersCount()"></span>)
+                        Effects <span class="badge pull-right"  data-bind="text: effectsLayersCount()"></span>
                     </a>
                 </h5>
             </div>
@@ -70,7 +70,7 @@ Layers List (bound to LayersViewModel)
                 <h5 class="panel-title">
                     <a data-toggle="collapse" href="#widget-layers-panel" aria-expanded="false"
                        aria-controls="widget-layers-panel">
-                        Widgets (<span data-bind="text: widgetLayersCount()"></span>)
+                        Widgets <span class="badge pull-right"  data-bind="text: widgetLayersCount()"></span>
                     </a>
                 </h5>
             </div>
@@ -80,14 +80,14 @@ Layers List (bound to LayersViewModel)
         </div>
     </div>                  
     <!--
-                            <div>
-                                <button type="button"
-                                        class="btn btn-primary btn-sm"
-                                        data-bind="click: onAddLayer">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                                    Add Layer
-                                </button>
-                            </div>
+    <div>
+        <button type="button"
+                class="btn btn-primary btn-sm"
+                data-bind="click: onAddLayer">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            Add Layer
+        </button>
+    </div>
     -->
     <div class="section-heading">
         <h4 class="sub-header">
@@ -134,42 +134,28 @@ Sortable Layer Template
 This script renders the individual layer view model items in the Layers panel.
 -->
 <script type="text/html" id="layer-template">
-    <!--Conditionally show the layer if showInMenu is true-->
-    <div data-bind="if: $data.showInMenu()">
-        <div class="btn-group btn-block">
-            <!--Layer name and visibility button-->
-            <button type="button"
-                    class="btn btn-default layer-name wrap-panel-heading"
-                    style="display: block; width: 70%;"
-                    data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
-                <span class="glyphicon pull-left"
-                      data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
-                <span class="layer" data-bind="text: $data.name()"></span>
-            </button>
-            <!--Settings button-->
-            <button type="button"
-                    class="btn btn-default"
-                    style="display: block; width: 15%;"
-                    data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
-                <span class="glyphicon glyphicon-cog"></span>
-            </button>
-            <!--Zoom to layer button-->
-            <button type="button"
-                    class="btn btn-default"
-                    style="display: block; width: 15%;"
-                    data-bind="css: {active: $data.enabled()}, click: $root.onZoomToLayer">
-                <span class="glyphicon glyphicon-zoom-in"></span>
-            </button>
-        </div>
-        <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
-            <div class="well">
-                <!--Controls and Legend-->
-                <div>
-                    <img data-bind="attr: {src: $data.legendUrl}"/>
-                </div>
-            </div>
-        </div>
-    </div>
+    <button type="button" class="list-group-item layer-item" 
+            data-bind="if: $data.showInMenu(),
+                css: { 'list-group-item-info': $data.selected() }, 
+                click: $root.onSelectLayer, 
+                event: { contextmenu: $root.onEditSettings }">
+        <span class="label pull-left" 
+              data-bind="click: $root.onToggleLayer, 
+                  css: { 'label-success': $data.enabled(), 'label-primary': !$data.enabled()  },
+                  text: $data.enabled() ? 'on' : 'off' ">
+        </span>        
+        &nbsp
+        <span class="layer-name" 
+              data-bind="text: $data.name(), css: { active: $data.enabled() }">
+        </span>
+        <span class="badge pull-right glyphicon glyphicon-cog"
+              data-bind="click: $root.onEditSettings">
+        </span>
+        <span class="badge pull-right glyphicon glyphicon-zoom-in"
+              data-bind="click: $root.onZoomToLayer"> 
+        </span>
+    </button>             
+
 </script>
 
 <!-- 

@@ -39,6 +39,7 @@ define([
             this.dataLayers = layerManager.dataLayers;
             this.effectsLayers = layerManager.effectsLayers;
             this.widgetLayers = layerManager.widgetLayers;
+            this.selectedLayer = ko.observable();
             // Layer type options
             this.optionValues = ["WMS Layer", "WMTS Layer", "KML file", "Shapefile"];
             this.selectedOptionValue = ko.observable(self.optionValues[0]);
@@ -82,6 +83,14 @@ define([
                 layer.enabled(!layer.enabled());
                 globe.redraw();
             };
+            this.onSelectLayer = function (layer) {
+                var lastLayer = self.selectedLayer();
+                if (lastLayer) {
+                    lastLayer.selected(false); // TODO: add this member to the LayerProxy
+                }
+                self.selectedLayer(layer);
+                layer.selected(true);
+            };            
             /**
              * Opens a dialog to edit the layer settings.
              * @param {Object} layer The selected layer in the layer collection
@@ -151,8 +160,8 @@ define([
              * @param {element} sibling New sibling element next to dropped element 
              */
             this.onDropLayer = function (dropped, target, source, sibling) {
-                var droppedName = $(dropped).find('.layer').text(),
-                    siblingName = $(sibling).find('.layer').text(),
+                var droppedName = $(dropped).find('.layer-name').text(),
+                    siblingName = $(sibling).find('.layer-name').text(),
                     droppedLayer = layerManager.findLayer(droppedName),
                     siblingLayer = layerManager.findLayer(siblingName),
                     layers, oldIndex, newIndex;

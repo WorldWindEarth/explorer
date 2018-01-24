@@ -11,8 +11,8 @@
  * @param {JQuery} $
  * @returns {LayerSettingsL#12.LayerSettings}
  */
-define(['knockout', 'jquery'],
-    function (ko, $) {
+define(['knockout', 'jquery', 'model/Constants'],
+    function (ko, $, constants) {
         "use strict";
 
         /**
@@ -52,6 +52,42 @@ define(['knockout', 'jquery'],
              * @type {Layer} observable Layer
              */
             this.currentLayer = ko.observable();
+
+            /**
+             * Is this layer sortable?
+             * @type {boolean} observable Layer
+             */
+            this.sortable = ko.pureComputed(function () {
+                var layer = self.currentLayer();
+                return layer && (
+                    layer.category() === constants.LAYER_CATEGORY_BASE ||
+                    layer.category() === constants.LAYER_CATEGORY_OVERLAY);
+            });
+
+            /**
+             * Is this layer zoomable?
+             * @type {boolean} observable Layer
+             */
+            this.zoomable = ko.pureComputed(function () {
+                var layer = self.currentLayer(),
+                    layerSector;
+
+                if (layer === null) {
+                    return false;
+                }
+                var layerSector = layer.wwLayer.bbox; // property of EnhancedWmsLayer
+                if (layerSector === null) {
+                    return false;
+                }
+                // Comparing each boundary of the sector to test if a layer has global coverage.
+                if (layerSector.maxLatitude >= 89 &&
+                    layerSector.minLatitude <= -89 &&
+                    layerSector.maxLongitude >= 179 &&
+                    layerSector.minLongitude <= -179) {
+                    return false;
+                }
+                return true;
+            });
 
             /**
              * The time in milliseconds to display each frame of the time sequence.
@@ -117,7 +153,7 @@ define(['knockout', 'jquery'],
             });
 
         }
-        
+
 
         /**
          * Opens the Layer Settings dialog

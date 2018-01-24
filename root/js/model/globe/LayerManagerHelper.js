@@ -219,7 +219,8 @@ define([
                 legendUrl: ko.observable(layer.legendUrl ? layer.legendUrl.url : ''),
                 opacity: ko.observable(layer.opacity),
                 order: ko.observable(),
-                showInMenu: ko.observable(layer.showInMenu)
+                showInMenu: ko.observable(layer.showInMenu),
+                selected: ko.observable(false)
             };
             // Forward changes from enabled and opacity observables to the the layer object
             viewModel.enabled.subscribe(function (newValue) {
