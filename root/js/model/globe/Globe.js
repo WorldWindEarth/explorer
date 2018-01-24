@@ -186,10 +186,10 @@ define([
                 enabled: true,
                 hideInMenu: false
             });
-//            this.layerManager.addEffectLayer(new SkyBackgroundLayer(this.wwd), {
-//                enabled: false,
-//                hideInMenu: false
-//            });
+            this.layerManager.addEffectLayer(new SkyBackgroundLayer(this), {
+                enabled: false,
+                hideInMenu: false
+            });
             // Add the optional Day/Night mode and Atmosphere effect
             this.layerManager.addEffectLayer(new EnhancedAtmosphereLayer(this), {
                 enabled: true,

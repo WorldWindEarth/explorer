@@ -12,20 +12,22 @@
  * @exports EnhancedStarFieldLayer
  * @author Bruce Schubert
  */
-define(['worldwind'],
-    function (ww) {
+define([
+    'model/Constants',
+    'worldwind'],
+    function (constants) {
         "use strict";
         /**
          * Constructs a starfield layer.
          * @param {Globe}  globe
-         * @param {String}  starDataSource optional url for the stars data
+         * @param {String}  url optional url for the stars data
          * @constructor
          */
         var EnhancedStarFieldLayer = function (globe, url) {
             var self = this;
             WorldWind.StarFieldLayer.call(this, url);
 
-            this.displayName = "Star Field";
+            this.displayName = constants.LAYER_NAME_STARS;
 
             // Update the star and sun location  based on the Globe's current time
             globe.dateTime.subscribe(function (newDateTime) {

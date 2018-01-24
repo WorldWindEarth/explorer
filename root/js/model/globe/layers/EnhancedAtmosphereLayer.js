@@ -13,9 +13,11 @@
  * @author Bruce Schubert
  */
 define([
+    'model/Constants',
     'model/shaders/EnhancedGroundProgram',
     'worldwind'],
     function (
+        constants,
         EnhancedGroundProgram,
         ww) {
         "use strict";
@@ -30,7 +32,7 @@ define([
             // Call to the superclass.
             WorldWind.AtmosphereLayer.call(this, url);
 
-            this.displayName = "Atmosphere & Day/Night";
+            this.displayName = constants.LAYER_NAME_ATMOSPHERE;
             
             this.opacity = 0.7;
 

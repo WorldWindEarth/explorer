@@ -21,11 +21,82 @@ define(['knockout',
          * @constructor
          */
         function SettingsViewModel(globe, viewElementId, viewUrl, appendToId) {
-            var self = this;
+            var self = this,
+                skyLayer, starsLayer, atmosphereLayer;
 
             this.globe = globe;
+            this.layerManager = globe.layerManager;
+
+
+            skyLayer = this.layerManager.findLayer(constants.LAYER_NAME_SKY);
+            starsLayer = this.layerManager.findLayer(constants.LAYER_NAME_STARS);
+            atmosphereLayer = this.layerManager.findLayer(constants.LAYER_NAME_ATMOSPHERE);
+
+            //
+            // Observables
+            //
+            /**
+             * The globe's timeZoneDetectEnabled observable setting.
+             */
             this.timeZoneDetectEnabled = globe.timeZoneDetectEnabled;
+            /**
+             * The globe's use24Time observable setting.
+             */
             this.use24Time = globe.use24Time;
+            /**
+             * Tracks the current background color selection. Used by radio buttons in the view.
+             */
+            this.backgroundColor = ko.observable(skyLayer && skyLayer.enabled() ? "blue" : "black");
+            /**
+             * The current state of the blue background layer (settable).
+             */
+            this.blueBackgroundEnabled = skyLayer ? skyLayer.enabled : ko.observable();
+            /**
+             * The state of the black background (read-only).
+             */
+            this.blackBackgroundEnabled = ko.computed(function() {return skyLayer ? !skyLayer.enabled() : true});
+            /**
+             * The current state of the star field layer (settable).
+             */
+            this.starsBackgroundEnabled = starsLayer ? starsLayer.enabled : ko.observable();
+            /**
+             * The current state of the atmosphere layer (settable)
+             */
+            this.atmosphereBackgroundEnabled = atmosphereLayer ? atmosphereLayer.enabled : ko.observable();
+
+            /**
+             * Background color selection handler
+             */
+            this.backgroundColor.subscribe(function (newValue) {
+                switch (newValue) {
+                case "blue":
+                    self.blueBackgroundEnabled(true);
+                    self.starsBackgroundEnabled(false);
+                    break;
+                case "black":
+                    self.blueBackgroundEnabled(false);
+                    // The sky background layer manipulates the canvas' background color.
+                    // When it's disabled, the last used color remains in the canvas.
+                    // Set the background color to the default when the background is disabled.
+                    $(self.globe.wwd.canvas).css('background-color', 'black');
+                    break;
+                }
+            });
+
+
+            /**
+             * Turn off stars if the default background layer is enabled
+             */
+            this.blueBackgroundEnabled.subscribe(function (newValue) {
+                if (newValue) {
+                    self.starsBackgroundEnabled(false);
+                } else {
+                    // The sky background layer manipulates the canvas' background color.
+                    // When it's disabled, the last used color remains in the canvas.
+                    // Set the background color to the default when disabled.
+                    $(self.globe.wwd.canvas).css('background-color', 'black');
+                }
+            });
 
             //
             // Load the view html into the DOM and apply the Knockout bindings
