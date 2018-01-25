@@ -22,7 +22,7 @@ define(['knockout',
          */
         function SettingsViewModel(globe, viewElementId, viewUrl, appendToId) {
             var self = this,
-                skyLayer, starsLayer, atmosphereLayer;
+                skyLayer, starsLayer, atmosphereLayer, viewControls, widgets, crosshairs;
 
             this.globe = globe;
             this.layerManager = globe.layerManager;
@@ -31,6 +31,9 @@ define(['knockout',
             skyLayer = this.layerManager.findLayer(constants.LAYER_NAME_SKY);
             starsLayer = this.layerManager.findLayer(constants.LAYER_NAME_STARS);
             atmosphereLayer = this.layerManager.findLayer(constants.LAYER_NAME_ATMOSPHERE);
+            viewControls = this.layerManager.findLayer(constants.LAYER_NAME_VIEW_CONTROLS);
+            widgets = this.layerManager.findLayer(constants.LAYER_NAME_WIDGETS); 
+            crosshairs = this.layerManager.findLayer(constants.LAYER_NAME_RETICLE); 
 
             //
             // Observables
@@ -67,6 +70,10 @@ define(['knockout',
              * The current opacity level for the atmosphere's nightime effect
              */
             this.nightOpacity = atmosphereLayer ? atmosphereLayer.opacity : ko.observable();
+
+            this.viewControlsEnabled = viewControls ? viewControls.enabled : ko.observable();
+            this.widgetsEnabled = widgets ? widgets.enabled : ko.observable();
+            this.crosshairsEnabled = crosshairs ? crosshairs.enabled : ko.observable();
 
             /**
              * Background color selection handler
