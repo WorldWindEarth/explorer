@@ -157,11 +157,11 @@
             -->
             <div id="explorer" class="split split-horizontal">
                 <!--
-                Globe canvas
+                Globe canvas (see override css for #globe styling)
                 -->
                 <div id="globe" class="split split-vertical" style="height: 100%;">
                     <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
-                    <canvas id="globe-canvas" tabindex='1' style="background-color: black"
+                    <canvas id="globe-canvas" tabindex='1' 
                             data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
                         Try Chrome or FireFox.
                     </canvas>
