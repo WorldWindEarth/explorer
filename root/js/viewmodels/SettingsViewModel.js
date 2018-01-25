@@ -22,7 +22,7 @@ define(['knockout',
          */
         function SettingsViewModel(globe, viewElementId, viewUrl, appendToId) {
             var self = this,
-                skyLayer, starsLayer, atmosphereLayer, viewControls, widgets, crosshairs;
+                skyLayer, starsLayer, atmosphereLayer, timeZoneLayer, viewControls, widgets, crosshairs;
 
             this.globe = globe;
             this.layerManager = globe.layerManager;
@@ -31,6 +31,7 @@ define(['knockout',
             skyLayer = this.layerManager.findLayer(constants.LAYER_NAME_SKY);
             starsLayer = this.layerManager.findLayer(constants.LAYER_NAME_STARS);
             atmosphereLayer = this.layerManager.findLayer(constants.LAYER_NAME_ATMOSPHERE);
+            timeZoneLayer = this.layerManager.findLayer(constants.LAYER_NAME_TIME_ZONES);
             viewControls = this.layerManager.findLayer(constants.LAYER_NAME_VIEW_CONTROLS);
             widgets = this.layerManager.findLayer(constants.LAYER_NAME_WIDGETS); 
             crosshairs = this.layerManager.findLayer(constants.LAYER_NAME_RETICLE); 
@@ -70,6 +71,9 @@ define(['knockout',
              * The current opacity level for the atmosphere's nightime effect
              */
             this.nightOpacity = atmosphereLayer ? atmosphereLayer.opacity : ko.observable();
+            
+            this.timeZonesEnabled = timeZoneLayer ? timeZoneLayer.enabled : ko.observable();
+            this.timeZonesOpacity = timeZoneLayer ? timeZoneLayer.opacity : ko.observable();
 
             this.viewControlsEnabled = viewControls ? viewControls.enabled : ko.observable();
             this.widgetsEnabled = widgets ? widgets.enabled : ko.observable();
