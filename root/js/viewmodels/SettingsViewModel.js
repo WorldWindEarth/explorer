@@ -63,6 +63,10 @@ define(['knockout',
              * The current state of the atmosphere layer (settable)
              */
             this.atmosphereBackgroundEnabled = atmosphereLayer ? atmosphereLayer.enabled : ko.observable();
+            /**
+             * The current opacity level for the atmosphere's nightime effect
+             */
+            this.nightOpacity = atmosphereLayer ? atmosphereLayer.opacity : ko.observable();
 
             /**
              * Background color selection handler
