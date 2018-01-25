@@ -9,8 +9,50 @@ Settings tab (bound to SettingsViewModel)
             <a class="section-toggle" data-toggle="collapse" href="#settings-body"></a>
         </h4>
     </div>
-    <!--Date/Time-->
     <div id="settings-body" class="section-body collapse in">
+        <!--Display settings-->
+        <div class="panel panel-default">
+            <div class="panel-heading">Display Settings</div>
+            <div class="panel-body">
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="optBackground" value="blue" data-bind="checked: backgroundColor">
+                        Blue Background
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="optBackground" value="black" data-bind="checked: backgroundColor">
+                        Black Background
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: starsBackgroundEnabled">
+                        Show Stars
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: atmosphereBackgroundEnabled">
+                        Show Atmosphere & Day/Night
+                    </label>
+                </div>
+                <div>
+                    Night Image:
+                    <div>
+                        <span class="pull-left"><i>Light</i></span>
+                        <span class="pull-right"><i>Dark</i></span>
+                    </div>
+                    <br/>
+                    <!--JQuery UI slider - created by custom Knockout binding (see main.js)-->
+                    <div id="night-opacity-slider" 
+                         data-bind="slider: nightOpacity, sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
+                    </div>
+                </div>               
+            </div>            
+        </div>
+        <!--Date/Time-->
         <div class="panel panel-default">
             <div class="panel-heading">Date/Time Settings</div>
             <div class="panel-body">
@@ -39,57 +81,9 @@ Settings tab (bound to SettingsViewModel)
                 </div>                 
             </div>
         </div>
-        <!--Globe background-->
+        <!--Overlays-->
         <div class="panel panel-default">
-            <div class="panel-heading">Background</div>
-            <div class="panel-body">
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="optBackground" value="blue" data-bind="checked: backgroundColor">
-                        Blue 
-                    </label>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="optBackground" value="black" data-bind="checked: backgroundColor">
-                        Black 
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" data-bind="checked: starsBackgroundEnabled">
-                        Show Stars
-                    </label>
-                </div>
-            </div>
-        </div>
-        <!--Effects -->
-        <div class="panel panel-default">
-            <div class="panel-heading">Effects</div>
-            <div class="panel-body">
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" data-bind="checked: atmosphereBackgroundEnabled">
-                        Show Atmosphere & Day/Night
-                    </label>
-                </div>
-                <div>
-                    Night Image:
-                    <div>
-                        <span class="pull-left"><i>Light</i></span>
-                        <span class="pull-right"><i>Dark</i></span>
-                    </div>
-                    <br/>
-                    <!--JQuery UI slider - created by custom Knockout binding (see main.js)-->
-                    <div id="night-opacity-slider" 
-                         data-bind="slider: nightOpacity, sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
-                    </div>
-                </div>               
-            </div>            
-        </div>
-        <!--Widgets-->
-        <div class="panel panel-default">
-            <div class="panel-heading">Widgets</div>
+            <div class="panel-heading">Overlay Settings</div>
             <div class="panel-body">
                 <div class="checkbox">
                     <label>

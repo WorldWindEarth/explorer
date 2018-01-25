@@ -23,6 +23,7 @@ define([
     'model/Constants',
     'model/globe/layers/EnhancedWmsLayer',
     'model/globe/LayerManagerHelper',
+    'model/globe/LayerProxy',
     'model/util/Log',
     'worldwind',
     'model/globe/layers/UsgsContoursLayer',
@@ -35,6 +36,7 @@ define([
         constants,
         EnhancedWmsLayer,
         LayerManagerHelper,
+        LayerProxy,
         log,
         ww,
         UsgsContoursLayer,
@@ -95,7 +97,7 @@ define([
              * A collection of servers added to the layer manager by the user.
              */
             this.servers = ko.observableArray();
-            
+
             /**
              * An ordered list of the layer category arrays useful for iterating over all the layers. 
              */
@@ -152,7 +154,7 @@ define([
 
             // Check if there are layers in the URL search string and enable them
             this.setWmsLayersFromUrl();
-            
+
             this.sortLayers();
         };
 
@@ -167,7 +169,8 @@ define([
                 defaultOptions = {
                     hideInMenu: true,
                     enabled: true
-                };
+                },
+                layerProxy;
 
             // Apply default options for a background layer if options are not supplied
             LayerManagerHelper.applyOptionsToLayer(layer, options ? options : defaultOptions, constants.LAYER_CATEGORY_BACKGROUND);
@@ -175,8 +178,9 @@ define([
             // Add the layer to the WorldWindow
             this.globe.wwd.insertLayer(index, layer);
 
-            // Add a proxy to the background layer observables
-            this.backgroundLayers.unshift(LayerManagerHelper.createLayerViewModel(layer));
+            layerProxy = new LayerProxy(layer);
+            LayerManagerHelper.applyRestoreState(layerProxy);
+            this.backgroundLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
         };
@@ -190,7 +194,7 @@ define([
         LayerManager.prototype.addBaseLayer = function (layer, options, preferredOrder) {
             // Determine the index of this layer within the WorldWindow
             var index = this.backgroundLayers().length + this.baseLayers().length,
-                layerViewModel;
+                layerProxy;
 
             // Apply the supplied options to the base layer
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_BASE);
@@ -198,12 +202,17 @@ define([
             // Add this layer to the WorldWindow
             this.globe.wwd.insertLayer(index, layer);
 
-            // Add a proxy the the base layer observables
-            layerViewModel = LayerManagerHelper.createLayerViewModel(layer);
+            // Create a to represent this layer
+            layerProxy = new LayerProxy(layer);
+
+            // Check if the layer has existing persistance properties
+            LayerManagerHelper.applyRestoreState(layerProxy);
             if (preferredOrder) {
-                layerViewModel.order(preferredOrder);
+                layerProxy.order(preferredOrder);
             }
-            this.baseLayers.unshift(layerViewModel);
+
+            // Add this layer to its category
+            this.baseLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
         };
@@ -216,14 +225,15 @@ define([
          */
         LayerManager.prototype.addOverlayLayer = function (layer, options) {
             // Determine the index of this layer within the WorldWindow
-            var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length;
+            var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length,
+                layerProxy;
 
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_OVERLAY);
-
             this.globe.wwd.insertLayer(index, layer);
 
-            // Add a proxy for this layer to the list of overlays
-            this.overlayLayers.unshift(LayerManagerHelper.createLayerViewModel(layer));
+            layerProxy = new LayerProxy(layer);
+            LayerManagerHelper.applyRestoreState(layerProxy);
+            this.overlayLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
         };
@@ -235,14 +245,15 @@ define([
          */
         LayerManager.prototype.addEffectLayer = function (layer, options) {
             // Determine the index of this layer within the WorldWindow
-            var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length;
+            var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length,
+                layerProxy;
 
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_EFFECT);
-
             this.globe.wwd.insertLayer(index, layer);
 
-            // Add a proxy for this layer to the list of effects
-            this.effectsLayers.push(LayerManagerHelper.createLayerViewModel(layer));
+            layerProxy = new LayerProxy(layer);
+            LayerManagerHelper.applyRestoreState(layerProxy);
+            this.effectsLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
         };
@@ -254,14 +265,15 @@ define([
          */
         LayerManager.prototype.addDataLayer = function (layer, options) {
             var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length
-                + this.dataLayers().length;
+                + this.dataLayers().length,
+                layerProxy;
 
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_DATA);
-
             this.globe.wwd.insertLayer(index, layer);
 
-            // Add a proxy for this layer to the list of data layers
-            this.dataLayers.push(LayerManagerHelper.createLayerViewModel(layer));
+            layerProxy = new LayerProxy(layer);
+            LayerManagerHelper.applyRestoreState(layerProxy);
+            this.dataLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
         };
@@ -272,18 +284,22 @@ define([
          */
         LayerManager.prototype.addWidgetLayer = function (layer, options) {
             var index = this.backgroundLayers().length + this.baseLayers().length + this.overlayLayers().length + this.effectsLayers().length
-                + this.dataLayers().length + this.widgetLayers().length;
+                + this.dataLayers().length + this.widgetLayers().length,
+                layerProxy;
 
             LayerManagerHelper.applyOptionsToLayer(layer, options ? options : {
-                hideInMenu: false,
+                hideInMenu: true,
                 enabled: true
             }, constants.LAYER_CATEGORY_WIDGET);
-
+            
             this.globe.wwd.insertLayer(index, layer);
-            this.widgetLayers.push(LayerManagerHelper.createLayerViewModel(layer));
+
+            layerProxy = new LayerProxy(layer);
+            this.widgetLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
         };
+        
         /**
          *
          * @param serverAddress
@@ -343,25 +359,25 @@ define([
             request.send(null);
         };
 
-    /**
-     * Add a layer from a GetCapabilties entry
-     * @param {type} layerCaps
-     * @param {type} category
-     * @returns {EnhancedWmsLayer|WorldWind.WmsTimeDimensionedLayer|LayerManagerHelperL#31.LayerManagerHelper.createLayerFromCapabilities.layer|LayerManagerL#32.LayerManager.prototype.addLayerFromCapabilities.layer}
-     */
+        /**
+         * Add a layer from a GetCapabilties entry
+         * @param {type} layerCaps
+         * @param {type} category
+         * @returns {EnhancedWmsLayer|WorldWind.WmsTimeDimensionedLayer}
+         */
         LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
 
             var wwLayer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
             if (wwLayer.timeSequence) {
                 // EXPERIMENTAL 
                 // subscribing this layer to the globe's current time
-                wwLayer.dateTimeSubscription = this.globe.dateTime.subscribe(function(newDateTime) {
+                wwLayer.dateTimeSubscription = this.globe.dateTime.subscribe(function (newDateTime) {
                     var startTime = wwLayer.timeSequence.startTime,
                         intervalMs = wwLayer.timeSequence.intervalMilliseconds,
                         elapsedMs, newTime;
                     if (intervalMs && startTime < newDateTime) {
                         elapsedMs = newDateTime.getTime() - startTime.getTime();
-                        wwLayer.time = wwLayer.timeSequence.getTimeForScale(elapsedMs/intervalMs);
+                        wwLayer.time = wwLayer.timeSequence.getTimeForScale(elapsedMs / intervalMs);
                     }
                     this.globe.redraw();
                 }, this);
@@ -428,18 +444,18 @@ define([
 
         /**
          * Finds the first layer with a matching name (displayName) attribute.
-         * @param {string} name The name to compare to the layer's displayName
-         * @returns A layer view model object or null if not found
+         * @param {String} name The name to compare to the layer's displayName
+         * @returns {LayerProxy} A layer view model object or null if not found
          */
         LayerManager.prototype.findLayer = function (name) {
             var layer;
-            
+
             if (!name) {
                 return null;
             }
-            
+
             layer = LayerManagerHelper.findLayerViewModel(name, this.baseLayers);
-            
+
             if (!layer) {
                 layer = LayerManagerHelper.findLayerViewModel(name, this.overlayLayers);
             }
@@ -458,7 +474,7 @@ define([
 
             return layer;
         };
-        
+
         /**
          * Moves the WorldWindow camera to the center coordinates of the layer, and then zooms in (or out)
          * to provide a view of the layer as complete as possible.
@@ -467,7 +483,7 @@ define([
         LayerManagerHelper.zoomToLayer = function (layer) {
             LayerManagerHelper.zoomToLayer(layer, this.globe);
         };
-        
+
         /**
          * saves the managed layers to local storage as JSON objects. 
          */
@@ -522,7 +538,7 @@ define([
          * with the WorldWind layers.
          */
         LayerManager.prototype.sortLayers = function () {
-            var i, 
+            var i,
                 len = this.layerCategories.length,
                 byOrderValue = function (a, b) {
                     // if an order value is provided use it
