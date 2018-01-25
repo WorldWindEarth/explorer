@@ -24,9 +24,6 @@ define([
     'model/globe/layers/EnhancedWmsLayer',
     'model/util/Log',
     'worldwind',
-    'model/globe/layers/UsgsContoursLayer',
-    'model/globe/layers/UsgsImageryTopoBaseMapLayer',
-    'model/globe/layers/UsgsTopoBaseMapLayer',
     'url-search-params'],
     function (
         ko,
@@ -35,9 +32,6 @@ define([
         EnhancedWmsLayer,
         log,
         ww,
-        UsgsContoursLayer,
-        UsgsImageryTopoBaseMapLayer,
-        UsgsTopoBaseMapLayer,
         URLSearchParams) {
         "use strict";
         /**
@@ -46,7 +40,7 @@ define([
          * @returns {LayerManager}
          */
         var LayerManagerHelper = function () {
-        
+
         }
 
 
@@ -108,6 +102,11 @@ define([
         };
 
 
+        /**
+         * 
+         * @param {Object} layerCaps
+         * @returns {EnhancedWmsLayer|WorldWind.WmsTimeDimensionedLayer|LayerManagerHelperL#31.LayerManagerHelper.createLayerFromCapabilities.layer}
+         */
         LayerManagerHelper.createLayerFromCapabilities = function (layerCaps) {
             if (layerCaps.name) {
                 var config = WorldWind.WmsLayer.formLayerConfiguration(layerCaps, null);
@@ -177,6 +176,8 @@ define([
 
             // Propagate enabled and pick options to the layer object
             layer.enabled = opt.enabled === undefined ? true : opt.enabled;
+
+            // Picking is disabled by default.
             layer.pickEnabled = opt.pickEnabled === undefined ? false : opt.enabled;
 
             // Add refresh capability
@@ -202,55 +203,21 @@ define([
 
         };
 
-        /**
-         * Creates a view model object to represent the layer within the UI.
-         * @param {WorldWind.Layer} layer A WorldWind layer object
-         * @returns {Object} A lightwieght view model with obserable properties, condusive to cloning
-         * in oj.ArrayTableDataSource containers
-         */
-        LayerManagerHelper.nextLayerId = 0;
-        LayerManagerHelper.createLayerViewModel = function (layer) {
-            var viewModel = {
-                wwLayer: layer,
-                id: ko.observable(LayerManagerHelper.nextLayerId++),
-                category: ko.observable(layer.category),
-                name: ko.observable(layer.displayName),
-                enabled: ko.observable(layer.enabled),
-                legendUrl: ko.observable(layer.legendUrl ? layer.legendUrl.url : ''),
-                opacity: ko.observable(layer.opacity),
-                order: ko.observable(),
-                showInMenu: ko.observable(layer.showInMenu),
-                selected: ko.observable(false)
-            };
-            // Forward changes from enabled and opacity observables to the the layer object
-            viewModel.enabled.subscribe(function (newValue) {
-                layer.enabled = newValue;
-            });
-            viewModel.opacity.subscribe(function (newValue) {
-                layer.opacity = newValue;
-            });
-
-            // Check if the layer has existing persistance properties
-            LayerManagerHelper.applyRestoreState(viewModel);
-
-            return viewModel;
-        };
-
 
         /**
          * Restores the state for a layer from local storage.
-         * @param {type} layerViewModel An individual layer view model object.
+         * @param {LayerProxy} layerProxy An individual layer view model object.
          */
-        LayerManagerHelper.applyRestoreState = function (layerViewModel) {
-            var persistSettingsString = localStorage.getItem(layerViewModel.category()), persistSettings, layerSettings;
+        LayerManagerHelper.applyRestoreState = function (layerProxy) {
+            var persistSettingsString = localStorage.getItem(layerProxy.category()), persistSettings, layerSettings;
             if (persistSettingsString) {
                 persistSettings = JSON.parse(persistSettingsString);
                 for (var i = 0; i < persistSettings.length; i++) {
                     layerSettings = persistSettings[i];
-                    if (layerSettings.name === layerViewModel.name()) {
-                        layerViewModel.enabled(layerSettings.enabled);
-                        layerViewModel.opacity(layerSettings.opacity);
-                        layerViewModel.order(layerSettings.order);
+                    if (layerSettings.name === layerProxy.name()) {
+                        layerProxy.enabled(layerSettings.enabled);
+                        layerProxy.opacity(layerSettings.opacity);
+                        layerProxy.order(layerSettings.order);
                     }
                 }
             }
@@ -258,25 +225,33 @@ define([
 
         /**
          * Finds the first layer with a matching name (displayName) attribute.
-         * @param {string} name The name to compare to the layer's displayName
+         * 
+         * @param {String} name The name to compare to the layer's displayName
          * @param {ObservableArray} layers An array of layer view models
-         * @returns A layer view model object or null if not found
+         * @returns {LayerProxy} A layer view model object or null if not found
          */
-        LayerManagerHelper.findLayerViewModel = function (name, layerViewModels) {
+        LayerManagerHelper.findLayerViewModel = function (name, layerProxies) {
             var i, len;
 
             if (!name) {
                 return null;
             }
 
-            for (i = 0, len = layerViewModels().length; i < len; i++) {
-                if (layerViewModels()[i].name() === name) {
-                    return layerViewModels()[i];
+            for (i = 0, len = layerProxies().length; i < len; i++) {
+                if (layerProxies()[i].name() === name) {
+                    return layerProxies()[i];
                 }
             }
             return null;
         };
 
+        /**
+         * 
+         * @param {type} layer
+         * @param {type} moveToIndex
+         * @param {type} layers
+         * @returns {undefined}
+         */
         LayerManagerHelper.moveLayerInArray = function (layer, moveToIndex, layers) {
             var initialIndex = layers.indexOf(layer);
             if (initialIndex < 0) {
@@ -302,11 +277,11 @@ define([
                 layers.splice(initialIndex, 1);
             }
         };
-        
-                /**
+
+        /**
          * Moves the WorldWindow camera to the center coordinates of the layer, and then zooms in (or out)
          * to provide a view of the layer as complete as possible.
-         * @param {Object} layer A layerViewModel that the user selected for zooming
+         * @param {LayerProxy} layer A layer proxy that the user selected for zooming
          * @param {Globe} globe The globe used for zooming
          * TODO: Make this to work when Sector/Bounding box crosses the 180° meridian
          */
