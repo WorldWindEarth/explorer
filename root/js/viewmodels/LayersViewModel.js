@@ -77,12 +77,16 @@ define([
 
             /**
              * Toggles the selected layer's visibility on/off
-             * @param {Object} layer The selected layer in the layer collection
+             * @param {LayerProxy} layer The selected layer in the layer collection
              */
             this.onToggleLayer = function (layer) {
                 layer.enabled(!layer.enabled());
                 globe.redraw();
             };
+            /**
+             * Sets the selected state to true; disables selected state of previous layer.
+             * @param {LayerProxy} layer
+             */
             this.onSelectLayer = function (layer) {
                 var lastLayer = self.selectedLayer();
                 if (lastLayer) {
@@ -90,10 +94,10 @@ define([
                 }
                 self.selectedLayer(layer);
                 layer.selected(true);
-            };            
+            };
             /**
              * Opens a dialog to edit the layer settings.
-             * @param {Object} layer The selected layer in the layer collection
+             * @param {LayerProxy} layer The selected layer in the layer collection
              */
             this.onEditSettings = function (layer) {
                 // 
