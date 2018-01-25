@@ -28,10 +28,16 @@ define([
             WorldWind.StarFieldLayer.call(this, url);
 
             this.displayName = constants.LAYER_NAME_STARS;
+            
+            this.sunEnabled = false;
 
-            // Update the star and sun location  based on the Globe's current time
+            // Update the star and sun location based on the Globe's current time
             globe.dateTime.subscribe(function (newDateTime) {
-                self.time = newDateTime; 
+                if (self.sunEnabled) {
+                    self.time = newDateTime; 
+                } else {
+                    self.time = null;
+                }
             });
         };
         // Inherit the AtmosphereLayer methods

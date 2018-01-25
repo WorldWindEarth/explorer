@@ -72,6 +72,8 @@ define(['knockout',
              */
             this.nightOpacity = atmosphereLayer ? atmosphereLayer.opacity : ko.observable();
             
+            this.dayNightEnabled = ko.observable(false);
+            
             this.timeZonesEnabled = timeZoneLayer ? timeZoneLayer.enabled : ko.observable();
             this.timeZonesOpacity = timeZoneLayer ? timeZoneLayer.opacity : ko.observable();
 
@@ -111,6 +113,20 @@ define(['knockout',
                     // Set the background color to the default when disabled.
                     $(self.globe.wwd.canvas).css('background-color', 'black');
                 }
+            });
+
+
+            /**
+             * Turn off stars if the default background layer is enabled
+             */
+            this.dayNightEnabled.subscribe(function (newValue) {
+                if (atmosphereLayer) {
+                    atmosphereLayer.wwLayer.nightEnabled = newValue;
+                }
+                if (starsLayer) {
+                    starsLayer.wwLayer.sunEnabled = newValue;
+                }
+                globe.redraw();
             });
 
             //
