@@ -208,7 +208,7 @@ define([
 
         // Add optional view controls layer
         if (showViewControls || showViewControls === undefined) {
-            controls = new EnhancedViewControlsLayer(this.wwd);
+            controls = new EnhancedViewControlsLayer(this);
             controls.showPanControl = includePanControls;
             controls.showHeadingControl = includeRotateControls;
             controls.showTiltControl = includeTiltControls;
