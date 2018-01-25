@@ -1,7 +1,6 @@
 <!--
 Layers List (bound to LayersViewModel)
 -->
-
 <div id="layers" class="tab-pane active" role="tabpanel">
     <div class="section-heading">
         <h4 class="sub-header">
@@ -36,7 +35,7 @@ Layers List (bound to LayersViewModel)
                 </h5>
             </div>
             <div class="panel-collapse collapse in" id="overlay-layers-panel">
-                <div data-bind="template: { name: 'layer-template', foreach: overlayLayers}" id="overlay-layers-item-container"></div>
+                <div class="list-group" data-bind="template: { name: 'layer-template', foreach: overlayLayers}" id="overlay-layers-item-container"></div>
             </div>
         </div>
         <div class="panel panel-default">
@@ -49,33 +48,7 @@ Layers List (bound to LayersViewModel)
                 </h5>
             </div>
             <div class="panel-collapse collapse" id="data-layers-panel">
-                <div data-bind="template: { name: 'layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h5 class="panel-title">
-                    <a data-toggle="collapse" href="#effect-layers-panel" aria-expanded="false"
-                       aria-controls="effect-layers-panel">
-                        Effects <span class="badge pull-right"  data-bind="text: effectsLayersCount()"></span>
-                    </a>
-                </h5>
-            </div>
-            <div class="panel-collapse collapse" id="effect-layers-panel">
-                <div data-bind="template: { name: 'unsorted-layer-template', foreach: effectsLayers}" id="effect-layers-item-container"></div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h5 class="panel-title">
-                    <a data-toggle="collapse" href="#widget-layers-panel" aria-expanded="false"
-                       aria-controls="widget-layers-panel">
-                        Widgets <span class="badge pull-right"  data-bind="text: widgetLayersCount()"></span>
-                    </a>
-                </h5>
-            </div>
-            <div class="panel-collapse collapse" id="widget-layers-panel">
-                <div data-bind="template: { name: 'unsorted-layer-template', foreach: widgetLayers}" id="widget-layers-item-container"></div>
+                <div class="list-group" data-bind="template: { name: 'layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
             </div>
         </div>
     </div>                  
@@ -157,51 +130,6 @@ This script renders the individual layer view model items in the Layers panel.
     </button>             
 
 </script>
-
-<!-- 
-Non-Sortable Layer Template
-This script renders the individual layer view model items in the Layers panel.
--->
-<script type="text/html" id="unsorted-layer-template">
-    <!--Conditionally show the layer if showInMenu is true-->
-    <div data-bind="if: $data.showInMenu()">
-        <div class="btn-group btn-block">
-            <!--Layer name and visibility button-->
-            <button type="button"
-                    class="btn btn-default layer-name wrap-panel-heading"
-                    style="display: block; width: 70%;"
-                    data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
-                <span class="glyphicon pull-left"
-                      data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
-                <span class="layer" data-bind="text: $data.name()"></span>
-            </button>
-            <!--Settings button-->
-            <button type="button"
-                    class="btn btn-default"
-                    style="display: block; width: 15%;"
-                    data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
-                <span class="glyphicon glyphicon-cog"></span>
-            </button>
-            <!--Zoom to layer button-->
-            <button type="button"
-                    class="btn btn-default"
-                    style="display: block; width: 15%;"
-                    data-bind="css: {active: $data.enabled()}, click: $root.onZoomToLayer">
-                <span class="glyphicon glyphicon-zoom-in"></span>
-            </button>
-        </div>
-        <!--Additional layer info-->
-        <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
-            <div class="well">
-                <!--Controls and Legend-->
-                <div>
-                    <!--<img data-bind="attr: {src: $data.legendUrl}"/>-->
-                </div>
-            </div>
-        </div>
-    </div>
-</script>
-
 
 <!-- ================================================================ -->
 
