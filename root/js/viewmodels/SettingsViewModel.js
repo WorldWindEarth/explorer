@@ -22,7 +22,8 @@ define(['knockout',
          */
         function SettingsViewModel(globe, viewElementId, viewUrl, appendToId) {
             var self = this,
-                skyLayer, starsLayer, atmosphereLayer, timeZoneLayer, viewControls, widgets, crosshairs;
+                skyLayer, starsLayer, atmosphereLayer, timeZoneLayer, viewControls, widgets, crosshairs, 
+                tessellation, frameStatistics;
 
             this.globe = globe;
             this.layerManager = globe.layerManager;
@@ -35,6 +36,8 @@ define(['knockout',
             viewControls = this.layerManager.findLayer(constants.LAYER_NAME_VIEW_CONTROLS);
             widgets = this.layerManager.findLayer(constants.LAYER_NAME_WIDGETS); 
             crosshairs = this.layerManager.findLayer(constants.LAYER_NAME_RETICLE); 
+            tessellation = this.layerManager.findLayer("Show Tessellation"); 
+            frameStatistics = this.layerManager.findLayer("Frame Statistics"); 
 
             //
             // Observables
@@ -80,6 +83,8 @@ define(['knockout',
             this.viewControlsEnabled = viewControls ? viewControls.enabled : ko.observable();
             this.widgetsEnabled = widgets ? widgets.enabled : ko.observable();
             this.crosshairsEnabled = crosshairs ? crosshairs.enabled : ko.observable();
+            this.tessellationEnabled = tessellation ? tessellation.enabled : ko.observable();
+            this.frameStatisticsEnabled = frameStatistics ? frameStatistics.enabled : ko.observable();
 
             /**
              * Background color selection handler

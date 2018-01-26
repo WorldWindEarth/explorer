@@ -55,7 +55,7 @@ Settings tab (bound to SettingsViewModel)
                     <div id="night-opacity-slider" 
                          data-bind="slider: nightOpacity, sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
                     </div>
-                </div>               
+                </div>       
             </div>            
         </div>
         <!--Date/Time-->
@@ -107,6 +107,24 @@ Settings tab (bound to SettingsViewModel)
                     <label>
                         <input type="checkbox" data-bind="checked: crosshairsEnabled">
                         Show Crosshairs
+                    </label>
+                </div>
+            </div>
+        </div>        
+        <!--Debugging-->
+        <div class="panel panel-default">
+            <div class="panel-heading">Debugging</div>
+            <div class="panel-body">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: tessellationEnabled">
+                        Show Globe Tessellation
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" data-bind="checked: frameStatisticsEnabled">
+                        Show Frame Statistics
                     </label>
                 </div>
             </div>

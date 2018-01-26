@@ -179,7 +179,7 @@ define([
             hideInMenu: false
         });
 
-        // Add optional background layers
+        // Add optional effects layers
         if (showBackground || showBackground === undefined) {
             // Set the background color to variable shade of blue
             this.layerManager.addEffectLayer(new EnhancedStarFieldLayer(this), {
@@ -193,6 +193,16 @@ define([
             // Add the optional Day/Night mode and Atmosphere effect
             this.layerManager.addEffectLayer(new EnhancedAtmosphereLayer(this), {
                 enabled: true,
+                hideInMenu: false
+            });
+            // Add the optional Tesselation layer (for debugging or high-tech display)
+            this.layerManager.addEffectLayer(new WorldWind.ShowTessellationLayer(), {
+                enabled: false,
+                hideInMenu: false
+            });
+            // Add the optional Tesselation layer (for debugging or high-tech display)
+            this.layerManager.addEffectLayer(new WorldWind.FrameStatisticsLayer(this.wwd), {
+                enabled: false,
                 hideInMenu: false
             });
         }
