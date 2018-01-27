@@ -286,7 +286,7 @@ define([
      * @param {LookAtNavigator} navigator
      */
     Globe.prototype.enhanceLookAtNavigator = function (navigator) {
-
+        var self = this;
         // Use the navigator's current settings for the initial 'last' settings
         navigator.lastEyePosition = new WorldWind.Position();
         navigator.lastLookAtLocation = new WorldWind.Location(navigator.lookAtLocation.latitude, navigator.lookAtLocation.longitude);
@@ -333,6 +333,15 @@ define([
             if (isNaN(navigator.tilt)) {
                 log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid tilt: NaN");
                 navigator.tilt = navigator.lastTilt;
+            }
+
+            if (self.wwd.globe.is2D()) {
+                // Don't allow rotation for Mercator and Equirectangular projections
+                // to improve the user experience.
+                if (self.wwd.globe.projection instanceof WorldWind.ProjectionEquirectangular ||
+                    self.wwd.globe.projection instanceof WorldWind.ProjectionMercator ) {
+                        navigator.heading = 0;
+                }
             }
 
             if (!navigator.validateEyePosition()) {
@@ -837,6 +846,8 @@ define([
             if (this.wwd.globe !== this.flatGlobe) {
                 this.wwd.globe = this.flatGlobe;
             }
+            // Reset to north up to improve the user experience.
+            this.resetHeading();            
         }
         this.wwd.redraw();
     };
