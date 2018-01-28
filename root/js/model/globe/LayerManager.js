@@ -178,7 +178,7 @@ define([
             // Add the layer to the WorldWindow
             this.globe.wwd.insertLayer(index, layer);
 
-            layerProxy = new LayerProxy(layer);
+            layerProxy = new LayerProxy(layer, this.globe);
             LayerManagerHelper.applyRestoreState(layerProxy);
             this.backgroundLayers.unshift(layerProxy);
 
@@ -203,7 +203,7 @@ define([
             this.globe.wwd.insertLayer(index, layer);
 
             // Create a to represent this layer
-            layerProxy = new LayerProxy(layer);
+            layerProxy = new LayerProxy(layer, this.globe);
 
             // Check if the layer has existing persistance properties
             LayerManagerHelper.applyRestoreState(layerProxy);
@@ -231,7 +231,7 @@ define([
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_OVERLAY);
             this.globe.wwd.insertLayer(index, layer);
 
-            layerProxy = new LayerProxy(layer);
+            layerProxy = new LayerProxy(layer, this.globe);
             LayerManagerHelper.applyRestoreState(layerProxy);
             this.overlayLayers.unshift(layerProxy);
 
@@ -251,7 +251,7 @@ define([
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_EFFECT);
             this.globe.wwd.insertLayer(index, layer);
 
-            layerProxy = new LayerProxy(layer);
+            layerProxy = new LayerProxy(layer, this.globe);
             LayerManagerHelper.applyRestoreState(layerProxy);
             this.effectsLayers.unshift(layerProxy);
 
@@ -271,7 +271,7 @@ define([
             LayerManagerHelper.applyOptionsToLayer(layer, options, constants.LAYER_CATEGORY_DATA);
             this.globe.wwd.insertLayer(index, layer);
 
-            layerProxy = new LayerProxy(layer);
+            layerProxy = new LayerProxy(layer, this.globe);
             LayerManagerHelper.applyRestoreState(layerProxy);
             this.dataLayers.unshift(layerProxy);
 
@@ -294,7 +294,7 @@ define([
             
             this.globe.wwd.insertLayer(index, layer);
 
-            layerProxy = new LayerProxy(layer);
+            layerProxy = new LayerProxy(layer, this.globe);
             this.widgetLayers.unshift(layerProxy);
 
             this.synchronizeLayers();
@@ -368,20 +368,20 @@ define([
         LayerManager.prototype.addLayerFromCapabilities = function (layerCaps, category) {
 
             var wwLayer = LayerManagerHelper.createLayerFromCapabilities(layerCaps);
-            if (wwLayer.timeSequence) {
-                // EXPERIMENTAL 
-                // subscribing this layer to the globe's current time
-                wwLayer.dateTimeSubscription = this.globe.dateTime.subscribe(function (newDateTime) {
-                    var startTime = wwLayer.timeSequence.startTime,
-                        intervalMs = wwLayer.timeSequence.intervalMilliseconds,
-                        elapsedMs, newTime;
-                    if (intervalMs && startTime < newDateTime) {
-                        elapsedMs = newDateTime.getTime() - startTime.getTime();
-                        wwLayer.time = wwLayer.timeSequence.getTimeForScale(elapsedMs / intervalMs);
-                    }
-                    this.globe.redraw();
-                }, this);
-            }
+//            if (wwLayer.timeSequence) {
+//                // EXPERIMENTAL 
+//                // subscribing this layer to the globe's current time
+//                wwLayer.dateTimeSubscription = this.globe.dateTime.subscribe(function (newDateTime) {
+//                    var startTime = wwLayer.timeSequence.startTime,
+//                        intervalMs = wwLayer.timeSequence.intervalMilliseconds,
+//                        elapsedMs, newTime;
+//                    if (intervalMs && startTime < newDateTime) {
+//                        elapsedMs = newDateTime.getTime() - startTime.getTime();
+//                        wwLayer.time = wwLayer.timeSequence.getTimeForScale(elapsedMs / intervalMs);
+//                    }
+//                    this.globe.redraw();
+//                }, this);
+//            }
             if (wwLayer) {
                 // TODO: pass in category; add to selected category
                 wwLayer.enabled = true;
