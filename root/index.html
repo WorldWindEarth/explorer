@@ -194,7 +194,7 @@
                 var sidebarSplitter = Split(['#left-sidebar', '#explorer'], {
                     direction: 'horizontal',
                     minSize: [160, 240], // pixels
-                    sizes: [25, 75], // percentages
+                    sizes: [30, 70], // percentages
                     gutterSize: 2
                 });
                 var infoSplitter = Split(['#globe', '#info-panel'], {
@@ -225,7 +225,7 @@
                     if ($('#left-sidebar').width() < 100) {
                         // Expand the sidebar
                         if (splitter.lastSizes === undefined) {
-                            splitter.setSizes([25, 75]); // percentages
+                            splitter.setSizes([30, 70]); // percentages
                         } else {
                             splitter.setSizes(splitter.lastSizes);
                         }

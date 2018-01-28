@@ -42,10 +42,22 @@ define(['knockout',
             //
             // Observables
             //
+            
             /**
-             * The globe's timeZoneDetectEnabled observable setting.
+             * The current state of the time zones layer (settable).
+             */
+            this.timeZonesEnabled = timeZoneLayer ? timeZoneLayer.enabled : ko.observable();
+            /**
+             * The current state of the time zones layer opacity (settable).
+             */
+            this.timeZonesOpacity = timeZoneLayer ? timeZoneLayer.opacity : ko.observable();
+            /**
+             * The globe's timeZoneDetectEnabled observable setting (settable).
              */
             this.timeZoneDetectEnabled = globe.timeZoneDetectEnabled;
+            this.timeZoneDetectEnabled.subscribe(function (newValue) {
+                self.timeZonesEnabled(newValue);
+            });
             /**
              * The globe's use24Time observable setting.
              */
@@ -77,8 +89,6 @@ define(['knockout',
             
             this.dayNightEnabled = ko.observable(false);
             
-            this.timeZonesEnabled = timeZoneLayer ? timeZoneLayer.enabled : ko.observable();
-            this.timeZonesOpacity = timeZoneLayer ? timeZoneLayer.opacity : ko.observable();
 
             this.viewControlsEnabled = viewControls ? viewControls.enabled : ko.observable();
             this.widgetsEnabled = widgets ? widgets.enabled : ko.observable();
@@ -93,7 +103,6 @@ define(['knockout',
                 switch (newValue) {
                 case "blue":
                     self.blueBackgroundEnabled(true);
-                    self.starsBackgroundEnabled(false);
                     break;
                 case "black":
                     self.blueBackgroundEnabled(false);

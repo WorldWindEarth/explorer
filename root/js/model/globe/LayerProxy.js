@@ -86,10 +86,17 @@ define([
             this.showInMenu = ko.observable(layer.showInMenu);
             
             /**
+             * Flag to indicate if this layer is should expose its details in the layer manager.
+             * @type Boolean
+             */
+            this.showDetails = ko.observable(false);
+            
+            /**
              * Flag to indicate if this layer is currently selected in the layer manager.
              * @type Boolean
              */
             this.selected = ko.observable(false);
+
 
             //
             // Event handlers

@@ -11,18 +11,17 @@ Layers List (bound to LayersViewModel)
         </h4>
     </div>
     <div id="layers-body" class="section-body collapse in">
-        <!--TODO: This entire section could be driven by an observable array-->
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h5 class="panel-title">
-                    <a data-toggle="collapse" href="#base-layers-panel" aria-expanded="false"
-                       aria-controls="base-layers-panel">
-                        Base Maps <span class="badge pull-right" data-bind="text: baseLayersCount()"></span>
+                    <a data-toggle="collapse" href="#data-layers-panel" aria-expanded="false"
+                       aria-controls="data-layers-panel">
+                        Data <span class="badge pull-right"  data-bind="text: dataLayersCount()"></span>
                     </a>
                 </h5>
             </div>
-            <div class="panel-collapse collapse in" id="base-layers-panel">
-                <div class="list-group" data-bind="template: { name: 'layer-template', foreach: baseLayers}" id="base-layers-item-container"></div>
+            <div class="panel-collapse collapse" id="data-layers-panel">
+                <ul class="list-group" data-bind="template: { name: 'layer-template', foreach: dataLayers}" id="data-layers-item-container"></ul>
             </div>
         </div>
         <div class="panel panel-default">
@@ -35,20 +34,20 @@ Layers List (bound to LayersViewModel)
                 </h5>
             </div>
             <div class="panel-collapse collapse in" id="overlay-layers-panel">
-                <div class="list-group" data-bind="template: { name: 'layer-template', foreach: overlayLayers}" id="overlay-layers-item-container"></div>
+                <ul class="list-group" data-bind="template: { name: 'layer-template', foreach: overlayLayers}" id="overlay-layers-item-container"></ul>
             </div>
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h5 class="panel-title">
-                    <a data-toggle="collapse" href="#data-layers-panel" aria-expanded="false"
-                       aria-controls="data-layers-panel">
-                        Datasets <span class="badge pull-right"  data-bind="text: dataLayersCount()"></span>
+                    <a data-toggle="collapse" href="#base-layers-panel" aria-expanded="false"
+                       aria-controls="base-layers-panel">
+                        Base Maps <span class="badge pull-right" data-bind="text: baseLayersCount()"></span>
                     </a>
                 </h5>
             </div>
-            <div class="panel-collapse collapse" id="data-layers-panel">
-                <div class="list-group" data-bind="template: { name: 'layer-template', foreach: dataLayers}" id="data-layers-item-container"></div>
+            <div class="panel-collapse collapse in" id="base-layers-panel">
+                <ul class="list-group" data-bind="template: { name: 'layer-template', foreach: baseLayers}" id="base-layers-item-container"></ul>
             </div>
         </div>
     </div>                  
@@ -103,31 +102,53 @@ Layers List (bound to LayersViewModel)
 <!-- ================================================================ -->
 
 <!-- 
-Sortable Layer Template
+Layer Item Template
 This script renders the individual layer view model items in the Layers panel.
 -->
 <script type="text/html" id="layer-template">
-    <button type="button" class="list-group-item layer-item" 
-            data-bind="if: $data.showInMenu(),
-                css: { 'list-group-item-info': $data.selected() }, 
+    <li class="list-group-item layer-item" 
+        data-bind="if: $data.showInMenu(),
+                css: { 'list-group-item-primary': $data.selected() }, 
                 click: $root.onSelectLayer, 
-                event: { contextmenu: $root.onEditSettings }">
-        <span class="label pull-left" 
-              data-bind="click: $root.onToggleLayer, 
-                  css: { 'label-success': $data.enabled(), 'label-primary': !$data.enabled()  },
-                  text: $data.enabled() ? 'on' : 'off' ">
-        </span>        
-        &nbsp
-        <span class="layer-name" 
-              data-bind="text: $data.name(), css: { active: $data.enabled() }">
-        </span>
-        <span class="badge pull-right glyphicon glyphicon-cog"
-              data-bind="click: $root.onEditSettings">
-        </span>
-        <span class="badge pull-right glyphicon glyphicon-zoom-in"
-              data-bind="click: $root.onZoomToLayer"> 
-        </span>
-    </button>             
+                event: { contextmenu: $parent.onEditSettings}">
+        <div>
+            <span class="label pull-left" 
+                  style=" cursor: pointer"
+                  data-bind="text: $data.enabled() ? 'on' : 'off',
+                  css: { 'label-success': $data.enabled(), 'label-primary': !$data.enabled() },
+                  click: $root.onToggleLayer">
+            </span>       
+            &nbsp
+            <span class="layer-name" 
+                  data-bind="text: $data.name(), css: { active: $data.enabled() }">
+            </span>
+            <span class="glyphicon glyphicon-menu-right"
+                  data-bind="click: $root.onEditSettings, 
+              css: { 'glyphicon-menu-down': $data.showDetails(), 'glyphicon-menu-right': !$data.showDetails() }"
+                  style="position:absolute; top:0; right:0; margin-top: 5px; margin-right: 2px; cursor: pointer">
+            </span>
+            <span class="drag-handle glyphicon glyphicon-menu-hamburger"
+                  data-bind="visible: $data.selected"
+                  style="position:absolute; top:0; right:10px; margin-top: 5px; margin-right: 2px; cursor: ns-resize" >&nbsp</span>
+
+            <div data-bind="if: $data.legendUrl() && $data.enabled()">
+                <div class="well well-sm">
+                    Legend
+                    <img data-bind="attr: {src: $data.legendUrl}"/>
+                </div>
+            </div>
+            <div data-bind="visible: $data.showDetails()" >
+                <div class="well well-sm">
+                    <div>
+                        Opacity
+                        <div data-bind="slider: $data.opacity, 
+                            sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </li>             
 
 </script>
 
