@@ -118,21 +118,6 @@ define(['knockout',
             /**
              * Turn off stars if the default background layer is enabled
              */
-            this.blueBackgroundEnabled.subscribe(function (newValue) {
-                if (newValue) {
-                    self.starsBackgroundEnabled(false);
-                } else {
-                    // The sky background layer manipulates the canvas' background color.
-                    // When it's disabled, the last used color remains in the canvas.
-                    // Set the background color to the default when disabled.
-                    $(self.globe.wwd.canvas).css('background-color', 'black');
-                }
-            });
-
-
-            /**
-             * Turn off stars if the default background layer is enabled
-             */
             this.dayNightEnabled.subscribe(function (newValue) {
                 if (atmosphereLayer) {
                     atmosphereLayer.wwLayer.nightEnabled = newValue;
