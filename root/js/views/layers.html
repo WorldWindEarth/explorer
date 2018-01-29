@@ -112,6 +112,7 @@ This script renders the individual layer view model items in the Layers panel.
                 click: $root.onSelectLayer, 
                 event: { contextmenu: $parent.onEditSettings}">
         <div>
+            <!--On/Off button-->
             <span class="label pull-left" 
                   style=" cursor: pointer"
                   data-bind="text: $data.enabled() ? 'on' : 'off',
@@ -122,29 +123,67 @@ This script renders the individual layer view model items in the Layers panel.
             <span class="layer-name" 
                   data-bind="text: $data.annotatedName(), css: { active: $data.enabled() }">
             </span>
+            <!--Show Details button-->
             <span class="glyphicon glyphicon-menu-right"
                   data-bind="click: $root.onEditSettings, 
               css: { 'glyphicon-menu-down': $data.showDetails(), 'glyphicon-menu-right': !$data.showDetails() }"
                   style="position:absolute; top:0; right:0; margin-top: 5px; margin-right: 2px; cursor: pointer">
             </span>
+            <!--Dragger handle-->
             <span class="drag-handle glyphicon glyphicon-menu-hamburger"
                   data-bind="visible: $data.selected"
                   style="position:absolute; top:0; right:10px; margin-top: 5px; margin-right: 2px; cursor: ns-resize" >&nbsp</span>
 
+            <!--Legend-->
             <div data-bind="if: $data.legendUrl() && $data.enabled()">
-                <div class="well well-sm">
+                <div>
                     Legend
                     <img data-bind="attr: {src: $data.legendUrl}"/>
                 </div>
             </div>
-            <div data-bind="visible: $data.showDetails()" >
+
+            <!--Details-->
+            <div data-bind="if: $data.showDetails()" >
                 <div class="well well-sm">
+                    <!--Time controls-->
+                    <div data-bind="if: $data.currentTime()">
+                        <span>Time Series</span>
+                        <div class="btn-group btn-block">
+                            <button type="button" 
+                                    class="btn btn-sm btn-primary" 
+                                    style="width: 25%;"
+                                    data-bind="click: $parent.onStepBackward">
+                                <span class="glyphicon glyphicon-step-backward"></span>
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-sm btn-primary" 
+                                    style="width: 25%;"
+                                    data-bind="click: $parent.onStepForward">
+                                <span class="glyphicon glyphicon-step-forward"></span>
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-sm btn-primary" 
+                                    data-bind="click: $parent.onLinkTimeToGlobe, 
+                                               css: { 'active': $data.linkTimeToGlobe }">
+                                <span class="glyphicon glyphicon-link"></span>
+                            </button>
+                        </div>
+                        <div id="layer-timeseries-slider" 
+                             style="margin-top: 10px; margin-left: 10px; margin-bottom: 10px; background: #337ab7;" 
+                             class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"
+                             data-bind="slider: $data.currentTimeScale, sliderOptions: {animate: 'fast', min: 0, max: $data.numTimePeriods(), orientation: 'horizontal'}">
+                            <span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0" style="bottom: 100%;"></span>
+                        </div>
+                    </div>
+                    <!--Opacity slider-->
                     <div>
                         Opacity
                         <div data-bind="slider: $data.opacity, 
                             sliderOptions: {animate: 'fast', min: 0, max: 1, orientation: 'horizontal', step: 0.05}">
                         </div>
                     </div>
+
+
                 </div>
             </div>
         </div>

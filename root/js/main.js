@@ -122,11 +122,15 @@ require([
                 // Initialize a slider with the given options
                 $(element).slider(options);
 
-                // Register a listener on completed changes to the slider                
-                $(element).on("slidechange", function (event, ui) {
-                    var observable = valueAccessor();
-                    observable(ui.value);
-                });
+// Commented out to prevent duplicate updates as a result of the update event
+// causing a second update to the observable with possibly a differnt value
+// than was to trigger the update event.
+//                // Register a listener on completed changes to the slider                
+//                $(element).on("slidechange", function (event, ui) {
+//                    var observable = valueAccessor();
+//                    observable(ui.value);
+//                });
+//                
                 // Resister a listener on mouse moves to the handle
                 $(element).on("slide", function (event, ui) {
                     var observable = valueAccessor();

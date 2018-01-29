@@ -70,6 +70,17 @@ define([
             this.legendUrl = ko.observable(layer.legendUrl ? layer.legendUrl.url : '');
 
             /**
+             * Flag to show this layer's legend (if it has one)
+             */
+            this.showLegend = ko.observable(true);
+
+            /**
+             * Flag to indicate if this layer's time sequence (if it has one) should be linked
+             * to the globe's time.
+             */
+            this.linkTimeToGlobe = ko.observable(true);
+
+            /**
              * The opacity (tranparency) setting for this layer.
              * @type Number
              */
@@ -104,7 +115,9 @@ define([
              * @type {Moment} 
              */
             this.currentTime = ko.observable(layer.time ? moment(layer.time) : null);
-            
+            this.startTime = ko.observable(layer.timeSequence ? moment(layer.timeSequence.startTime) : null);
+            this.endTime = ko.observable(layer.timeSequence ? moment(layer.timeSequence.endTime) : null);
+
             // Internal. Intentionally not documented.
             this.time = ko.pureComputed({
                 /**
@@ -114,25 +127,33 @@ define([
                     return this.wwLayer.time;
                 },
                 /**
-                 * @param {Date} newDateTime
+                 * @param {Date} newTime
                  */
-                write: function (newDateTime) {
+                write: function (newTime) {
+                    if (this.wwLayer.time === newTime) {
+                        return;
+                    }
                     var timeSequence = this.wwLayer.timeSequence,
+                        currentTime = timeSequence.currentTime,
                         startTime = timeSequence.startTime,
                         intervalMs = timeSequence.intervalMilliseconds,
-                        elapsedMs, newTime;
-                    // Select a time sequence from the new value and 
-                    // set the time to beginning of the time sequence
-                    if (intervalMs && startTime < newDateTime) {
-                        elapsedMs = newDateTime.getTime() - startTime.getTime();
-                        newTime = timeSequence.getTimeForScale(elapsedMs / intervalMs);
-                        // Update the time dimensioned layer
-                        this.wwLayer.time = newTime;
-                        // Update the observable
-                        this.currentTime(moment(newTime));
-                        // Update the display
-                        globe.redraw();
-                    }    
+                        elapsedMs, newScale;
+                    // If necessary, adjust the new time to the beginning of the time period 
+                    // containing the new value 
+                    if (intervalMs && currentTime !== newTime && startTime <= newTime) {
+                        // Compute time period
+                        elapsedMs = newTime.getTime() - startTime.getTime();
+                        newScale = elapsedMs / intervalMs;
+                        newTime = timeSequence.getTimeForScale(newScale);
+                        // Update the time sequence
+                        timeSequence.currentTime = newTime;
+                    }
+                    // Update this observable and the time dimensioned layer
+                    this.wwLayer.time = newTime;
+                    // Update the dependent observables
+                    this.currentTime(moment(newTime));
+                    // Update the display
+                    globe.redraw();
                 },
                 owner: this
             });
@@ -141,23 +162,63 @@ define([
              * 
              */
             this.currentTimeText = ko.pureComputed(function () {
-                var dateTime = this.currentTime(),
+                var dateTime = this.currentTime(), // a moment object
                     timeText, dateText;
                 if (dateTime) {
                     timeText = dateTime.format(globe.use24Time() ? "HH:mm" : "h:mm A");
-//                    dateText = dateTime.format("MMM D, YY");
                     dateText = dateTime.format("YYYY-MM-DD");
                     return dateText + " " + timeText;
                 }
             }, this);
 
-            this.currentTimeScale = ko.observable(0);
-            this.currentTimeScale.subscribe(function (newValue) {
-                var selectedTime = this.wwLayer.timeSequence().getTimeForScale(newValue / 100);
-                if (this.time() !== selectedTime) {
-                    this.time(selectedTime);
+            this.numTimePeriods = ko.observable(layer.timeSequence ? layer.timeSequence.intervalMilliseconds : 0),
+                /**
+                 * A value in milliseconds indicating the current progress in the time sequence.
+                 */
+                this.currentTimeScale = ko.pureComputed({
+                    read: function () {
+                        // Problems with bi-directional bindings with sliders
+                        // when the slider increments don't align with scale periods.
+                        // 
+                        if (this.wwLayer.timeSequence) {
+                            var dependency = this.currentTime().toDate(); // establish a dependency on current time 
+                            return this.wwLayer.timeSequence.scaleForCurrentTime * this.numTimePeriods();
+                        } else {
+                            return null;
+                        }
+                    },
+                    write: function (newValue) {
+                        var newScale = newValue / this.numTimePeriods(),
+                            newTime = this.wwLayer.timeSequence.getTimeForScale(newScale);
+                        this.time(newTime);
+                    },
+                    owner: this
+                });
+
+            /**
+             * 
+             */
+            this.currentTimeText = ko.pureComputed(function () {
+                var dateTime = this.currentTime(), // a moment object
+                    timeText, dateText;
+                if (dateTime) {
+                    timeText = dateTime.format(globe.use24Time() ? "HH:mm" : "h:mm A");
+                    dateText = dateTime.format("YYYY-MM-DD");
+                    return dateText + " " + timeText;
                 }
             }, this);
+
+            //            
+//            this.currentTimeScale.subscribe(function (newValue) {
+//                // Skip updating the time if this is a synchronization action
+//                if (!this.synchronizingTimeScale) {
+//                    var selectedTime = this.wwLayer.timeSequence.getTimeForScale(newValue / 100);
+//                    if (this.time() !== selectedTime) {
+//                        // Update the time from the time scale
+//                        this.time(selectedTime);
+//                    }
+//                }
+//            }, this);
 
 
             /**
@@ -173,23 +234,20 @@ define([
             }, this);
 
 
-
             this.stepTimeForward = function () {
-                var timeSequence = self.wwLayer.timeSequence();
+                var timeSequence = self.wwLayer.timeSequence;
                 if (timeSequence) {
                     var nextTime = timeSequence.next() || timeSequence.next();
                     self.time(nextTime);
-                    self.currentTimeScale(timeSequence.scaleForCurrentTime * 100);
                 }
             };
 
 
             this.stepTimeBackward = function () {
-                var timeSequence = self.wwLayer.timeSequence();
+                var timeSequence = self.wwLayer.timeSequence;
                 if (timeSequence) {
-                    var previousTime = this.wwLayer.timeSequence().previous() || this.wwLayer.timeSequence().previous();
+                    var previousTime = timeSequence.previous() || timeSequence.previous();
                     self.time(previousTime);
-                    self.currentTimeScale(timeSequence.scaleForCurrentTime * 100);
                 }
             };
 
@@ -221,9 +279,11 @@ define([
                     // Update the time observable, which will
                     // select a frame from the time sequence
                     // and update the currentTime observable.
-                    this.time(newDateTime);
+                    if (this.linkTimeToGlobe()) {
+                        this.time(newDateTime);
+                    }
                 }, this);
-            }            
+            }
         };
 
         /**

@@ -93,7 +93,7 @@ define([
                     return;
                 }
                 if (lastLayer) {
-                    lastLayer.selected(false); 
+                    lastLayer.selected(false);
                     lastLayer.showDetails(false);
                 }
                 self.selectedLayer(layer);
@@ -104,7 +104,6 @@ define([
              * @param {LayerProxy} layer The selected layer in the layer collection
              */
             this.onEditSettings = function (layer) {
-                // 
 //                var $element = $("#layer-settings-dialog"),
 //                    dialog = ko.dataFor($element.get(0));
 //                dialog.open(layer);
@@ -160,6 +159,31 @@ define([
                 }
                 return true;
             };
+
+            // 
+            // Time sequence controllers
+            //
+            
+            this.onLinkTimeToGlobe = function (layer) {
+                var shouldLinkTime = !layer.linkTimeToGlobe();
+                layer.linkTimeToGlobe(shouldLinkTime);
+                if (shouldLinkTime) {
+                    // Sync to the globe
+                    layer.time(globe.dateTime);
+                }
+            };
+
+            this.onStepBackward = function (layer) {
+                layer.linkTimeToGlobe(false);
+                layer.stepTimeBackward();
+            };
+
+            this.onStepForward = function (layer) {
+                layer.linkTimeToGlobe(false);
+                layer.stepTimeForward();
+            };
+            
+            
             /**
              * Handle drop event from the Dragula dragger.
              * 
@@ -225,7 +249,7 @@ define([
                     return source.id === target.id;
                 },
                 // Only allow dragging if a drag handle element is selected
-                moves: function(el, source, handle, sibling) {
+                moves: function (el, source, handle, sibling) {
                     // BDS: I don't like depending on explicit view elements
                     return $(handle).hasClass("drag-handle");
                 }
