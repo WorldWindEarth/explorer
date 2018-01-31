@@ -57,7 +57,7 @@ define(['model/Constants',
             // The Open Natural Earth 10m time zones have been simplified to .05deg resolution
             // See: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/timezones/
             ShapefileLayer.call(this,
-                ww.WWUtil.currentUrlSansFilePart() + "/data/timezones/ne_05deg_time_zones.shp",
+                ww.WWUtil.currentUrlSansFilePart() + "/data/timezones/ne_05deg_time_zones_clipped.shp",
                 constants.LAYER_NAME_TIME_ZONES, 
                 shapeConfigurationCallback);
         };
