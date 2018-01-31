@@ -65,6 +65,24 @@ define(['model/Constants',
         // Inherit the ShapefileLayer methods
         TimeZoneLayer.prototype = Object.create(ShapefileLayer.prototype);
 
+        
+        /**
+         * HACK: This method is a performance hack to mitigate an issue that affects
+         * rendering performance of the timezone shapefile when tilted in a wide canvas.
+         * See issue #39 https://github.com/NASAWorldWindResearch/WorldWindExplorer/issues/39
+         * 
+         * This workaround suppresses the display of the timezones when tilted past 75 degrees.
+         * @param {type} dc
+         * @returns {undefined}
+         */
+        TimeZoneLayer.prototype.render = function(dc) {
+            if (dc.navigatorState.tilt > 75) {
+                return;
+            }
+            ShapefileLayer.prototype.render.call(this, dc);
+        };
+
+
         return TimeZoneLayer;
     }
 );
