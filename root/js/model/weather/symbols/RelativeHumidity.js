@@ -12,9 +12,11 @@
  * @returns {RelativeHumidity}
  */
 define(['model/Constants',
-        'worldwind'],
+    'model/globe/EnhancedGeographicText',
+    'worldwind'],
     function (constants,
-              ww) {
+        EnhancedGeographicText
+        ) {
         "use strict";
 
         /**
@@ -26,7 +28,7 @@ define(['model/Constants',
          * @returns {RelativeHumidity}
          */
         var RelativeHumidity = function (latitude, longitude, relHumidityPct) {
-            WorldWind.GeographicText.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), relHumidityPct);
+            EnhancedGeographicText.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), relHumidityPct, true);
 
             this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             this.alwaysOnTop = false;
@@ -41,7 +43,7 @@ define(['model/Constants',
 
         };
         // Inherit Placemark parent methods
-        RelativeHumidity.prototype = Object.create(WorldWind.GeographicText.prototype);
+        RelativeHumidity.prototype = Object.create(EnhancedGeographicText.prototype);
 
 
         /**
