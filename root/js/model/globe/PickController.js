@@ -168,6 +168,7 @@ define(['knockout'],
             // Prevent pan/drag operations on the globe when we're dragging an object.
             if (this.isDragging) {
                 o.preventDefault();
+                o.stopImmediatePropagation();
             }
             // Update the window if we changed anything.
             if (redrawRequired) {
