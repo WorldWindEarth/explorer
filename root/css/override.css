@@ -190,7 +190,7 @@ body {
     /*desktop sidebar*/
     .sidebar-left {
         position: fixed;
-        top: 51px;
+        top: 54px;
         bottom: 0;
         left: 0;
         z-index: 1000;
@@ -204,9 +204,9 @@ body {
         border-right: 1px solid #eee;
     }
     .main {
-        top: 51px;
+        top: 54px;
+        height: calc(100vh - 54px);
         position: fixed;
-        height: calc(100vh - 51px);
     }
     .section-heading .section-toggle:after {
         padding-left: 20px;
