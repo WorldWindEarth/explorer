@@ -51,20 +51,23 @@
             <div class="container-fluid">
                 <!-- Branding and 'hamburger' menu -->
                 <div id="header" class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar"
+                    <!-- Branding icon and text on left--> 
+                    <a href="https://worldwind.arc.nasa.gov" target="_blank">
+                        <img class="navbar-brand" id="nasa-logo" src="css/images/nasa-logo_32.png" alt="NASA"/>
+                    </a>                    
+                    <a class="navbar-brand" href="http://worldwind.earth" target="_blank">
+                        Explorer
+                    </a>
+                    <!--Hamburger menu on right (displayed on small layout)-->
+                    <button type="button" class="navbar-toggle collapsed" 
+                            data-toggle="collapse" 
+                            data-target="#main-navbar"
                             aria-expanded="false">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="https://worldwind.arc.nasa.gov" target="_blank">
-                        <img class="navbar-brand" id="nasa-logo" src="css/images/nasa-logo.svg" alt="NASA"/>
-                    </a>                    
-                    <a class="navbar-brand"
-                       href="http://worldwind.earth" target="_blank">
-                        Explorer
-                    </a>
                 </div>
                 <!-- Navigation links, Projections and Search Box -->
                 <div id="main-navbar" class="collapse navbar-collapse" >
