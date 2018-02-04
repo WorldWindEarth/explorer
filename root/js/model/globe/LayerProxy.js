@@ -153,11 +153,15 @@ define([
                     // Update the dependent observables
                     this.currentTime(moment(newTime));
                     // Update the display
-                    globe.redraw();
                 },
                 owner: this
             });
-
+            // Notify the globe (and other subscribers) no more than once every 500 milliseconds 
+            // to thottle the number of WMS requests when a slider is moved.
+            this.time.extend({ rateLimit: 500 });
+            this.time.subscribe(function() {
+                globe.redraw();
+            })
             /**
              * 
              */
