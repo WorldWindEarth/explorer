@@ -191,19 +191,26 @@
                 // -----------------------------------------------------------
                 // Add the window splitters
                 // -----------------------------------------------------------
-                var sidebarSplitter = Split(['#left-sidebar', '#explorer'], {
+                var gutterWidth = 4;
+                var minWidths = [160, 240]; // pixels
+                var minHeights = [100, 100]; // pixels
+                var horzInitialSizes = [30, 70]; // percents
+                var vertInitialSizes = [70, 30]; // percents
+                var horzSplitPanes = ['#left-sidebar', '#explorer'];
+                var vertSplitPanes = ['#globe', '#info-panel'];
+                var sidebarSplitter = Split(horzSplitPanes, {
                     direction: 'horizontal',
-                    minSize: [160, 240], // pixels
-                    sizes: [30, 70], // percentages
-                    gutterSize: 3
+                    minSize: minWidths, // pixels
+                    sizes: horzInitialSizes, // percentages
+                    gutterSize: gutterWidth
                 });
-                var infoSplitter = Split(['#globe', '#info-panel'], {
+                var infoSplitter = Split(vertSplitPanes, {
                     direction: 'vertical',
-                    minSize: [100, 100],
-                    sizes: [70, 30],
-                    gutterSize: 3
+                    minSize: minHeights,
+                    sizes: vertInitialSizes,
+                    gutterSize: gutterWidth
                 });
-                sidebarSplitter.collapse(0); // collapse the sidebar (left) panel
+//                sidebarSplitter.collapse(0); // collapse the sidebar (left) panel
                 infoSplitter.collapse(1); // collapse the info (bottom) panel
 
                 // Add a handler to collapse the left side panel
@@ -221,11 +228,11 @@
                 });
                 // Add a handler to toggle the left side panel
                 $('.left-sidebar-btn').on('click', sidebarSplitter, function (event) {
-                    var splitter = event.data;
-                    if ($('#left-sidebar').width() < 100) {
+                    var splitter = event.data;  
+                    if ($(horzSplitPanes[0]).width() < 100) {
                         // Expand the sidebar
                         if (splitter.lastSizes === undefined) {
-                            splitter.setSizes([30, 70]); // percentages
+                            splitter.setSizes(horzInitialSizes); // percentages
                         } else {
                             splitter.setSizes(splitter.lastSizes);
                         }
@@ -238,16 +245,27 @@
                 // Add a handler to toggle the info panel
                 $('.info-panel-btn').on('click', infoSplitter, function (event) {
                     var splitter = event.data;
-                    if ($('#info-panel').height() < 100) {
+                    if ($(vertSplitPanes[1]).height() < 100) {
                         // Expand the panel
                         if (splitter.lastSizes === undefined) {
-                            splitter.setSizes([70, 30]); // percentages
+                            splitter.setSizes(vertInitialSizes); // percentages
                         } else {
                             splitter.setSizes(splitter.lastSizes);
                         }
                     } else {
                         // Collapse the panel (second index in the splitter array)
                         splitter.collapse(1);
+                    }
+                });
+                $(window).resize(function () {
+                    // Force re-calc of size percentages when collapsed.
+                    // Bug: The collapsed window has a 'fixed' and variable 
+                    // percentages need to be recomputed during the resize,
+                    // else during resizing to a smaller window, the remaining 
+                    // split-window's size could be fractionally to big to fit 
+                    // into its container and wrap occurs)
+                    if ($(horzSplitPanes[0]).width() < 5) {
+                        sidebarSplitter.collapse(0)
                     }
                 });
             </script>
