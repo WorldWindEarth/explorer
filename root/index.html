@@ -259,11 +259,12 @@
                 });
                 $(window).resize(function () {
                     // Force re-calc of size percentages when collapsed.
-                    // Bug: The collapsed window has a 'fixed' and variable 
-                    // percentages need to be recomputed during the resize,
-                    // else during resizing to a smaller window, the remaining 
-                    // split-window's size could be fractionally to big to fit 
-                    // into its container and wrap occurs)
+                    // The collapsed window has a 'fixed' size (0), but the
+                    // size percentages vary during the resize. We need to 
+                    // re-calc the size percentages during resizing to a 
+                    // smaller window, else the remaining split-pane's size 
+                    // could be fractionally to big to fit into its container
+                    // and cause the layout to fail.
                     if ($(horzSplitPanes[0]).width() < 5) {
                         sidebarSplitter.collapse(0)
                     }
