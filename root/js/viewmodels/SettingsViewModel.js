@@ -13,8 +13,9 @@
  */
 define(['knockout',
     'jquery',
+    'moment',
     'model/Constants'],
-    function (ko, $, constants) {
+    function (ko, $, moment, constants) {
 
         /**
          * The view model for the Settings panel.
@@ -125,7 +126,13 @@ define(['knockout',
                 if (starsLayer) {
                     starsLayer.wwLayer.sunEnabled = newValue;
                 }
+                // Tickle the time to force a redraw of the day/night
+                var time = new moment(globe.dateTime());
+                globe.dateTime(time.add(1,'ms').toDate());
                 globe.redraw();
+                globe.dateTime(time.subtract(1,'ms').toDate());
+                globe.redraw();
+                
             });
 
             //
