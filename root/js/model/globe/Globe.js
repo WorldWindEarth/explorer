@@ -20,9 +20,9 @@
  * @param {LayoutManager}
  * @param {LocationWidget}
  * @param {Log} log Logger.
+ * @param {PickController} PickController Provides select and move of globe renderables.
  * @param {Publisher}
  * @param {ReticuleLayer} ReticuleLayer Crosshairs.
- * @param {SelectController} SelectController Provides select and move of globe renderables.
  * @param {SkyBackgroundLayer} SkyBackgroundLayer Adaptive sky color.
  * @param {Sunlight}
  * @param {Terrain} Terrain Aspect, slope and elevation.
@@ -48,9 +48,9 @@ define([
     'model/globe/LayerManager',
     'model/globe/widgets/LocationWidget',
     'model/util/Log',
+    'model/globe/PickController',
     'model/util/Publisher',
     'model/globe/layers/ReticuleLayer',
-    'model/globe/SelectController',
     'model/globe/layers/SkyBackgroundLayer',
     'model/globe/Sunlight',
     'model/globe/Terrain',
@@ -72,9 +72,9 @@ define([
         LayerManager,
         LocationWidget,
         log,
+        PickController,
         publisher,
         ReticuleLayer,
-        SelectController,
         SkyBackgroundLayer,
         Sunlight,
         Terrain,
@@ -130,7 +130,7 @@ define([
         // Add support for animating the globe to a position.
         this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
         this.isAnimating = false;
-        this.selectController = new SelectController(this.wwd);
+        this.selectController = new PickController(this.wwd);
         this.keyboardControls = new KeyboardControls(this);
         this.layerManager = new LayerManager(this);
         this.resizeTimer = null;

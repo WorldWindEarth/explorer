@@ -78,11 +78,11 @@ define([
             
             // TODO: assert that the params object contains the required members, e.g. lat, lon.
             
-            // Make movable by the SelectController: Establishes the isMovable member.
+            // Make movable by the PickController: Establishes the isMovable member.
             // Fires the EVENT_OBJECT_MOVE... events.
             movable.makeMovable(this);
 
-            // Make selectable via picking (see SelectController): adds the "select" method
+            // Make selectable via picking (see PickController): adds the "select" method
             selectable.makeSelectable(this, function (params) {   // define the callback that selects this marker
                 this.isMovable(params.selected);
                 this.renderable.highlighted = params.selected;
@@ -115,7 +115,7 @@ define([
                     return true;    // return true to fire a EVENT_OBJECT_REMOVED
             });
             
-            // Make context sensiive by the SelectController: shows the context menu.
+            // Make context sensiive by the PickController: shows the context menu.
             contextSensitive.makeContextSensitive(this, function () {
                 $.growl({title: "TODO", message: "Show menu with delete, open, and lock/unlock"});
             });
@@ -126,9 +126,9 @@ define([
             this.name = ko.observable(args.name || 'Wx Scout');
             /** The movable mix-in state */
             this.isMovable(args.isMovable === undefined ? false : args.isMovable);
-            /** The latitude of this marker -- set be by the Movable interface during pick/drag operations. See SelectController */
+            /** The latitude of this marker -- set be by the Movable interface during pick/drag operations. See PickController */
             this.latitude(position.latitude)
-            /** The longitude of this marker -- may be set by the Movable interface during pick/drag operations See SelectController */
+            /** The longitude of this marker -- may be set by the Movable interface during pick/drag operations See PickController */
             this.longitude (position.longitude);
             /** The lat/lon location string of this scout */
             this.location = ko.computed(function () {
