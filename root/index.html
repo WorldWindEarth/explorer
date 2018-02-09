@@ -123,7 +123,10 @@
                                        data-bind="value: searchText, valueUpdate: 'keyup', event: {keypress: onEnter}"/>
                             </div>
                             <button id="searchButton" class="btn btn-primary" type="submit"
-                                    data-bind="click: $root.performSearch">Go To
+                                    data-bind="click: $root.performSearch">
+                                <span class="glyphicon glyphicon-search visible-sm-block" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Go To</span>
                             </button>
                         </form>
                     </div>
