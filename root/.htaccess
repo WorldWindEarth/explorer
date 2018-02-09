@@ -1,0 +1,4 @@
+<IfModule mod_headers.c>
+    Header set Cache-Control: no-cache,max-age=0;
+</IfModule>
+
