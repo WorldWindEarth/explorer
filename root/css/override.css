@@ -11,11 +11,13 @@ body {
   max-height: 54px;
 }*/
 
+/* Computing height with % instead of vh due to Chrome/Android reporting vh
+   based on total possible size (e.g., address bar hidden), not actual size */
 .container-split {
     /*maximum size, excluding the nav-bar*/
     position: fixed;
     top: 54px;
-    height: calc(100vh - 54px);
+    height: calc(100% - 54px);
     width: 100vw;
 }
 
