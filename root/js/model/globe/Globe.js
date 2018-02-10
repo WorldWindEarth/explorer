@@ -156,6 +156,9 @@ define([
                 widgets;
 
 
+        // Clear all existing layers
+        wwd.layers.splice(0, wwd.layers.length);
+        
         // Add a BlueMarble world layer that's always visible
         bmngImageLayer = new WorldWind.BMNGOneImageLayer();
         bmngImageLayer.minActiveAltitude = 0; // default setting is 3e6;
@@ -339,8 +342,8 @@ define([
                 // Don't allow rotation for Mercator and Equirectangular projections
                 // to improve the user experience.
                 if (self.wwd.globe.projection instanceof WorldWind.ProjectionEquirectangular ||
-                    self.wwd.globe.projection instanceof WorldWind.ProjectionMercator ) {
-                        navigator.heading = 0;
+                        self.wwd.globe.projection instanceof WorldWind.ProjectionMercator) {
+                    navigator.heading = 0;
                 }
             }
 
@@ -391,10 +394,10 @@ define([
          */
         navigator.validateEyePosition = function () {
             if (isNaN(navigator.lookAtLocation.latitude)) {
-                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");                
+                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");
             }
             if (isNaN(navigator.lookAtLocation.longitude)) {
-                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");                
+                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");
                 return false;
             }
             var wwd = navigator.worldWindow,
@@ -704,7 +707,7 @@ define([
         }
         // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
         latitude = WorldWind.WWMath.clamp(latitude, -89.9, 89.9);
-        
+
         var self = this;
         if (this.isAnimating) {
             this.goToAnimator.cancel();
@@ -847,7 +850,7 @@ define([
                 this.wwd.globe = this.flatGlobe;
             }
             // Reset to north up to improve the user experience.
-            this.resetHeading();            
+            this.resetHeading();
         }
         this.wwd.redraw();
     };
