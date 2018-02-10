@@ -217,6 +217,8 @@
             });
             sidebarSplitter.collapse(0); // collapse the sidebar (left) panel
             infoSplitter.collapse(1); // collapse the info (bottom) panel
+            // For IE/Edge - hide the scrollbar
+            $(horzSplitPanes[0]).css('overflow-y', 'hidden');
 
             // Add a handler to collapse the left side panel
             $('#collapse-left-sidebar').on('click', sidebarSplitter, function (event) {
@@ -224,6 +226,8 @@
                 var splitter = event.data;
                 splitter.lastSizes = splitter.getSizes();
                 splitter.collapse(0);
+                // For IE/Edge
+                $(horzSplitPanes[0]).css('overflow-y', 'hidden');
             });
             // Add a handler to collapse the bottom panel
             $('#collapse-info-panel').on('click', infoSplitter, function (event) {
@@ -241,11 +245,16 @@
                     } else {
                         splitter.setSizes(splitter.lastSizes);
                     }
+                    // For IE/Edge
+                    $(horzSplitPanes[0]).css('overflow-y', 'auto');
                 } else if ($(this).is('.active')) {
                     // Collapse the sidebar (first index in the splitter array)
                     splitter.lastSizes = splitter.getSizes();
                     splitter.collapse(0);
+                    // For IE/Edge - hide the scrollbar when collapsed
+                    $(horzSplitPanes[0]).css('overflow-y', 'hidden');
                 }
+
             });
             // Add a handler to toggle the info panel
             $('.info-panel-btn').on('click', infoSplitter, function (event) {
@@ -272,6 +281,8 @@
                 // and cause the layout to fail.
                 if ($(horzSplitPanes[0]).width() < 5) {
                     sidebarSplitter.collapse(0);
+                    // FOR IE/Edge - hide the scroll bar when collapsed
+                    $(horzSplitPanes[0]).css('overflow-y', 'hidden');
                 }
             });
         </script>
