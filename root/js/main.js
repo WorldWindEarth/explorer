@@ -29,7 +29,7 @@ requirejs.config({
         'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'libs/moment/moment-2.14.1.min',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'libs/vis/v4.16.1/vis.min',
-        'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : '//files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
+        'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : 'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
