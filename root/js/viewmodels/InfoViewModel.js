@@ -11,64 +11,68 @@
  * @param {type} $
  * @returns {InfoViewModel}
  */
-define(['knockout',
-    'jquery'
-        //'viewmodels/WeatherScoutView'
-],
-    function (ko, $,
-        //WeatherScoutView
-        ) {
+define([
+    'knockout',
+    'jquery',
+    'viewmodels/WeatherScoutView'],
+        function (ko, $, WeatherScoutView) {
 
-        /**
-         * The view model for the Output panel.
-         * @constructor
-         */
-        function InfoViewModel(globe, viewElementId, viewUrl, appendToId) {
-            var self = this;
+            /**
+             * 
+             * @constructor
+             * @param {Globe} globe
+             * @param {String} viewElementId View element id
+             * @param {String} viewUrl View fragment file
+             * @param {String} appendToId View element parent id
+             * @returns {InfoViewModelL#18.InfoViewModel}
+             */
+            function InfoViewModel(globe, viewElementId, viewUrl, appendToId) {
+                var self = this;
 
-            this.globe = globe;
+                this.view = null;
+                this.globe = globe;
 
-            // Get a reference to the SelectController's selectedItem observable
-            this.selectedItem = this.globe.selectController.lastSelectedItem;
+                // Get a reference to the SelectController's selectedItem observable
+                this.selectedItem = this.globe.selectController.lastSelectedItem;
 
-            // Load the Knockout custom binding used in the #weather-scout-view-template
-            //this.wxScoutView = new WeatherScoutView();
+                // Load the Knockout custom binding used in the #weather-scout-view-template
+                this.wxScoutView = new WeatherScoutView();
 
-            // The viewTemplate defines the content displayed in the output pane.
-            this.viewTemplateName = ko.observable(null);
+                // The viewTemplate defines the content displayed in the output pane.
+                this.viewTemplateName = ko.observable(null);
 
-            // Update the view template from the selected object.
-            this.selectedItem.subscribe(function (newItem) {
-                // Determine if the new item has a view template
-                if (newItem !== null) {
-                    if (typeof newItem.viewTemplateName !== "undefined") {
-                        self.viewTemplateName(newItem.viewTemplateName);
-                    } else {
-                        self.viewTemplateName(null);
+                // Update the view template from the selected object.
+                this.selectedItem.subscribe(function (newItem) {
+                    // Determine if the new item has a view template
+                    if (newItem !== null) {
+                        if (typeof newItem.viewTemplateName !== "undefined") {
+                            self.viewTemplateName(newItem.viewTemplateName);
+                        } else {
+                            self.viewTemplateName(null);
+                        }
                     }
-                }
-            });
+                });
 
-            //
-            // Load the view html into the DOM and apply the Knockout bindings
-            //
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
+                //
+                // Load the view html into the DOM and apply the Knockout bindings
+                //
+                $.ajax({
+                    async: false,
+                    dataType: 'html',
+                    url: viewUrl,
+                    success: function (data) {
+                        // Load the view html into the specified DOM element
+                        $("#" + appendToId).append(data);
 
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
+                        // Update the view member
+                        self.view = document.getElementById(viewElementId);
 
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
+                        // Binds the view to this view model.
+                        ko.applyBindings(self, self.view);
+                    }
+                });
+            }
+
+            return InfoViewModel;
         }
-
-        return InfoViewModel;
-    }
 );
