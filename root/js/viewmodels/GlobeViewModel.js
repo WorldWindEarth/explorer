@@ -22,15 +22,13 @@ define([
     'jquery',
     'jqueryui',
     'model/markers/BasicMarker',
-    'model/Explorer',
     'model/util/WmtUtil',
     'model/weather/WeatherScout',
-    'worldwind'], function (
+    'worldwind'], function ( 
     ko,
     $,
     jqueryui,
     BasicMarker,
-    explorer,
     util,
     WeatherScout,
     ww) {
@@ -41,11 +39,11 @@ define([
      * @param {Array} params Array containing markerManager and weatherManager objects
      * @constructor
      */
-    function GlobeViewModel(globe, params, viewElementId, viewUrl, appendToId) {
+    function GlobeViewModel(explorer, params, viewElementId, viewUrl, appendToId) {
         var self = this;
 
         this.view = null;
-        this.globe = globe;
+        this.globe = explorer.globe;
         this.markerManager = params.markerManager;
         this.weatherManager = params.weatherManager;
 
