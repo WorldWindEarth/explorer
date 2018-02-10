@@ -85,7 +85,7 @@ define([
         // Graphics
         this.reset = new WorldWind.ScreenImage(lowerRight, constants.IMAGE_PATH + "reset-button.png");
         this.reset.imageOffset = resetOffset;
-        // Make the reset image clickabe via picking (see SelectController): adds the "click" method
+        // Make the reset image clickabe via picking (see PickController): adds the "click" method
         clickable.makeClickable(this.reset, function (params) {
             globe.resetHeadingAndTilt();
         });

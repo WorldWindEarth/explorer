@@ -89,8 +89,12 @@ define([
              */
             this.onSelectLayer = function (layer) {
                 var lastLayer = self.selectedLayer();
+                if (lastLayer === layer) {
+                    return;
+                }
                 if (lastLayer) {
-                    lastLayer.selected(false); // TODO: add this member to the LayerProxy
+                    lastLayer.selected(false);
+                    lastLayer.showDetails(false);
                 }
                 self.selectedLayer(layer);
                 layer.selected(true);
@@ -100,10 +104,10 @@ define([
              * @param {LayerProxy} layer The selected layer in the layer collection
              */
             this.onEditSettings = function (layer) {
-                // 
-                var $element = $("#layer-settings-dialog"),
-                    dialog = ko.dataFor($element.get(0));
-                dialog.open(layer);
+//                var $element = $("#layer-settings-dialog"),
+//                    dialog = ko.dataFor($element.get(0));
+//                dialog.open(layer);
+                layer.showDetails(!layer.showDetails());
             };
 
             /**
@@ -155,6 +159,31 @@ define([
                 }
                 return true;
             };
+
+            // 
+            // Time sequence controllers
+            //
+            
+            this.onLinkTimeToGlobe = function (layer) {
+                var shouldLinkTime = !layer.linkTimeToGlobe();
+                layer.linkTimeToGlobe(shouldLinkTime);
+                if (shouldLinkTime) {
+                    // Sync to the globe
+                    layer.time(globe.dateTime);
+                }
+            };
+
+            this.onStepBackward = function (layer) {
+                layer.linkTimeToGlobe(false);
+                layer.stepTimeBackward();
+            };
+
+            this.onStepForward = function (layer) {
+                layer.linkTimeToGlobe(false);
+                layer.stepTimeForward();
+            };
+            
+            
             /**
              * Handle drop event from the Dragula dragger.
              * 
@@ -175,6 +204,8 @@ define([
                     layers = self.baseLayers;
                 } else if (source.id === 'overlay-layers-item-container') {
                     layers = self.overlayLayers;
+                } else if (source.id === 'data-layers-item-container') {
+                    layers = self.dataLayers;
                 }
                 oldIndex = layers.indexOf(droppedLayer);
                 newIndex = layers.indexOf(siblingLayer);
@@ -209,18 +240,26 @@ define([
                 }
             });
             //
-            // Setup dragging
+            // Setup dragging (after the view fragment has been loaded)
             //
             this.drake = dragula({
                 revertOnSpill: true,
+                // Only allow sorting within the same container
                 accepts: function (el, target, source, sibling) {
                     return source.id === target.id;
+                },
+                // Only allow dragging if a drag handle element is selected
+                moves: function (el, source, handle, sibling) {
+                    // BDS: I don't like depending on explicit view elements
+                    return $(handle).hasClass("drag-handle");
                 }
             });
+            // Specifify the sortable containers
             this.drake.containers.push(document.getElementById('base-layers-item-container'));
             this.drake.containers.push(document.getElementById('overlay-layers-item-container'));
+            this.drake.containers.push(document.getElementById('data-layers-item-container'));
+            // Define the handler for the "dropped" layers
             this.drake.on('drop', this.onDropLayer);
-
         }
 
         return LayersViewModel;

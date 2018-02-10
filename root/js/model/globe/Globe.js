@@ -20,9 +20,9 @@
  * @param {LayoutManager}
  * @param {LocationWidget}
  * @param {Log} log Logger.
+ * @param {PickController} PickController Provides select and move of globe renderables.
  * @param {Publisher}
  * @param {ReticuleLayer} ReticuleLayer Crosshairs.
- * @param {SelectController} SelectController Provides select and move of globe renderables.
  * @param {SkyBackgroundLayer} SkyBackgroundLayer Adaptive sky color.
  * @param {Sunlight}
  * @param {Terrain} Terrain Aspect, slope and elevation.
@@ -48,9 +48,9 @@ define([
     'model/globe/LayerManager',
     'model/globe/widgets/LocationWidget',
     'model/util/Log',
+    'model/globe/PickController',
     'model/util/Publisher',
     'model/globe/layers/ReticuleLayer',
-    'model/globe/SelectController',
     'model/globe/layers/SkyBackgroundLayer',
     'model/globe/Sunlight',
     'model/globe/Terrain',
@@ -72,9 +72,9 @@ define([
         LayerManager,
         LocationWidget,
         log,
+        PickController,
         publisher,
         ReticuleLayer,
-        SelectController,
         SkyBackgroundLayer,
         Sunlight,
         Terrain,
@@ -130,7 +130,7 @@ define([
         // Add support for animating the globe to a position.
         this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
         this.isAnimating = false;
-        this.selectController = new SelectController(this.wwd);
+        this.selectController = new PickController(this.wwd);
         this.keyboardControls = new KeyboardControls(this);
         this.layerManager = new LayerManager(this);
         this.resizeTimer = null;
@@ -156,6 +156,9 @@ define([
                 widgets;
 
 
+        // Clear all existing layers
+        wwd.layers.splice(0, wwd.layers.length);
+        
         // Add a BlueMarble world layer that's always visible
         bmngImageLayer = new WorldWind.BMNGOneImageLayer();
         bmngImageLayer.minActiveAltitude = 0; // default setting is 3e6;
@@ -286,7 +289,7 @@ define([
      * @param {LookAtNavigator} navigator
      */
     Globe.prototype.enhanceLookAtNavigator = function (navigator) {
-
+        var self = this;
         // Use the navigator's current settings for the initial 'last' settings
         navigator.lastEyePosition = new WorldWind.Position();
         navigator.lastLookAtLocation = new WorldWind.Location(navigator.lookAtLocation.latitude, navigator.lookAtLocation.longitude);
@@ -333,6 +336,15 @@ define([
             if (isNaN(navigator.tilt)) {
                 log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid tilt: NaN");
                 navigator.tilt = navigator.lastTilt;
+            }
+
+            if (self.wwd.globe.is2D()) {
+                // Don't allow rotation for Mercator and Equirectangular projections
+                // to improve the user experience.
+                if (self.wwd.globe.projection instanceof WorldWind.ProjectionEquirectangular ||
+                        self.wwd.globe.projection instanceof WorldWind.ProjectionMercator) {
+                    navigator.heading = 0;
+                }
             }
 
             if (!navigator.validateEyePosition()) {
@@ -382,10 +394,10 @@ define([
          */
         navigator.validateEyePosition = function () {
             if (isNaN(navigator.lookAtLocation.latitude)) {
-                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");                
+                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");
             }
             if (isNaN(navigator.lookAtLocation.longitude)) {
-                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");                
+                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");
                 return false;
             }
             var wwd = navigator.worldWindow,
@@ -695,7 +707,7 @@ define([
         }
         // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
         latitude = WorldWind.WWMath.clamp(latitude, -89.9, 89.9);
-        
+
         var self = this;
         if (this.isAnimating) {
             this.goToAnimator.cancel();
@@ -837,6 +849,8 @@ define([
             if (this.wwd.globe !== this.flatGlobe) {
                 this.wwd.globe = this.flatGlobe;
             }
+            // Reset to north up to improve the user experience.
+            this.resetHeading();
         }
         this.wwd.redraw();
     };

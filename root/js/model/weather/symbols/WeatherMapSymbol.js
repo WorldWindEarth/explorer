@@ -67,7 +67,7 @@ define(['model/weather/symbols/AirTemperature',
 
             // Add a reference to our wx model object to the principle renderables.
             // The "movable" wxScoute will generate EVENT_OBJECT_MOVED events. 
-            // See the SelectController.
+            // See the PickController.
             this.background.pickDelegate = wxScout;
             this.skyCover.pickDelegate = wxScout;
             this.windBarb.pickDelegate = wxScout;

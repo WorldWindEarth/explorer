@@ -13,8 +13,9 @@
  */
 define(['knockout',
     'jquery',
+    'moment',
     'model/Constants'],
-    function (ko, $, constants) {
+    function (ko, $, moment, constants) {
 
         /**
          * The view model for the Settings panel.
@@ -42,10 +43,22 @@ define(['knockout',
             //
             // Observables
             //
+            
             /**
-             * The globe's timeZoneDetectEnabled observable setting.
+             * The current state of the time zones layer (settable).
+             */
+            this.timeZonesEnabled = timeZoneLayer ? timeZoneLayer.enabled : ko.observable();
+            /**
+             * The current state of the time zones layer opacity (settable).
+             */
+            this.timeZonesOpacity = timeZoneLayer ? timeZoneLayer.opacity : ko.observable();
+            /**
+             * The globe's timeZoneDetectEnabled observable setting (settable).
              */
             this.timeZoneDetectEnabled = globe.timeZoneDetectEnabled;
+            this.timeZoneDetectEnabled.subscribe(function (newValue) {
+                self.timeZonesEnabled(newValue);
+            });
             /**
              * The globe's use24Time observable setting.
              */
@@ -77,8 +90,6 @@ define(['knockout',
             
             this.dayNightEnabled = ko.observable(false);
             
-            this.timeZonesEnabled = timeZoneLayer ? timeZoneLayer.enabled : ko.observable();
-            this.timeZonesOpacity = timeZoneLayer ? timeZoneLayer.opacity : ko.observable();
 
             this.viewControlsEnabled = viewControls ? viewControls.enabled : ko.observable();
             this.widgetsEnabled = widgets ? widgets.enabled : ko.observable();
@@ -93,7 +104,6 @@ define(['knockout',
                 switch (newValue) {
                 case "blue":
                     self.blueBackgroundEnabled(true);
-                    self.starsBackgroundEnabled(false);
                     break;
                 case "black":
                     self.blueBackgroundEnabled(false);
@@ -109,21 +119,6 @@ define(['knockout',
             /**
              * Turn off stars if the default background layer is enabled
              */
-            this.blueBackgroundEnabled.subscribe(function (newValue) {
-                if (newValue) {
-                    self.starsBackgroundEnabled(false);
-                } else {
-                    // The sky background layer manipulates the canvas' background color.
-                    // When it's disabled, the last used color remains in the canvas.
-                    // Set the background color to the default when disabled.
-                    $(self.globe.wwd.canvas).css('background-color', 'black');
-                }
-            });
-
-
-            /**
-             * Turn off stars if the default background layer is enabled
-             */
             this.dayNightEnabled.subscribe(function (newValue) {
                 if (atmosphereLayer) {
                     atmosphereLayer.wwLayer.nightEnabled = newValue;
@@ -131,7 +126,13 @@ define(['knockout',
                 if (starsLayer) {
                     starsLayer.wwLayer.sunEnabled = newValue;
                 }
+                // Tickle the time to force a redraw of the day/night
+                var time = new moment(globe.dateTime());
+                globe.dateTime(time.add(1,'ms').toDate());
                 globe.redraw();
+                globe.dateTime(time.subtract(1,'ms').toDate());
+                globe.redraw();
+                
             });
 
             //

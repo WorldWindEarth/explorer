@@ -7,9 +7,10 @@
 /*global define, WorldWind*/
 
 define(['model/Constants',
+        'model/globe/EnhancedGeographicText',
         'worldwind'],
     function (constants,
-              ww) {
+              EnhancedGeographicText) {
         "use strict";
 
         /**
@@ -20,7 +21,7 @@ define(['model/Constants',
          * @returns {ForecastTime}
          */
         var ForecastTime = function (latitude, longitude, timeString) {
-            WorldWind.GeographicText.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), timeString);
+            EnhancedGeographicText.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), timeString, true);
 
             this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             this.alwaysOnTop = false;
@@ -33,7 +34,7 @@ define(['model/Constants',
             this.attributes.depthTest = false;
         };
         // Inherit Placemark parent methods
-        ForecastTime.prototype = Object.create(WorldWind.GeographicText.prototype);
+        ForecastTime.prototype = Object.create(EnhancedGeographicText.prototype);
 
         /**
          * Creates a clone of this object.

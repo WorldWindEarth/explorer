@@ -71,11 +71,6 @@ define([
                         program,
                         textureBound;
 
-
-                if (!this.nightEnabled) {
-                    return;
-                }
-
                 program = dc.findAndBindProgram(EnhancedGroundProgram);
 
                 program.loadGlobeRadius(gl, dc.globe.equatorialRadius);
@@ -84,7 +79,7 @@ define([
 
                 program.loadLightDirection(gl, this._activeLightDirection);
 
-                // BDS: a property of the custom EnhancedGroundProgram
+                // BDS: opacity is a property of the custom EnhancedGroundProgram
                 program.loadOpacity(gl, this.opacity);
 
                 program.setScale(gl);

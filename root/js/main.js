@@ -11,25 +11,25 @@
  * the minified versions for production.
  * @type Boolean
  */
-window.DEBUG = true;
+window.DEBUG = false;
 
 /**
  * Require.js bootstrapping javascript
  */
 requirejs.config({
-// Path mappings for the logical module names
+    // Path mappings for the logical module names
     paths: {
+        'bootstrap': window.DEBUG ? 'libs/bootstrap/v3.3.6/bootstrap.min' : 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min',
+        'd3': window.DEBUG ? 'libs/d3/d3' : 'https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min',
         'dragula': 'libs/dragula/dragula',
-        'knockout': window.DEBUG ? 'libs/knockout/knockout-3.4.0.debug' : 'libs/knockout/knockout-3.4.0',
-        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'libs/jquery/jquery-2.1.3.min',
-        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'libs/jquery-ui/jquery-ui-1.11.4.min',
+        'knockout': window.DEBUG ? 'libs/knockout/knockout-3.4.0.debug' : 'https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min',
+        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'http://code.jquery.com/jquery-2.2.4.min',
+        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'http://code.jquery.com/ui/1.12.1/jquery-ui.min',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
-        'bootstrap': window.DEBUG ? 'libs/bootstrap/v3.3.6/bootstrap.min' : 'libs/bootstrap/v3.3.6/bootstrap',
-        'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'libs/moment/moment-2.14.1.min',
-        'd3': window.DEBUG ? 'libs/d3/d3' : 'libs/d3/d3.min',
+        'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
-        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'libs/vis/v4.16.1/vis.min',
-        'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : '//files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
+        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min',
+        'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : 'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
         'model': 'model' // root application path
     },
     // Shim configuration for Bootstrap's JQuery dependency
@@ -42,162 +42,106 @@ requirejs.config({
 });
 
 /**
- * A top-level require call executed by the Application.
+ * The application's main entry point, called in index.html
  * 
+ * @param {Knockout} ko
+ * @param {JQuery} $
+ * @param {Config} config Explorer configuration object
+ * @param {Constants} constants Explorer constants
  */
 require([
     'knockout',
     'jquery',
-    'jqueryui',
-    'worldwind',
     'model/Config',
     'model/Constants',
-    'model/Explorer',
-    'model/globe/Globe',
-    'viewmodels/BookmarkViewModel',
-    'viewmodels/GlobeViewModel',
-    'viewmodels/InfoViewModel',
-    'viewmodels/LayersViewModel',
-    'viewmodels/LayerSettings',
-    'viewmodels/MarkerEditor',
-    'viewmodels/MarkersViewModel',
-    'viewmodels/ProjectionsViewModel',
-    'viewmodels/SearchViewModel',
-    'viewmodels/SettingsViewModel',
-    'viewmodels/WeatherScoutEditor',
-    'viewmodels/WeatherViewModel'],
-    function (ko, $, jqueryui, ww,
-        config,
-        constants,
-        explorer,
-        Globe,
-        BookmarkViewModel,
-        GlobeViewModel,
-        InfoViewModel,
-        LayersViewModel,
-        LayerSettings,
-        MarkerEditor,
-        MarkersViewModel,
-        ProjectionsViewModel,
-        SearchViewModel,
-        SettingsViewModel,
-        WeatherScoutEditor,
-        WeatherViewModel) { // this callback gets executed when all required modules are loaded
-        "use strict";
-        // ----------------
-        // Setup the globe
-        // ----------------
-        WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
-        WorldWind.configuration.baseUrl = ww.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
+    'jqueryui',
+    'worldwind'], function (ko, $, config, constants) { // this callback gets executed after all modules defined in the array are loaded
+    
+    "use strict";
 
-        // Define the configuration for the primary globe
-        var globeOptions = {
-            showBackground: true,
-            showReticule: true,
-            showViewControls: true,
-            includePanControls: config.showPanControl,
-            includeRotateControls: true,
-            includeTiltControls: true,
-            includeZoomControls: true,
-            includeExaggerationControls: config.showExaggerationControl,
-            includeFieldOfViewControls: config.showFieldOfViewControl},
-            globe;
+    // -----------------------------------------------------------
+    // Add handlers for UI elements
+    // -----------------------------------------------------------
+    // Auto-collapse navbar when its tab items are clicked
+    $('.navbar-collapse a[role="tab"]').click(function () {
+        $('.navbar-collapse').collapse('hide');
+    });
+    // Auto-scroll-into-view expanded dropdown menus
+    $('.dropdown').on('shown.bs.dropdown', function (event) {
+        event.target.scrollIntoView(false); // align to bottom
+    });
+    // Auto-expand menu section-bodies when not small
+    $(window).resize(function () {
+        if ($(window).width() >= 768) {
+            $('.section-body').collapse('show');
+        }
+    });
 
-        // Create the explorer's primary globe that's associated with the specified HTML5 canvas
-        globe = new Globe(new WorldWind.WorldWindow("globe-canvas"), globeOptions);
+    // --------------------------------------------------------
+    // Add a custom Knockout binding for JQueryUI slider 
+    // See: http://knockoutjs.com/documentation/custom-bindings.html
+    // --------------------------------------------------------
+    ko.bindingHandlers.slider = {
+        init: function (element, valueAccessor, allBindings) {
+            var options = allBindings().sliderOptions || {};
+            // Initialize a slider with the given options
+            $(element).slider(options);
 
-        // Load additional layers and layer options
-        globe.layerManager.loadDefaultLayers();
+            // Resister a listener on mouse moves to the handle
+            $(element).on("slide", function (event, ui) {
+                var observable = valueAccessor();
+                observable(ui.value);
+            });
+            // Cleanup - See http://knockoutjs.com/documentation/custom-bindings-disposal.html
+            ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
+                $(element).slider("destroy");
+            });
+        },
+        update: function (element, valueAccessor) {
+            // Update the slider when the bound value changes
+            var value = ko.unwrap(valueAccessor());
+            $(element).slider("value", isNaN(value) ? 0 : value);
+        }
+    };
 
-        // Initialize the Explorer object with a basic Globe to "explore"
-        explorer.initialize(globe);
+    // ----------------
+    // Setup WorldWind
+    // ----------------
+    WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
+    if (window.DEBUG) {
+        // Use local resources
+        WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
+    }
+    // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
+    var wwd = new WorldWind.WorldWindow("globe-canvas");
+    // Provide an initial location to view
+    wwd.navigator.lookAtLocation.latitude = config.startupLatitude;
+    wwd.navigator.lookAtLocation.longitude = config.startupLongitude;
+    wwd.navigator.range = config.startupAltitude;
+    // Add initial background layer(s) to display during startup
+    wwd.addLayer(new WorldWind.BMNGOneImageLayer());
 
-        // --------------------------------------------------------
-        // Add a custom Knockout binding for JQuery slider 
-        // See: http://knockoutjs.com/documentation/custom-bindings.html
-        // --------------------------------------------------------
-        ko.bindingHandlers.slider = {
-            init: function (element, valueAccessor, allBindings) {
-                var options = allBindings().sliderOptions || {};
-                // Initialize a slider with the given options
-                $(element).slider(options);
-
-                // Register a listener on completed changes to the slider                
-                $(element).on("slidechange", function (event, ui) {
-                    var observable = valueAccessor();
-                    observable(ui.value);
-                });
-                // Resister a listener on mouse moves to the handle
-                $(element).on("slide", function (event, ui) {
-                    var observable = valueAccessor();
-                    observable(ui.value);
-                });
-                // Cleanup - See http://knockoutjs.com/documentation/custom-bindings-disposal.html
-                ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-                    $(element).slider("destroy");
-                });
-            },
-            update: function (element, valueAccessor) {
-                // Update the slider when the bound value changes
-                var value = ko.unwrap(valueAccessor());
-                $(element).slider("value", isNaN(value) ? 0 : value);
-            }
-        };
-
-        // --------------------------------------------------------
-        // Initialize the view models with their assigned views
-        // --------------------------------------------------------
-        new GlobeViewModel(globe, {
-            markerManager: explorer.markerManager,
-            weatherManager: explorer.weatherManager},
-            "globe", "js/views/globe.html", "globe");
-
-        new SearchViewModel(globe, "search");
-        new BookmarkViewModel(globe, "bookmark", "js/views/bookmark.html", "right-navbar");
-        new ProjectionsViewModel(globe, "projections", "js/views/projections.html", "right-navbar");
-
-        // Tab Panels
-        new LayersViewModel(globe, "layers", "js/views/layers.html", "left-sidebar");
-        new MarkersViewModel(globe, explorer.markerManager, "markers", "js/views/markers.html", "left-sidebar");
-        new WeatherViewModel(globe, explorer.weatherManager, "weather", "js/views/weather.html", "left-sidebar");
-        new SettingsViewModel(globe, "settings", "js/views/settings.html", "left-sidebar");
-        new InfoViewModel(globe, "info", "js/views/info.html", "info-panel");
-
-        // Dialogs
-        new LayerSettings(globe, "layer-settings-dialog", "js/views/layer-settings.html");
-        new MarkerEditor("marker-editor", "js/views/marker-editor.html");
-        new WeatherScoutEditor("weather-scout-editor", "js/views/weather-scout-editor.html");
-
-
-        // -----------------------------------------------------------
-        // Add handlers to auto-expand/collapse the menus
-        // -----------------------------------------------------------
-        // Auto-expand menu section-bodies when not small
-        $(window).resize(function () {
-            if ($(window).width() >= 768) {
-                $('.section-body').collapse('show');
-            }
-        });
-        // Auto-collapse navbar when its tab items are clicked
-        $('.navbar-collapse a[role="tab"]').click(function () {
-            $('.navbar-collapse').collapse('hide');
-        });
-        // Auto-scroll-into-view expanded dropdown menus
-        $('.dropdown').on('shown.bs.dropdown', function (event) {
-            event.target.scrollIntoView(false); // align to bottom
-        });
-
-        // ------------------------------------------------------------
-        // Add handlers to save/restore the session
-        // -----------------------------------------------------------
-        // Add event handler to save the current view (eye position) and markers when the window closes
+    // ------------------
+    // Setup the Explorer
+    // ------------------
+    // This call to require loads the Explorer and its dependencies asynchronisly 
+    // while the WorldWind globe is loading its background layer(s)
+    require(['model/Explorer'], function (Explorer) {
+        // Initialize the Explorer with a WorldWind virtual globe to "explore"
+        var explorer = new Explorer(wwd);
+        // Now that the MVVM is set up, restore the model from the previous session.
+        explorer.restoreSession();
+        // Add event handler to save the session when the window closes
         window.onbeforeunload = function () {
             explorer.saveSession();
             // Return null to close quietly on Chrome and FireFox.
             return null;
         };
+    });
 
-        // Now that MVC is set up, restore the model from the previous session.
-        explorer.restoreSession();
-    }
-);
+});
+
+
+
+
+

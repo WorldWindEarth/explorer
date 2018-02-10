@@ -10,13 +10,13 @@ define(['knockout'],
     function (ko) {
         "use strict";
         /**
-         * The SelectController operates on picked objects containing the Selectable,
+         * The PickController operates on picked objects containing the Selectable,
          * Movable, Openable and/or ContextSensitive capabilites.
          * @constructor
          * @param {WorldWindow} worldWindow
-         * @returns {SelectController}
+         * @returns {PickController}
          */
-        var SelectController = function (worldWindow) {
+        var PickController = function (worldWindow) {
             var self = this;
 
             this.wwd = worldWindow;
@@ -72,7 +72,7 @@ define(['knockout'],
          * @param {Event or TapRecognizer} o The input argument is either an Event or a TapRecognizer. Both have the
          *  same properties for determining the mouse or tap location.
          */
-        SelectController.prototype.handlePick = function (o) {
+        PickController.prototype.handlePick = function (o) {
             // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
             // the mouse or tap location.
             var eventType,
@@ -168,6 +168,7 @@ define(['knockout'],
             // Prevent pan/drag operations on the globe when we're dragging an object.
             if (this.isDragging) {
                 o.preventDefault();
+                o.stopImmediatePropagation();
             }
             // Update the window if we changed anything.
             if (redrawRequired) {
@@ -175,7 +176,7 @@ define(['knockout'],
             }
         };
 
-        SelectController.prototype.handleMouseDown = function (pickList, x, y) {
+        PickController.prototype.handleMouseDown = function (pickList, x, y) {
 
             if (pickList.hasNonTerrainObjects()) {
                 // Establish the picked item - may be used by
@@ -192,7 +193,7 @@ define(['knockout'],
             }
         };
 
-        SelectController.prototype.handleMouseMove = function (pickList, x, y, eventType, button) {
+        PickController.prototype.handleMouseMove = function (pickList, x, y, eventType, button) {
             var p, len,
                 terrainObject;
 
@@ -231,7 +232,7 @@ define(['knockout'],
             }
         };
 
-        SelectController.prototype.handleMouseUp = function (eventType) {
+        PickController.prototype.handleMouseUp = function (eventType) {
             var self = this;
 
             if (this.pickedItem) {
@@ -267,7 +268,7 @@ define(['knockout'],
             this.isDragging = false;
         };
 
-        SelectController.prototype.handleClick = function () {
+        PickController.prototype.handleClick = function () {
             // Remember the clicked item for dblclick processing
             this.clickedItem = this.pickedItem;
             if (this.clickedItem) {
@@ -278,7 +279,7 @@ define(['knockout'],
             this.pickedItem = null;
         };
 
-        SelectController.prototype.handleDoubleClick = function () {
+        PickController.prototype.handleDoubleClick = function () {
             if (this.clickedItem) {
                 this.doOpen(this.clickedItem.userObject);
             }
@@ -286,7 +287,7 @@ define(['knockout'],
             this.pickedItem = null;
         };
 
-        SelectController.prototype.handleContextMenu = function () {
+        PickController.prototype.handleContextMenu = function () {
             this.isDragging = false;
             if (this.pickedItem) {
                 this.doContextSensitive(this.pickedItem.userObject);
@@ -296,7 +297,7 @@ define(['knockout'],
         };
 
 
-        SelectController.prototype.doContextSensitive = function (userObject) {
+        PickController.prototype.doContextSensitive = function (userObject) {
             if (ko.isObservable(userObject.isContextSensitive) && userObject.isContextSensitive()) {
                 if (userObject.showContextMenu) {
                     userObject.showContextMenu();
@@ -307,7 +308,7 @@ define(['knockout'],
             }
         };
 
-        SelectController.prototype.isMovable = function (userObject) {
+        PickController.prototype.isMovable = function (userObject) {
             if (ko.isObservable(userObject.isMovable)) {
                 return userObject.isMovable();
             } else {
@@ -315,14 +316,14 @@ define(['knockout'],
             }
         };
 
-        SelectController.prototype.startMove = function (userObject) {
+        PickController.prototype.startMove = function (userObject) {
             if (userObject.moveStarted) {
                 // Fires EVENT_OBJECT_MOVE_STARTED
                 userObject.moveStarted();
             }
         };
 
-        SelectController.prototype.doMove = function (userObject, terrainObject) {
+        PickController.prototype.doMove = function (userObject, terrainObject) {
             if (userObject.moveToLatLon) {
                 // Fires EVENT_OBJECT_MOVED
                 userObject.moveToLatLon(
@@ -341,7 +342,7 @@ define(['knockout'],
 //                            }
         };
 
-        SelectController.prototype.finishMove = function (userObject) {
+        PickController.prototype.finishMove = function (userObject) {
             // Test for a "Movable" capability    
             if (userObject.moveFinished) {
                 // Fires EVENT_OBJECT_MOVE_FINISHED
@@ -349,7 +350,7 @@ define(['knockout'],
             }
         };
                
-        SelectController.prototype.doClick = function (userObject) {
+        PickController.prototype.doClick = function (userObject) {
             if (ko.isObservable(userObject.isClickable) && userObject.isClickable()) {
                 if (userObject.click) {
                     userObject.click();
@@ -357,7 +358,7 @@ define(['knockout'],
             }
         };
         
-        SelectController.prototype.doSelect = function (userObject) {
+        PickController.prototype.doSelect = function (userObject) {
             if (ko.isObservable(userObject.isSelectable) && userObject.isSelectable()) {
                 if (this.lastSelectedItem() === userObject) {
                     return;
@@ -373,14 +374,14 @@ define(['knockout'],
             }
         };
 
-        SelectController.prototype.doDeselect = function (userObject) {
+        PickController.prototype.doDeselect = function (userObject) {
             if (this.lastSelectedItem() === userObject) {
                 this.lastSelectedItem().select({selected: false});
                 this.lastSelectedItem(null);
             }
         };
 
-        SelectController.prototype.doOpen = function (userObject) {
+        PickController.prototype.doOpen = function (userObject) {
             if (ko.isObservable(userObject.isOpenable) && userObject.isOpenable()) {
                 if (userObject.open) {
                     userObject.open();
@@ -388,6 +389,6 @@ define(['knockout'],
             }
         };
 
-        return SelectController;
+        return PickController;
     }
 );
