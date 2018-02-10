@@ -4,7 +4,7 @@
  * http://www.opensource.org/licenses/mit-license
  */
 
-/*global define*/
+/*global define, WorldWind*/
 
 
 define([
@@ -154,24 +154,25 @@ define([
             return;
         }
     };
-    
+
     /**
      * Centers the globe on the given lat/lon via animation.
      * @param {Number} latitude
      * @param {Number} longitude
-     * @param {Number} eyeAltitude
+     * @param {Number} eyeAltitude optional
      */
-    Explorer.prototype.lookAtLatLon = function (latitude, longitude, eyeAltitude) {
+    Explorer.prototype.gotoLatLonAlt = function (latitude, longitude, eyeAltitude) {
         if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
-            log.error("Explorer", "lookAtLatLon", "Invalid Latitude and/or Longitude.");
+            log.error("Explorer", "gotoLatLonAlt", "Invalid Latitude and/or Longitude.");
             return;
         }
         // TODO: Make AGL and MSL elevations a function of the model
         // TODO: Eye Position a property of the model
         // 
         var self = this,
-                eyeAltMsl = this.globe.viewpoint().eye.altitude,
-                eyePosGrdElev = this.globe.terrainProvider.elevationAtLatLon(this.globe.viewpoint().eye.latitude, this.globe.viewpoint().eye.longitude),
+                viewpoint = this.globe.getViewpoint(),
+                eyeAltMsl = viewpoint.eye.altitude,
+                eyePosGrdElev = this.globe.terrainProvider.elevationAtLatLon(viewpoint.eye.latitude, viewpoint.eye.longitude),
                 tgtPosElev = this.globe.terrainProvider.elevationAtLatLon(latitude, longitude),
                 eyeAltAgl = eyeAltitude || Math.max(eyeAltMsl - eyePosGrdElev, 100),
                 tgtEyeAltMsl = Math.max(tgtPosElev + eyeAltAgl, 100);
@@ -186,25 +187,25 @@ define([
             self.updateSpatialData();
         });
     };
-    
+
     /**
      * Returns the terrain at the reticule.
      * @returns {Terrain} Explorer.model.viewpoint.target}
      */
     Explorer.prototype.getTargetTerrain = function () {
-        return this.globe.viewpoint().target;
+        return this.globe.getViewpoint().target;
     };
-    
+
     /**
      * Restores all the persistant data from a previous session.
      * This method must be called after World Wind has finished
-     * updating. See the use Pace.on("done",...) in WmtClient.
+     * updating. 
      */
     Explorer.prototype.restoreSession = function () {
         log.info('Explorer', 'restoreSession', 'Restoring the model and view.');
         this.markerManager.restoreMarkers();
         this.weatherManager.restoreScouts();
-        this.restoreSessionView(this.wwd);
+        this.restoreSessionView();
         // Update all time sensitive objects
         this.globe.updateDateTime(new Date());
 
@@ -216,10 +217,13 @@ define([
     Explorer.prototype.restoreSessionView = function () {
         // TODO: Create a Bookmark class similar to the Settings class with generate and restore methods
         var urlParameters, lat, lon, alt, heading, tilt, roll;
+
         // Check if URL string has globe camera params associated. 
         // See Globe.getCameraParams()
         // The '.slice(1)' operation removes the question mark separator.
         urlParameters = new URLSearchParams(window.location.search.slice(1));
+
+        // Initalize the view from a URL
         if (urlParameters.has("lat") && urlParameters.has("lon") && urlParameters.has("alt")) {
             lat = Number(urlParameters.get("lat"));
             lon = Number(urlParameters.get("lon"));
@@ -233,6 +237,7 @@ define([
             } else {
                 if (isNaN(heading) || isNaN(tilt) || isNaN(roll)) {
                     log.warning("Explorer", "restoreSessionView", "URL camera values invalid. Ignoring.");
+                    // fall thru to use previous session settings
                 } else {
                     this.wwd.navigator.heading = heading;
                     this.wwd.navigator.tilt = tilt;
@@ -242,12 +247,14 @@ define([
                 // FIX THIS: viewpoint is not updating!
 //                            this.globe.lookAt(lat, lon, alt);
 //                            this.globe.updateEyePosition(); // update time widget
-                this.lookAtLatLon(lat, lon, alt);
+                this.gotoLatLonAlt(lat, lon, alt);
+                
                 return;
             }
         }
         // Restore previous session If there isn't a bookmark url
         settings.restoreSessionSettings(this);
+
     };
 
     /**
@@ -287,7 +294,7 @@ define([
             this.globe.updateEyePosition();
         }
     };
-    
+
     /**
      * handleRedraw is a callback used to update the spatial view models.
      * when the view is redrawn.
@@ -303,7 +310,7 @@ define([
             self.updateTimeout = null;
         }, self.updateInterval);
     };
-    
+
     Explorer.prototype.handleMouseEvent = function (event) {
         if (this.isTouchDevice) {
             return; // ignore simulated mouse events in mobile browsers
@@ -311,7 +318,7 @@ define([
         this.mousePoint = this.wwd.canvasCoordinates(event.clientX, event.clientY);
         this.wwd.redraw();
     };
-    
+
     //noinspection JSUnusedLocalSymbols
     Explorer.prototype.handleTouchEvent = function () {
         this.isTouchDevice = true; // suppress simulated mouse events in mobile browsers
