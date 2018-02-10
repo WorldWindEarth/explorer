@@ -43,14 +43,20 @@ requirejs.config({
 
 /**
  * The application's main entry point, called in index.html
+ * 
+ * @param {Knockout} ko
+ * @param {JQuery} $
+ * @param {Config} config Explorer configuration object
+ * @param {Constants} constants Explorer constants
  */
 require([
     'knockout',
     'jquery',
+    'model/Config',
     'model/Constants',
     'jqueryui',
-    'worldwind'
-], function (ko, $, constants) { // this callback gets executed when all required modules are loaded
+    'worldwind'], function (ko, $, config, constants) { // this callback gets executed after all modules defined in the array are loaded
+    
     "use strict";
 
     // -----------------------------------------------------------
@@ -108,14 +114,17 @@ require([
     }
     // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
     var wwd = new WorldWind.WorldWindow("globe-canvas");
-    // Add some initial background layers to display right away
+    // Provide an initial location to view
+    wwd.navigator.lookAtLocation.latitude = config.startupLatitude;
+    wwd.navigator.lookAtLocation.longitude = config.startupLongitude;
+    wwd.navigator.range = config.startupAltitude;
+    // Add initial background layer(s) to display during startup
     wwd.addLayer(new WorldWind.BMNGOneImageLayer());
-    wwd.addLayer(new WorldWind.ShowTessellationLayer());
 
     // ------------------
     // Setup the Explorer
     // ------------------
-    // This call to require asynchronisly loads the Explorer and its dependencies
+    // This call to require loads the Explorer and its dependencies asynchronisly 
     // while the WorldWind globe is loading its background layer(s)
     require(['model/Explorer'], function (Explorer) {
         // Initialize the Explorer with a WorldWind virtual globe to "explore"
