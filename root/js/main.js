@@ -19,16 +19,16 @@ window.DEBUG = false;
 requirejs.config({
     // Path mappings for the logical module names
     paths: {
-        'bootstrap': window.DEBUG ? 'libs/bootstrap/v3.3.6/bootstrap.min' : 'libs/bootstrap/v3.3.6/bootstrap',
-        'd3': window.DEBUG ? 'libs/d3/d3' : 'libs/d3/d3.min',
+        'bootstrap': window.DEBUG ? 'libs/bootstrap/v3.3.6/bootstrap.min' : 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min',
+        'd3': window.DEBUG ? 'libs/d3/d3' : 'https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min',
         'dragula': 'libs/dragula/dragula',
-        'knockout': window.DEBUG ? 'libs/knockout/knockout-3.4.0.debug' : 'libs/knockout/knockout-3.4.0',
-        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'libs/jquery/jquery-2.1.3.min',
-        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'libs/jquery-ui/jquery-ui-1.11.4.min',
+        'knockout': window.DEBUG ? 'libs/knockout/knockout-3.4.0.debug' : 'https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min',
+        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'http://code.jquery.com/jquery-2.2.4.min',
+        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'http://code.jquery.com/ui/1.12.1/jquery-ui.min',
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
-        'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'libs/moment/moment-2.14.1.min',
+        'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min',
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
-        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'libs/vis/v4.16.1/vis.min',
+        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min',
         'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : 'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min',
         'model': 'model' // root application path
     },
