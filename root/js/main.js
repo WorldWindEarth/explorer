@@ -76,107 +76,77 @@ Try refreshing the page or try again later.\n\n" + err);
 /**
  * The application's main entry point, called in index.html
  * 
- * @param {Config} config Explorer configuration object
+ * @param {Config} config Explorer configuration
  * @param {Constants} constants Explorer constants
- * @param {Knockout} ko
  * @param {JQuery} $
- * @param {domReady} domReady function called once the DOM is ready
+ * @param {domReady} domReady RequireJS plugin called once the DOM is ready
  */
 require([
     'model/Config',
     'model/Constants',
-    'knockout',
     'jquery',
     'domReady',
-    'jqueryui',
-    'worldwind'], function (config, constants, ko, $, domReady) { // this callback gets executed after all modules defined in the array are loaded
+    'worldwind'],
+        function (config, constants, $, domReady) { // this callback gets executed after all modules defined in the array are loaded
+            "use strict";
+            //
+            // This function is called once the DOM is ready.
+            //
+            domReady(function () {
+                // -----------------------------------------------------------
+                // Add handlers for UI elements
+                // -----------------------------------------------------------
+                // Auto-collapse navbar when its tab items are clicked
+                $('.navbar-collapse a[role="tab"]').click(function () {
+                    $('.navbar-collapse').collapse('hide');
+                });
+                // Auto-scroll-into-view expanded dropdown menus
+                $('.dropdown').on('shown.bs.dropdown', function (event) {
+                    event.target.scrollIntoView(false); // align to bottom
+                });
+                // Auto-expand menu section-bodies when not small
+                $(window).resize(function () {
+                    if ($(window).width() >= 768) {
+                        $('.section-body').collapse('show');
+                    }
+                });
 
-    "use strict";
+                // ----------------
+                // Setup WorldWind
+                // ----------------
+                WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
+                if (window.DEBUG) {
+                    // Use local resources
+                    WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
+                }
+                // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
+                var wwd = new WorldWind.WorldWindow("globe-canvas");
+                // Provide an initial location to view
+                wwd.navigator.lookAtLocation.latitude = config.startupLatitude;
+                wwd.navigator.lookAtLocation.longitude = config.startupLongitude;
+                wwd.navigator.range = config.startupAltitude;
+                // Add initial background layer(s) to display during startup
+                wwd.addLayer(new WorldWind.BMNGOneImageLayer());
 
-    // This function is called once the DOM is ready.
-    domReady(function () {
-        // -----------------------------------------------------------
-        // Add handlers for UI elements
-        // -----------------------------------------------------------
-        // Auto-collapse navbar when its tab items are clicked
-        $('.navbar-collapse a[role="tab"]').click(function () {
-            $('.navbar-collapse').collapse('hide');
-        });
-        // Auto-scroll-into-view expanded dropdown menus
-        $('.dropdown').on('shown.bs.dropdown', function (event) {
-            event.target.scrollIntoView(false); // align to bottom
-        });
-        // Auto-expand menu section-bodies when not small
-        $(window).resize(function () {
-            if ($(window).width() >= 768) {
-                $('.section-body').collapse('show');
-            }
-        });
-    });
-
-    // --------------------------------------------------------
-    // Add a custom Knockout binding for JQueryUI slider 
-    // See: http://knockoutjs.com/documentation/custom-bindings.html
-    // --------------------------------------------------------
-    ko.bindingHandlers.slider = {
-        init: function (element, valueAccessor, allBindings) {
-            var options = allBindings().sliderOptions || {};
-            // Initialize a slider with the given options
-            $(element).slider(options);
-
-            // Resister a listener on mouse moves to the handle
-            $(element).on("slide", function (event, ui) {
-                var observable = valueAccessor();
-                observable(ui.value);
+                // ------------------
+                // Setup the Explorer
+                // ------------------
+                // This call to require loads the Explorer and its dependencies asynchronisly 
+                // while the WorldWind globe is loading its background layer(s)
+                require(['model/Explorer'], function (Explorer) {
+                    // Initialize the Explorer with a WorldWind virtual globe to "explore"
+                    var explorer = new Explorer(wwd);
+                    // Now that the MVVM is set up, restore the model from the previous session.
+                    explorer.restoreSession();
+                    // Add event handler to save the session when the window closes
+                    window.onbeforeunload = function () {
+                        explorer.saveSession();
+                        // Return null to close quietly on Chrome and FireFox.
+                        return null;
+                    };
+                });
             });
-            // Cleanup - See http://knockoutjs.com/documentation/custom-bindings-disposal.html
-            ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-                $(element).slider("destroy");
-            });
-        },
-        update: function (element, valueAccessor) {
-            // Update the slider when the bound value changes
-            var value = ko.unwrap(valueAccessor());
-            $(element).slider("value", isNaN(value) ? 0 : value);
-        }
-    };
-
-    // ----------------
-    // Setup WorldWind
-    // ----------------
-    WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
-    if (window.DEBUG) {
-        // Use local resources
-        WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
-    }
-    // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
-    var wwd = new WorldWind.WorldWindow("globe-canvas");
-    // Provide an initial location to view
-    wwd.navigator.lookAtLocation.latitude = config.startupLatitude;
-    wwd.navigator.lookAtLocation.longitude = config.startupLongitude;
-    wwd.navigator.range = config.startupAltitude;
-    // Add initial background layer(s) to display during startup
-    wwd.addLayer(new WorldWind.BMNGOneImageLayer());
-
-    // ------------------
-    // Setup the Explorer
-    // ------------------
-    // This call to require loads the Explorer and its dependencies asynchronisly 
-    // while the WorldWind globe is loading its background layer(s)
-    require(['model/Explorer'], function (Explorer) {
-        // Initialize the Explorer with a WorldWind virtual globe to "explore"
-        var explorer = new Explorer(wwd);
-        // Now that the MVVM is set up, restore the model from the previous session.
-        explorer.restoreSession();
-        // Add event handler to save the session when the window closes
-        window.onbeforeunload = function () {
-            explorer.saveSession();
-            // Return null to close quietly on Chrome and FireFox.
-            return null;
-        };
-    });
-
-});
+        });
 
 
 

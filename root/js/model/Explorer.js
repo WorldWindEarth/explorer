@@ -8,8 +8,6 @@
 
 
 define([
-    'knockout',
-    'url-search-params',
     'model/Config',
     'model/globe/Globe',
     'model/util/Log',
@@ -28,9 +26,11 @@ define([
     'viewmodels/SettingsViewModel',
     'viewmodels/WeatherScoutEditor',
     'viewmodels/WeatherViewModel',
+    'knockout',
+    'jquery',
+    'url-search-params',
+    'jqueryui',
     'worldwind'], function (
-        ko,
-        URLSearchParams,
         config,
         Globe,
         log,
@@ -48,8 +48,10 @@ define([
         SearchViewModel,
         SettingsViewModel,
         WeatherScoutEditor,
-        WeatherViewModel
-        ) {
+        WeatherViewModel,
+        ko,
+        $,
+        URLSearchParams) {
     "use strict";
     /**
      * @constructor
@@ -73,6 +75,8 @@ define([
             includeZoomControls: true,
             includeExaggerationControls: config.showExaggerationControl,
             includeFieldOfViewControls: config.showFieldOfViewControl};
+
+        Explorer.createKnockoutBindingsForSlider();
 
         this.globe = new Globe(wwd, globeOptions);
 
@@ -139,6 +143,36 @@ define([
         new WeatherScoutEditor("weather-scout-editor", "js/views/weather-scout-editor.html");
 
     };
+
+    /**
+     * Adds a custom Knockout binding for the JQueryUI slider.
+     */
+    Explorer.createKnockoutBindingsForSlider = function () {
+        // See: http://knockoutjs.com/documentation/custom-bindings.html
+        ko.bindingHandlers.slider = {
+            init: function (element, valueAccessor, allBindings) {
+                var options = allBindings().sliderOptions || {};
+                // Initialize a slider with the given options
+                $(element).slider(options);
+
+                // Resister a listener on mouse moves to the handle
+                $(element).on("slide", function (event, ui) {
+                    var observable = valueAccessor();
+                    observable(ui.value);
+                });
+                // Cleanup - See http://knockoutjs.com/documentation/custom-bindings-disposal.html
+                ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
+                    $(element).slider("destroy");
+                });
+            },
+            update: function (element, valueAccessor) {
+                // Update the slider when the bound value changes
+                var value = ko.unwrap(valueAccessor());
+                $(element).slider("value", isNaN(value) ? 0 : value);
+            }
+        };
+    };
+
 
     /**
      *
@@ -248,7 +282,7 @@ define([
 //                            this.globe.lookAt(lat, lon, alt);
 //                            this.globe.updateEyePosition(); // update time widget
                 this.gotoLatLonAlt(lat, lon, alt);
-                
+
                 return;
             }
         }
