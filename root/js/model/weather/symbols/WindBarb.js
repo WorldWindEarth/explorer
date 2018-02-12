@@ -24,12 +24,13 @@ define(['model/globe/EnhancedPlacemark',
          * @param {type} eyeDistanceScaling
          * @returns {WindBarbPlacemark_L38.WindBarbPlacemark}
          */
-        var WindBarbPlacemark = function (latitude, longitude, windSpdKts, windDirDeg, eyeDistanceScaling) {
+        var WindBarbPlacemark = function (latitude, longitude, windSpdKts, windDirDeg, eyeDistanceScalingThreshold) {
 
             //EnhancedPlacemark.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), eyeDistanceScaling);
-            WorldWind.Placemark.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), eyeDistanceScaling);
+            WorldWind.Placemark.call(this, new WorldWind.Position(latitude, longitude, constants.MAP_SYMBOL_ALTITUDE_WEATHER), true);
 
             this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+            this.eyeDistanceScalingThreshold = eyeDistanceScalingThreshold;
 
             this.attributes = new WorldWind.PlacemarkAttributes(null);
             this.attributes.depthTest = true;

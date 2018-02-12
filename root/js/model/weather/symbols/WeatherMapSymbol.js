@@ -51,22 +51,23 @@ define(['model/weather/symbols/AirTemperature',
 
             var self = this,
                 wx, i, max,
-                timeOptions = {"hour": "2-digit", "minute": "2-digit", "timeZoneName": "short"};
+                timeOptions = {"hour": "2-digit", "minute": "2-digit", "timeZoneName": "short"},
+                eyeDistanceScalingThreshold = 2500000;
 
             // Maintain a reference to the weather object this symbol represents
             this.wxScout = wxScout;
 
             // Create the composite weather map symbol components
-            this.background = new Background(wxScout.latitude(), wxScout.longitude());
-            this.skyCover = new SkyCover(wxScout.latitude(), wxScout.longitude());
-            this.windBarb = new WindBarb(wxScout.latitude(), wxScout.longitude());
+            this.background = new Background(wxScout.latitude(), wxScout.longitude(), eyeDistanceScalingThreshold);
+            this.skyCover = new SkyCover(wxScout.latitude(), wxScout.longitude(), null, eyeDistanceScalingThreshold);
+            this.windBarb = new WindBarb(wxScout.latitude(), wxScout.longitude(), null, null, eyeDistanceScalingThreshold);
             this.airTemperature = new AirTemperature(wxScout.latitude(), wxScout.longitude(), 'F');
             this.relHumidity = new RelativeHumidity(wxScout.latitude(), wxScout.longitude(), '%');
             this.forecastTime = new ForecastTime(wxScout.latitude(), wxScout.longitude(), ' ');
 
             // Add a reference to our wx model object to the principle renderables.
             // The "movable" wxScoute will generate EVENT_OBJECT_MOVED events. 
-            // See the SelectController.
+            // See the PickController.
             this.background.pickDelegate = wxScout;
             this.skyCover.pickDelegate = wxScout;
             this.windBarb.pickDelegate = wxScout;
