@@ -1,0 +1,61 @@
+<div id="symbols" class="tab-pane" role="tabpanel">
+    <div class="section-heading">
+        <h4 class="sub-header">
+            <span class="glyphicon glyphicon-map-symbol" aria-hidden="true"
+                  style="padding-right:5px;"></span>
+            Symbols
+            <a class="section-toggle" data-toggle="collapse" href="#symbols-body"></a>
+        </h4>
+    </div>
+    <div id="symbols-body" class="section-body collapse in">
+        <!-- Bind the list to the 'symbols' observableArray -->
+        <div data-bind="template: { name: 'symbol-template', foreach: symbols}"></div>
+    </div>
+</div>
+
+
+<!--
+Symbol Item Template
+This script renders the individual symbol view model items in the Tactical Symbols panel.
+-->
+<script type="text/html" id="symbol-template">
+    <div class="btn-group btn-block">
+        <button type="button" class="btn btn-default"
+                style="display: block; width: 70%"
+                data-bind="click: $root.goto">
+            <span class="pull-left"><img width="16px" height="16px"
+                                         data-bind="attr:{src: $data.placemark.attributes.imageSource}"/>  </span>
+            <span data-bind="text: $data.name"></span>
+        </button>
+        <!-- Edit Button -->
+        <button type="button" class="btn btn-default glyphicon glyphicon-pencil"
+                data-bind="click: $parent.editMarker"></button>
+        <!-- Delete Button -->
+        <button type="button" class="btn btn-default glyphicon glyphicon-trash"
+                data-bind="click: $parent.removeMarker"></button>
+    </div>
+</script>
+
+
+<!--
+Marker View Template
+This script renders the selected symbol object the output panel.
+-->
+<script type="text/html" id="tactical-symbol-view-template">
+    <!-- ko if: $data -->
+    <div id="basic-symbol-output" class="panel panel-default" style="height: 100%;">
+        <div class="panel-heading">
+            <h1 class="panel-title">
+                <span class="glyphicon glyphicon-map-symbol" aria-hidden="true"
+                      style="padding-top:4px; padding-bottom:4px"></span>
+                <span data-bind="text: $data.name()"></span>
+            </h1>
+        </div>
+        <div class="panel-body" style="height: calc(100% - 45px); overflow-y: scroll;">
+            <h3>Name: <span data-bind="text: $data.name()"></span></h3>
+            <h4>Location: <span data-bind="text: $data.location()"></span></h4>
+        </div>
+    </div>
+    <!-- /ko -->
+</script>  
+

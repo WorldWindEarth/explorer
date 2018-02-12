@@ -9,12 +9,14 @@
 
 define([
     'knockout',
+    'text',
     'url-search-params',
     'model/Config',
     'model/globe/Globe',
     'model/util/Log',
     'model/util/Settings',
     'model/markers/MarkerManager',
+    'model/milstd2525/SymbolManager',
     'model/weather/WeatherScoutManager',
     'viewmodels/BookmarkViewModel',
     'viewmodels/GlobeViewModel',
@@ -26,6 +28,7 @@ define([
     'viewmodels/ProjectionsViewModel',
     'viewmodels/SearchViewModel',
     'viewmodels/SettingsViewModel',
+    'viewmodels/TacticalSymbolEditor',
     'viewmodels/WeatherScoutEditor',
     'viewmodels/WeatherViewModel',
     'worldwind'], function (
@@ -36,6 +39,7 @@ define([
         log,
         settings,
         MarkerManager,
+        SymbolManager,
         WeatherScoutManager,
         BookmarkViewModel,
         GlobeViewModel,
@@ -47,6 +51,7 @@ define([
         ProjectionsViewModel,
         SearchViewModel,
         SettingsViewModel,
+        TacticalSymbolEditor,
         WeatherScoutEditor,
         WeatherViewModel
         ) {
@@ -81,6 +86,7 @@ define([
 
         // Configure the manager of objects on the globe
         this.markerManager = new MarkerManager(this.globe);
+        this.symbolManager = new SymbolManager(this.globe);
         this.weatherManager = new WeatherScoutManager(this.globe);
 
         // Configure the objects used to animate the globe when performing "go to" operations
@@ -119,6 +125,7 @@ define([
         // --------------------------------------------------------
         new GlobeViewModel(self, {
             markerManager: self.markerManager,
+            symbolManager: self.symbolManager,
             weatherManager: self.weatherManager},
                 "globe", "js/views/globe.html", "globe");
 
@@ -136,6 +143,7 @@ define([
         // Dialogs
         new LayerSettings(self.globe, "layer-settings-dialog", "js/views/layer-settings.html");
         new MarkerEditor("marker-editor", "js/views/marker-editor.html");
+        new TacticalSymbolEditor("symbol-editor", "js/views/symbol-editor.html");
         new WeatherScoutEditor("weather-scout-editor", "js/views/weather-scout-editor.html");
 
     };

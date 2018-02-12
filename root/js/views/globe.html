@@ -1,6 +1,3 @@
-<!--
-Globe overlay view fragment 
--->
 <div id="globe-canvas-overlay">
     <!--
     Marker Buttons
@@ -34,6 +31,36 @@ Globe overlay view fragment
                     <li data-bind="click: $parent.selectedMarkerTemplate">
                         <a><img width="28px" height="28px;"
                                 data-bind="attr:{src: $data.imageSource}"/></a>
+                    </li>
+                </ul>
+            </span>
+            <span class="btn-group" style="float: left">
+                <!-- Add Symbol button and palette -->
+                <button type="button"
+                        class="btn btn-primary btn-sm globe-button"
+                        style="padding-top: 0; padding-bottom: 0; padding-right: 0"
+                        data-bind="click: armDropSymbol">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    <img width="28px" height="28px;"
+                         data-bind="attr:{src: selectedSymbolTemplate().imageSource}"/>
+                </button>
+                <!-- Symbol palette dropdown button-->
+                <button type="button"
+                        class="btn btn-primary btn-sm globe-button dropdown-toggle"
+                        data-toggle="dropdown"
+                        aria-haspopup="true">
+                    <span class="caret"></span>
+                    <span class="sr-only">Symbols Dropdown</span>
+                </button>
+                <!-- Dropdown list bound the 'symbolsPalette' observableArray -->
+                <ul id="symbol-palette"
+                    class="dropdown-menu"
+                    style="left: initial; right: 0; min-width: 30px"
+                    data-bind="foreach: symbolPalette">
+                    <li data-bind="click: $parent.selectedSymbolTemplate">
+                        <a>
+                            <img width="28px" height="28px;" data-bind="attr:{src: $data.imageSource}"/>
+                        </a>
                     </li>
                 </ul>
             </span>
