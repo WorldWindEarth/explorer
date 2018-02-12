@@ -1,7 +1,5 @@
-<!--
-Markers View (bound to MarkersViewModel)
--->
 <div id="markers" class="tab-pane" role="tabpanel">
+    <!-- Markers View (bound to MarkersViewModel) -->
     <div class="section-heading">
         <h4 class="sub-header">
             <span class="glyphicon glyphicon-map-marker" aria-hidden="true"
@@ -17,11 +15,11 @@ Markers View (bound to MarkersViewModel)
 </div>
 
 
-<!--
-Marker Item Template
-This script renders the individual marker view model items in the Markers panel.
--->
 <script type="text/html" id="marker-template">
+    <!--
+    Marker Item Template
+    This script renders the individual marker view model items in the Markers panel.
+    -->
     <div class="btn-group btn-block">
         <button type="button" class="btn btn-default"
                 style="display: block; width: 70%"
@@ -40,11 +38,11 @@ This script renders the individual marker view model items in the Markers panel.
 </script>
 
 
-<!--
-Marker View Template
-This script renders the selected marker object the output panel.
--->
 <script type="text/html" id="basic-marker-view-template">
+    <!--
+    Marker View Template
+    This script renders the selected marker object the output panel.
+    -->
     <!-- ko if: $data -->
     <div id="basic-marker-output" class="panel panel-default" style="height: 100%;">
         <div class="panel-heading">

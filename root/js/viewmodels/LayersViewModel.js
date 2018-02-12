@@ -11,27 +11,41 @@
  * @param {type} $
  * @returns {LayersViewModel}
  */
+/**
+ * 
+ * @param {Constants} constants
+ * @param {Log} log
+ * @param {Dragula} dragula
+ * @param {Knockout} ko 
+ * @param {JQeury} $
+ * @returns {LayersViewModel}
+ */
 define([
+    'model/Constants',
+    'model/util/Log',
+    'dragula',
     'knockout',
     'jquery',
     'jqueryui',
-    'bootstrap',
-    'dragula',
-    'model/Constants',
-    'model/util/Log'],
-    function (
-        ko, $, jqueryui, bootstrap, dragula, constants, log) {
-
+    'bootstrap'],
+    function (constants, log, dragula, ko, $) {
+        "use strict";
         /**
          * The view model for the Layers panel.
-         * @param {Globe} globe The globe that provides the layer manager.
          * @constructor
+         * @param {Globe} globe The globe that provides the layer manager.
+         * @param {String} viewFragment
+         * @param {String} appendToId
+         * @returns {LayersViewModel}
          */
-        function LayersViewModel(globe, viewElementId, viewUrl, appendToId) {
+        function LayersViewModel(globe, viewFragment, appendToId) {
             var self = this,
-                layerManager = globe.layerManager;
+                layerManager = globe.layerManager,
+                domNodes = $.parseHTML(viewFragment);
 
-            this.view = null;
+            // Load the view html into the specified DOM element
+            $(appendToId ? '#' + appendToId : 'body').append(domNodes);
+            this.view = domNodes[0];
 
             // Create view data sources from the LayerManager's observable arrays
             this.baseLayers = layerManager.baseLayers;
@@ -163,7 +177,7 @@ define([
             // 
             // Time sequence controllers
             //
-            
+
             this.onLinkTimeToGlobe = function (layer) {
                 var shouldLinkTime = !layer.linkTimeToGlobe();
                 layer.linkTimeToGlobe(shouldLinkTime);
@@ -182,8 +196,8 @@ define([
                 layer.linkTimeToGlobe(false);
                 layer.stepTimeForward();
             };
-            
-            
+
+
             /**
              * Handle drop event from the Dragula dragger.
              * 
@@ -221,26 +235,9 @@ define([
                 layers.splice(oldIndex > newIndex ? newIndex : newIndex - 1, 0, droppedLayer);
                 layerManager.synchronizeLayers();
             };
-            //
-            // Load the view html into the DOM and apply the Knockout bindings
-            //
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
 
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
             //
-            // Setup dragging (after the view fragment has been loaded)
+            // Setup dragging
             //
             this.drake = dragula({
                 revertOnSpill: true,
@@ -260,6 +257,9 @@ define([
             this.drake.containers.push(document.getElementById('data-layers-item-container'));
             // Define the handler for the "dropped" layers
             this.drake.on('drop', this.onDropLayer);
+
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
         }
 
         return LayersViewModel;

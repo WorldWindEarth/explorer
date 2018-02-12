@@ -1,7 +1,7 @@
-<!--
-Weather View (bound to WeatherViewModel)
--->
 <div id="weather" class="tab-pane" role="tabpanel">
+    <!--
+    Weather View (bound to WeatherViewModel)
+    -->
     <div class="section-heading">
         <h4 class="sub-header">
             <span class="glyphicon glyphicon-cloud" aria-hidden="true"
@@ -16,11 +16,11 @@ Weather View (bound to WeatherViewModel)
     </div>
 </div> 
 
-<!--
-Weather Scout Template
-This script renders the individual weather scout view model items in the Weather panel.
--->
 <script type="text/html" id="weather-scout-template">
+    <!--
+    Weather Scout Template
+    This script renders the individual weather scout view model items in the Weather panel.
+    -->
     <div class="btn-group btn-block">
         <button type="button" class="btn btn-default"
                 style="display: block; width: 70%"
@@ -38,11 +38,11 @@ This script renders the individual weather scout view model items in the Weather
     </div>
 </script>
 
-<!--
-Weather Scout View Template
-This script renders the selected weather scout object the info panel.
--->
 <script type="text/html" id="weather-scout-view-template">
+    <!--
+    Weather Scout View Template
+    This script renders the selected weather scout object the info panel.
+    -->
     <!-- ko if: $data -->
     <div id="weather-scout-output" class="panel panel-default" style="height: 100%;">
         <div class="panel-heading">

@@ -8,32 +8,44 @@
 /**
  * * The BookmarkViewModel opens dialog with a bookmark URL ready for copying to the clipboard.
  * 
- * @param {object} ko  
- * @param {object} $ JQuery
- * @param {class} BookmarkDialog 
+ * @param {BookmarkDialog} BookmarkDialog module
+ * @param {Object} bookmarkDialogHtml HTML view fragment
+ * @param {Knockout} ko  
+ * @param {JQuery} $ 
  * @returns {BookmarkViewModel}
  */
-define(['knockout', 'jquery', 'viewmodels/BookmarkDialog'],
-    function (ko, $, BookmarkDialog) {
+define([
+    'viewmodels/BookmarkDialog',
+    'text!views/bookmark-dialog.html',
+    'knockout',
+    'jquery'],
+    function (BookmarkDialog, bookmarkDialogHtml, ko, $) {
         "use strict";
         /**
          * @constructor
          * @param {Globe} globe
+         * @param {String} viewFragment HTML
+         * @param {String} appendToId The ID of the element to which the view fragment is appended
          * @returns BookmarkViewModel
          */
-        function BookmarkViewModel(globe, viewElementId, viewUrl, appendToId) {
-            var self = this;
-            
-            this.view = null;
-            this.globe = globe;
+        function BookmarkViewModel(globe, viewFragment, appendToId) {
+            var self = this,
+                domNodes = $.parseHTML(viewFragment);
 
-            // Create bookmakr dialog object and bind it to the DOM
-            this.dialog = new BookmarkDialog("bookmark-dialog", "js/views/bookmark-dialog.html");
+            // Load the view html into the specified DOM element
+            $("#" + appendToId).append(domNodes);
+            this.view = domNodes[0];
 
+            // Create a bookmark dialog object
+            this.dialog = new BookmarkDialog(bookmarkDialogHtml);
+
+            /**
+             * Creates a URL on the current view and opens a dialog for viewing/copying.
+             */
             this.onBookmark = function () {
-
                 // Generate a bookmark for the current scene
-                var bookmark = window.location.origin + window.location.pathname + "?"
+                var bookmark = window.location.origin
+                    + window.location.pathname + "?"
                     + globe.layerManager.getWmsLayersParam() + "&"
                     + globe.getCameraParams();
                 // TODO: The bookmark should be generated from Bookmark class
@@ -42,23 +54,8 @@ define(['knockout', 'jquery', 'viewmodels/BookmarkDialog'],
                 self.dialog.open(bookmark);
             };
 
-            // Load the view html into the DOM and apply the Knockout bindings
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
-
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
-
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
         }
 
         return BookmarkViewModel;

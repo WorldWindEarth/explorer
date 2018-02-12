@@ -9,37 +9,25 @@ define(['knockout', 'jquery', 'jqueryui'],
     function (ko, $) {
         "use strict";
         /**
-         *
          * @constructor
+         * @param {String} viewFragment HTML
+         * @returns {MarkerEditor}
          */
-        function MarkerEditor(viewElementID, viewUrl) {
+        function MarkerEditor(viewFragment) {
             var self = this;
-            
-            this.view = null;
+
+            // Load the view fragment into the DOM's body.
+            // Wrap the view in a hidden div for use in a JQuery UI dialog.
+            var $view = $('<div style="display: none"></div>')
+                .append(viewFragment)
+                .appendTo($('body'));
+            this.view = $view.children().first().get(0);
+
             this.marker = ko.observable({});
-
-
-            // Load the view html into the DOM and apply the Knockout bindings
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the DOM's body
-                    $('body').append(data);
-
-                    // Update the view 
-                    self.view = document.getElementById(viewElementID);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
-
 
             this.open = function (marker) {
                 console.log("Open Marker: " + marker.name());
-                
+
                 // Update observable(s)
                 self.marker(marker);
 
@@ -51,6 +39,9 @@ define(['knockout', 'jquery', 'jqueryui'],
                 });
                 $markerEditor.dialog("open");
             };
+            
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
 
         }
 

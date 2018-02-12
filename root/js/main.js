@@ -7,14 +7,14 @@
 /*global require, requirejs, WorldWind */
 
 /**
- * Set DEBUG true to use debug versions of the libraries; set false to use
- * the minified versions for production.
+ * Set DEBUG true to use debug versions of the libraries; 
+ * set false to use minified versions for production.
  * @type Boolean
  */
 window.DEBUG = false;
 
 /**
- * Require.js bootstrapping javascript
+ * Defined the RequreJS configuration
  */
 requirejs.config({
     // Path mappings for the logical module names
@@ -74,79 +74,77 @@ Try refreshing the page or try again later.\n\n" + err);
 };
 
 /**
- * The application's main entry point, called in index.html
+ * The application's main entry point, called by RequireJS in index.html.
+ * The callback function gets executed after all modules defined in the array 
+ * are loaded and after the DOM is ready (via domReady with "!").
  * 
  * @param {Config} config Explorer configuration
  * @param {Constants} constants Explorer constants
  * @param {JQuery} $
- * @param {domReady} domReady RequireJS plugin called once the DOM is ready
  */
 require([
     'model/Config',
     'model/Constants',
     'jquery',
-    'domReady',
+    'domReady!', // The value for domReady! is the current document
     'worldwind'],
-        function (config, constants, $, domReady) { // this callback gets executed after all modules defined in the array are loaded
-            "use strict";
-            //
-            // This function is called once the DOM is ready.
-            //
-            domReady(function () {
-                // -----------------------------------------------------------
-                // Add handlers for UI elements
-                // -----------------------------------------------------------
-                // Auto-collapse navbar when its tab items are clicked
-                $('.navbar-collapse a[role="tab"]').click(function () {
-                    $('.navbar-collapse').collapse('hide');
-                });
-                // Auto-scroll-into-view expanded dropdown menus
-                $('.dropdown').on('shown.bs.dropdown', function (event) {
-                    event.target.scrollIntoView(false); // align to bottom
-                });
-                // Auto-expand menu section-bodies when not small
-                $(window).resize(function () {
-                    if ($(window).width() >= 768) {
-                        $('.section-body').collapse('show');
-                    }
-                });
-
-                // ----------------
-                // Setup WorldWind
-                // ----------------
-                WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
-                if (window.DEBUG) {
-                    // Use local resources
-                    WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
-                }
-                // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
-                var wwd = new WorldWind.WorldWindow("globe-canvas");
-                // Provide an initial location to view
-                wwd.navigator.lookAtLocation.latitude = config.startupLatitude;
-                wwd.navigator.lookAtLocation.longitude = config.startupLongitude;
-                wwd.navigator.range = config.startupAltitude;
-                // Add initial background layer(s) to display during startup
-                wwd.addLayer(new WorldWind.BMNGOneImageLayer());
-
-                // ------------------
-                // Setup the Explorer
-                // ------------------
-                // This call to require loads the Explorer and its dependencies asynchronisly 
-                // while the WorldWind globe is loading its background layer(s)
-                require(['model/Explorer'], function (Explorer) {
-                    // Initialize the Explorer with a WorldWind virtual globe to "explore"
-                    var explorer = new Explorer(wwd);
-                    // Now that the MVVM is set up, restore the model from the previous session.
-                    explorer.restoreSession();
-                    // Add event handler to save the session when the window closes
-                    window.onbeforeunload = function () {
-                        explorer.saveSession();
-                        // Return null to close quietly on Chrome and FireFox.
-                        return null;
-                    };
-                });
-            });
+    function (config, constants, $) { 
+        "use strict";
+        
+        // -----------------------------------------------------------
+        // Add handlers for UI elements
+        // -----------------------------------------------------------
+        // Auto-collapse navbar when its tab items are clicked
+        $('.navbar-collapse a[role="tab"]').click(function () {
+            $('.navbar-collapse').collapse('hide');
         });
+        // Auto-scroll-into-view expanded dropdown menus
+        $('.dropdown').on('shown.bs.dropdown', function (event) {
+            event.target.scrollIntoView(false); // align to bottom
+        });
+        // Auto-expand menu section-bodies when not small
+        $(window).resize(function () {
+            if ($(window).width() >= 768) {
+                $('.section-body').collapse('show');
+            }
+        });
+
+        // ----------------
+        // Setup WorldWind
+        // ----------------
+        WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
+        if (window.DEBUG) {
+            // Use local resources
+            WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
+        }
+        // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
+        var wwd = new WorldWind.WorldWindow("globe-canvas");
+        // Provide an initial location to view
+        wwd.navigator.lookAtLocation.latitude = config.startupLatitude;
+        wwd.navigator.lookAtLocation.longitude = config.startupLongitude;
+        wwd.navigator.range = config.startupAltitude;
+        // Add initial background layer(s) to display during startup
+        wwd.addLayer(new WorldWind.BMNGOneImageLayer());
+
+        // ------------------
+        // Setup the Explorer
+        // ------------------
+
+        // Load the Explorer and its dependencies asynchronously while the 
+        // WorldWind globe is loading its background layer(s).
+        require(['model/Explorer'], function (Explorer) {
+            // Initialize the Explorer with a WorldWind virtual globe to "explore"
+            var explorer = new Explorer(wwd);
+            // Now that the MVVM is set up, restore the model from the previous session.
+            explorer.restoreSession();
+            // Add event handler to save the session when the window closes
+            window.onbeforeunload = function () {
+                explorer.saveSession();
+                // Return null to close quietly on Chrome and FireFox.
+                return null;
+            };
+        });
+    });
 
 
 

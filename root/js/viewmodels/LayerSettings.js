@@ -7,34 +7,38 @@
  * The LayerSettings module is responsible for managing the view that
  * presents controls for a single layer.
  * 
+ * @param {Constants} constants 
  * @param {Knockout} ko
  * @param {JQuery} $
- * @returns {LayerSettingsL#12.LayerSettings}
+ * @returns {LayerSettings}
  */
-define(['knockout', 'jquery', 'model/Constants'],
-    function (ko, $, constants) {
+define(['model/Constants', 'knockout', 'jquery'],
+    function (constants, ko, $) {
         "use strict";
-
         /**
          * Constructs a LayerSettings view model and binds it to the given
          * view element. 
          * @constructor
          * @param {Globe} globe The globe model
-         * @param {String} viewElementID The element ID of the view for the Knockout binding
-         * @param {String} viewUrl The url for the view fragement's html
+         * @param {String} viewFragment The view fragment's html
          * @returns {LayerSettings}
          */
-        function LayerSettings(globe, viewElementID, viewUrl) {
-            var self = this;
-
-            // Setup internals and observables
-
+        function LayerSettings(globe, viewFragment) {
+            var self = this,
+                $view;
+            
+            // Load the view html into the specified DOM element
+            // Wrap the view in a hidden div for use in a JQuery dialog.
+            $view = $('<div style="display: none"></div>')
+                .append(viewFragment)
+                .appendTo($('body'));
+            
             /**
              * The DOM element containing the view fragment.
              * @type {Element}
              */
-            this.view = null;
-
+            this.view = $view.children().first().get(0);
+            
             /**
              * The Globe that renders the layer.
              * @type {Globe}
@@ -135,25 +139,10 @@ define(['knockout', 'jquery', 'model/Constants'],
                 }
             }, this);
 
-            // Load the view html into the DOM and apply the Knockout bindings
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the DOM's body
-                    $('body').append(data);
-
-                    // Update the view 
-                    self.view = document.getElementById(viewElementID);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
 
         }
-
 
         /**
          * Opens the Layer Settings dialog
@@ -266,9 +255,6 @@ define(['knockout', 'jquery', 'model/Constants'],
         LayerSettings.prototype.onRepeat = function (event) {
             this.isRepeating(!this.isRepeating());
         };
-
-
-
 
         return LayerSettings;
     }
