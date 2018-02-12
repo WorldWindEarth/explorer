@@ -36,7 +36,9 @@ requirejs.config({
         // JQuery UI elements
         'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'http://code.jquery.com/ui/1.12.1/jquery-ui.min',
         // JQuery UI based 'growl' messaging
-        'jquery-growl': 'libs/jquery-plugins/jquery.growl',
+        'jquery-growl': 'libs/jquery-plugins/growl/jquery.growl',
+        // JQuery UI touch event support
+        'jquery-touch': 'libs/jquery-plugins/touch-punch/jquery.ui.touch-punch.min',
         // MomentJS date/time library
         'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min',
         // PaceJS progress bar library

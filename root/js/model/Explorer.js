@@ -41,6 +41,7 @@ define([
     'knockout',
     'jquery',
     'jqueryui',
+    'jquery-touch',
     'text',
     'worldwind'],
     function (
