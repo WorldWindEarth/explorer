@@ -37,8 +37,10 @@ requirejs.config({
         'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'http://code.jquery.com/ui/1.12.1/jquery-ui.min',
         // JQuery UI based 'growl' messaging
         'jquery-growl': 'libs/jquery-plugins/jquery.growl',
-        // Moment date/time library
+        // MomentJS date/time library
         'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min',
+        // PaceJS progress bar library
+        'pace': 'libs/pace/pace.min',
         // URL search param parsing
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         // RequireJS plugin to load text/html files using the 'text!' prefixed modules
@@ -80,17 +82,28 @@ Try refreshing the page or try again later.\n\n" + err);
  * 
  * @param {Config} config Explorer configuration
  * @param {Constants} constants Explorer constants
+ * @param {Pace} pace 
  * @param {JQuery} $
  */
 require([
     'model/Config',
     'model/Constants',
+    'pace',
     'jquery',
     'domReady!', // The value for domReady! is the current document
     'worldwind'],
-    function (config, constants, $) { 
+    function (config, constants, pace, $) {
         "use strict";
-        
+
+        // Start a  progress counter
+        pace.start({
+            // Only show the progress on initial load, not on every request.
+            // See: https://github.com/HubSpot/pace/blob/master/pace.coffee
+            restartOnRequestAfter: false,
+            restartOnPushState: false
+        });
+
+
         // -----------------------------------------------------------
         // Add handlers for UI elements
         // -----------------------------------------------------------
@@ -133,16 +146,21 @@ require([
         // Load the Explorer and its dependencies asynchronously while the 
         // WorldWind globe is loading its background layer(s).
         require(['model/Explorer'], function (Explorer) {
+
             // Initialize the Explorer with a WorldWind virtual globe to "explore"
             var explorer = new Explorer(wwd);
             // Now that the MVVM is set up, restore the model from the previous session.
             explorer.restoreSession();
+
             // Add event handler to save the session when the window closes
             window.onbeforeunload = function () {
                 explorer.saveSession();
                 // Return null to close quietly on Chrome and FireFox.
                 return null;
             };
+
+            pace.stop();
+
         });
     });
 
