@@ -12,10 +12,16 @@ define(['knockout', 'jquery', 'jqueryui'],
          *
          * @constructor
          */
-        function WeatherScoutEditor(viewElementID, viewUrl) {
+        function WeatherScoutEditor(viewFragment) {
             var self = this;
             
-            this.view = null;
+            // Load the view fragment into the DOM's body.
+            // Wrap the view in a hidden div for use in a JQuery UI dialog.
+            var $view = $('<div style="display: none"></div>')
+                .append(viewFragment)
+                .appendTo($('body'));
+            this.view = $view.children().first().get(0);
+
             this.scout = ko.observable({});
 
             this.open = function (scout) {
@@ -32,24 +38,9 @@ define(['knockout', 'jquery', 'jqueryui'],
                 // Open the dialog
                 $editorElement.dialog("open");
             };
-            
-            // Load the view html into the DOM and apply the Knockout bindings
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the DOM's body
-                    $('body').append(data);
 
-                    // Update the view 
-                    self.view = document.getElementById(viewElementID);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
-
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
 
         }
 

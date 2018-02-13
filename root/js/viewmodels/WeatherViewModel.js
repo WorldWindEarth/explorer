@@ -5,19 +5,25 @@
 
 /*global WorldWind*/
 
-define(['knockout', 'jquery' , 'model/Constants'],
-    function (ko, $, constants) {
+define(['knockout', 'jquery'],
+    function (ko, $) {
         "use strict";
         /**
          *
+         * @constructor
          * @param {Globe} globe
          * @param {WeatherScoutManager} weatherScoutManager
-         * @constructor
+         * @param {String} viewFragment HTML
+         * @param {String} appendToId Parent element id
+         * @returns {WeatherViewModel}
          */
-        function WeatherViewModel(globe, weatherScoutManager, viewElementId, viewUrl, appendToId) {
-            var self = this;
-            this.view = null;
-            
+        function WeatherViewModel(globe, weatherScoutManager, viewFragment, appendToId) {
+            var domNodes = $.parseHTML(viewFragment);
+
+            // Load the view html into the specified DOM element
+            $("#" + appendToId).append(domNodes);
+            this.view = domNodes[0];
+
             this.weatherScouts = weatherScoutManager.scouts;
 
             /** "Goto" function centers the globe on a selected weatherScout */
@@ -40,24 +46,8 @@ define(['knockout', 'jquery' , 'model/Constants'],
                 }
             };
 
-            //
-            // Load the view html into the DOM and apply the Knockout bindings
-            //
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
-
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
         }
 
         return WeatherViewModel;

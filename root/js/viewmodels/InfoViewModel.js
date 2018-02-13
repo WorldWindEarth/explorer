@@ -7,72 +7,58 @@
 /**
  * Info content module
  *
- * @param {type} ko
- * @param {type} $
+ * @param {WeatherScoutView} WeatherScoutView module
+ * @param {Knockout} ko library
+ * @param {JQuery} $ library
  * @returns {InfoViewModel}
  */
-define([
-    'knockout',
-    'jquery',
-    'viewmodels/WeatherScoutView'],
-        function (ko, $, WeatherScoutView) {
+define(['viewmodels/WeatherScoutView', 'knockout', 'jquery'],
+    function (WeatherScoutView, ko, $) {
+        "use strict";
 
-            /**
-             * 
-             * @constructor
-             * @param {Globe} globe
-             * @param {String} viewElementId View element id
-             * @param {String} viewUrl View fragment file
-             * @param {String} appendToId View element parent id
-             * @returns {InfoViewModelL#18.InfoViewModel}
-             */
-            function InfoViewModel(globe, viewElementId, viewUrl, appendToId) {
-                var self = this;
+        /**
+         * 
+         * @constructor
+         * @param {Globe} globe
+         * @param {String} viewFragment HTML
+         * @param {String} appendToId View element parent id
+         * @returns {InfoViewModel}
+         */
+        function InfoViewModel(globe, viewFragment, appendToId) {
+            var self = this,
+                domNodes = $.parseHTML(viewFragment);
 
-                this.view = null;
-                this.globe = globe;
+            // Load the view html into the specified DOM element
+            $("#" + appendToId).append(domNodes);
+            this.view = domNodes[0];
 
-                // Get a reference to the SelectController's selectedItem observable
-                this.selectedItem = this.globe.selectController.lastSelectedItem;
+            this.globe = globe;
 
-                // Load the Knockout custom binding used in the #weather-scout-view-template
-                this.wxScoutView = new WeatherScoutView();
+            // Get a reference to the SelectController's selectedItem observable
+            this.selectedItem = this.globe.selectController.lastSelectedItem;
 
-                // The viewTemplate defines the content displayed in the output pane.
-                this.viewTemplateName = ko.observable(null);
+            // Load the Knockout custom binding used in the #weather-scout-view-template
+            this.wxScoutView = new WeatherScoutView();
 
-                // Update the view template from the selected object.
-                this.selectedItem.subscribe(function (newItem) {
-                    // Determine if the new item has a view template
-                    if (newItem !== null) {
-                        if (typeof newItem.viewTemplateName !== "undefined") {
-                            self.viewTemplateName(newItem.viewTemplateName);
-                        } else {
-                            self.viewTemplateName(null);
-                        }
+            // The viewTemplate defines the content displayed in the output pane.
+            this.viewTemplateName = ko.observable(null);
+
+            // Update the view template from the selected object.
+            this.selectedItem.subscribe(function (newItem) {
+                // Determine if the new item has a view template
+                if (newItem !== null) {
+                    if (typeof newItem.viewTemplateName !== "undefined") {
+                        self.viewTemplateName(newItem.viewTemplateName);
+                    } else {
+                        self.viewTemplateName(null);
                     }
-                });
+                }
+            });
 
-                //
-                // Load the view html into the DOM and apply the Knockout bindings
-                //
-                $.ajax({
-                    async: false,
-                    dataType: 'html',
-                    url: viewUrl,
-                    success: function (data) {
-                        // Load the view html into the specified DOM element
-                        $("#" + appendToId).append(data);
-
-                        // Update the view member
-                        self.view = document.getElementById(viewElementId);
-
-                        // Binds the view to this view model.
-                        ko.applyBindings(self, self.view);
-                    }
-                });
-            }
-
-            return InfoViewModel;
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
         }
+
+        return InfoViewModel;
+    }
 );

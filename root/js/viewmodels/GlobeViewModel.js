@@ -7,14 +7,11 @@
 
 /**
  * 
- * @param {type} ko
- * @param {type} $
- * @param {type} jqueryui
- * @param {type} BasicMarker
- * @param {type} explorer
- * @param {type} util
- * @param {type} WeatherScout
- * @param {type} ww
+ * @param {BasicMarker} BasicMarker module
+ * @param {WmtUtil} util object
+ * @param {WeatherScout} WeatherScout module
+ * @param {Knockout} ko
+ * @param {JQuery} $ 
  * @returns {GlobeViewModelL#18.GlobeViewModel}
  */
 define([
@@ -33,19 +30,29 @@ define([
         util,
         ko,
         $) {
-        
         "use strict";
-        /**
-         *
-         * @param {Globe} globe The globe object
-         * @param {Array} params Array containing markerManager and weatherManager objects
-         * @constructor
-         */
-        function GlobeViewModel(explorer, params, viewElementId, viewUrl, appendToId) {
-            var self = this;
 
-            this.view = null;
+        /**
+         * A view model for the Globe.
+         * @constructor
+         * @param {Explorer} explorer
+         * @param {Object} params Object containing with manager objects
+         * @param {String} viewFragment
+         * @param {String} appendToId
+         * @returns {GlobeViewModelL#25.GlobeViewModel}
+         */
+        function GlobeViewModel(explorer, params, viewFragment, appendToId) {
+            var self = this,
+                domNodes = $.parseHTML(viewFragment);
+
+            // Load the view html into the specified DOM element
+            $("#" + appendToId).append(domNodes);
+            this.view = domNodes[0];
+
+            this.explorer = explorer;
             this.globe = explorer.globe;
+            
+            // TODO: This is fragile; find a better way to inject managers
             this.markerManager = params.markerManager;
             this.symbolManager = params.symbolManager;
             this.weatherManager = params.weatherManager;
@@ -57,7 +64,7 @@ define([
             this.markerPalette = ko.observableArray(BasicMarker.templates);
             // The currently selected marker icon in the marker palette
             this.selectedMarkerTemplate = ko.observable(this.markerPalette()[0]);
-            
+
             // Create the symbol templates used in the symbol palette
             this.symbolPalette = ko.observableArray(TacticalSymbol.templates);
             // The currently selected symbol icon in the symbol palette
@@ -83,24 +90,10 @@ define([
                 self.handleDropClick(event);
             });
 
-            //
-            // Load the view html into the DOM and apply the Knockout bindings
-            //
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
 
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
+            // Bind the view to this view model
+            ko.applyBindings(this, this.view);
 
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
 
             //$("#timeControlSlider").on('mousedown', $.proxy(this.onMousedown, this));
             //$("#timeControlSlider").on('mouseup', $.proxy(this.onMouseup, this));

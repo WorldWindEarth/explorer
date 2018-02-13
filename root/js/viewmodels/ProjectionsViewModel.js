@@ -7,22 +7,29 @@
 /**
  * Projections content module
  *
- * @param {type} ko
- * @param {type} $
+ *@param {Constants} constants 
+ * @param {Knockout} ko
+ * @param {JQuery} $
  * @returns {ProjectionsViewModel}
  */
-define(['knockout',
-    'jquery',
-    'model/Constants'],
-    function (ko, $, constants) {
+define(['model/Constants', 'knockout', 'jquery'],
+    function (constants, ko, $) {
 
         /**
          * The view model for the Projections panel.
-         * @param {Globe} globe The globe that provides the supported projections
          * @constructor
+         * @param {Globe} globe The globe that provides the supported projections
+         * @param {String} viewFragment HTML
+         * @param {String} appendToId Element id of parent
+         * @returns {ProjectionsViewModel}
          */
-        function ProjectionsViewModel(globe, viewElementId, viewUrl, appendToId) {
-            var self = this;
+        function ProjectionsViewModel(globe, viewFragment, appendToId) {
+            var self = this,
+                domNodes = $.parseHTML(viewFragment);
+
+            // Load the view html into the specified DOM element
+            $("#" + appendToId).append(domNodes);
+            this.view = domNodes[0];
 
             this.projections = ko.observableArray([
                 constants.PROJECTION_NAME_3D,
@@ -47,23 +54,8 @@ define(['knockout',
                 globe.setProjection(projectionName);
             };
 
-
-            // Load the view html into the DOM and apply the Knockout bindings
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
-
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
         }
 
         return ProjectionsViewModel;

@@ -253,6 +253,7 @@ define(['knockout'],
                         this.clickedItem = this.pickedItem;
                         this.tapped = setTimeout(function () {
                             self.tapped = null;
+                            self.doClick(self.clickedItem.userObject);
                             self.doSelect(self.clickedItem.userObject);
                         }, this.DOUBLE_TAP_INTERVAL);
                     } else {

@@ -9,62 +9,65 @@
  * BookmarkDialog presents a dialog that displays a given url and 
  * provides a button that copies it to the clipboard.
  *  
+ * @param {Knockout} ko
+ * @param {JQuery} $
  * @returns {BookmarkDialog}
  */
-define(['knockout', 'jquery', 'jquery-growl',
-],
-    function (ko, $, growl) {
+define(['knockout', 'jquery', 'jqueryui', 'jquery-growl'],
+    function (ko, $) {
         "use strict";
         /**
          * @constructor
+         * @param {Object} viewFragment
+         * @returns {BookmarkDialog}
          */
-        function BookmarkDialog(viewElementID, viewUrl) {
+        function BookmarkDialog(viewFragment) {
             var self = this;
-            this.view = null;
-
             this.bookmark = ko.observable("");
+
+            // Load the view fragment into the DOM's body.
+            // Wrap the view in a hidden div for use in a JQuery UI dialog.
+            var $view = $('<div style="display: none"></div>')
+                .append(viewFragment)
+                .appendTo($('body'));
+            this.view = $view.children().first().get(0);
 
             /**
              * Opens a dialog used to copy a URL to the clipboard
-             * @param {type} url
+             * @param {String} url URL to display/edit
              */
             this.open = function (url) {
                 self.bookmark(url);
-
                 // Open the  copy-bookmark dialog
-                var $bookmarkDialog = $(self.view);
-
-                $bookmarkDialog.dialog({
+                var $view = $(self.view);
+                $view.dialog({
                     autoOpen: false,
                     title: "Bookmark"
                 });
-                $bookmarkDialog.dialog("open");
+                $view.dialog("open");
             };
-
             /**
+             * 
              * Copies the text from the dialogs bookmark-url input element 
              * to the clipboard
              */
             this.copyUrlToClipboard = function () {
-                // 
-                var $bookmarkUrl = $("#bookmark-url"),
-                    $bookmarkDialog = $("#bookmark-dialog");
+                var $bookmarkUrl = $("#bookmark-url");
 
+                // Select the URL text so it can be copied
                 $bookmarkUrl.select();
-
                 try {
-                    // Copy the urrent selection to the clipboard
+                    // Copy the current selection to the clipboard
                     var successful = document.execCommand('copy');
                     if (successful) {
                         $.growl({
                             title: "Bookmark Copied",
                             message: "The link was copied to the clipboard"});
-                        $bookmarkDialog.dialog("close");
+                        $(self.view).dialog("close");
                     } else {
                         $.growl.warning({
                             title: "Bookmark Not Copied!",
                             message: "The link could not be copied"});
-
                     }
                 } catch (err) {
                     console.error('Unable to copy bookmark link.', err.message);
@@ -75,23 +78,8 @@ define(['knockout', 'jquery', 'jquery-growl',
 
             };
 
-
-            // Load the view html into the DOM and apply the Knockout bindings
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the DOM's body
-                    $('body').append(data);
-
-                    // Update the view 
-                    self.view = document.getElementById(viewElementID);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
+            // Bind the view to this view model
+            ko.applyBindings(this, this.view);
 
         }
 

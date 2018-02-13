@@ -7,24 +7,36 @@
 /**
  * Settings content module
  *
- * @param {type} ko
- * @param {type} $
+ * @param {Constants} constants
+ * @param {Knockout} ko
+ * @param {JQuery} $
+ * @param {Moment} moment
  * @returns {SettingsViewModel}
  */
-define(['knockout',
+define(['model/Constants',
+    'knockout',
     'jquery',
-    'moment',
-    'model/Constants'],
-    function (ko, $, moment, constants) {
+    'moment'],
+    function (constants, ko, $, moment) {
 
         /**
          * The view model for the Settings panel.
+         * 
          * @constructor
+         * @param {Globe} globe
+         * @param {String} viewFragment HTML
+         * @param {String} appendToId Parent element id
+         * @returns {SettingsViewModel}
          */
-        function SettingsViewModel(globe, viewElementId, viewUrl, appendToId) {
+        function SettingsViewModel(globe, viewFragment, appendToId) {
             var self = this,
-                skyLayer, starsLayer, atmosphereLayer, timeZoneLayer, viewControls, widgets, crosshairs, 
+                domNodes = $.parseHTML(viewFragment),
+                skyLayer, starsLayer, atmosphereLayer, timeZoneLayer, viewControls, widgets, crosshairs,
                 tessellation, frameStatistics;
+
+            // Load the view html into the specified DOM element
+            $("#" + appendToId).append(domNodes);
+            this.view = domNodes[0];
 
             this.globe = globe;
             this.layerManager = globe.layerManager;
@@ -35,15 +47,15 @@ define(['knockout',
             atmosphereLayer = this.layerManager.findLayer(constants.LAYER_NAME_ATMOSPHERE);
             timeZoneLayer = this.layerManager.findLayer(constants.LAYER_NAME_TIME_ZONES);
             viewControls = this.layerManager.findLayer(constants.LAYER_NAME_VIEW_CONTROLS);
-            widgets = this.layerManager.findLayer(constants.LAYER_NAME_WIDGETS); 
-            crosshairs = this.layerManager.findLayer(constants.LAYER_NAME_RETICLE); 
-            tessellation = this.layerManager.findLayer("Show Tessellation"); 
-            frameStatistics = this.layerManager.findLayer("Frame Statistics"); 
+            widgets = this.layerManager.findLayer(constants.LAYER_NAME_WIDGETS);
+            crosshairs = this.layerManager.findLayer(constants.LAYER_NAME_RETICLE);
+            tessellation = this.layerManager.findLayer("Show Tessellation");
+            frameStatistics = this.layerManager.findLayer("Frame Statistics");
 
             //
             // Observables
             //
-            
+
             /**
              * The current state of the time zones layer (settable).
              */
@@ -74,7 +86,9 @@ define(['knockout',
             /**
              * The state of the black background (read-only).
              */
-            this.blackBackgroundEnabled = ko.computed(function() {return skyLayer ? !skyLayer.enabled() : true});
+            this.blackBackgroundEnabled = ko.computed(function () {
+                return skyLayer ? !skyLayer.enabled() : true;
+            });
             /**
              * The current state of the star field layer (settable).
              */
@@ -87,9 +101,9 @@ define(['knockout',
              * The current opacity level for the atmosphere's nightime effect
              */
             this.nightOpacity = atmosphereLayer ? atmosphereLayer.opacity : ko.observable();
-            
+
             this.dayNightEnabled = ko.observable(false);
-            
+
 
             this.viewControlsEnabled = viewControls ? viewControls.enabled : ko.observable();
             this.widgetsEnabled = widgets ? widgets.enabled : ko.observable();
@@ -99,25 +113,27 @@ define(['knockout',
 
             /**
              * Background color selection handler
+             * @param {String} newValue background color 
              */
             this.backgroundColor.subscribe(function (newValue) {
                 switch (newValue) {
-                case "blue":
-                    self.blueBackgroundEnabled(true);
-                    break;
-                case "black":
-                    self.blueBackgroundEnabled(false);
-                    // The sky background layer manipulates the canvas' background color.
-                    // When it's disabled, the last used color remains in the canvas.
-                    // Set the background color to the default when the background is disabled.
-                    $(self.globe.wwd.canvas).css('background-color', 'black');
-                    break;
+                    case "blue":
+                        self.blueBackgroundEnabled(true);
+                        break;
+                    case "black":
+                        self.blueBackgroundEnabled(false);
+                        // The sky background layer manipulates the canvas' background color.
+                        // When it's disabled, the last used color remains in the canvas.
+                        // Set the background color to the default when the background is disabled.
+                        $(self.globe.wwd.canvas).css('background-color', 'black');
+                        break;
                 }
             });
 
 
             /**
-             * Turn off stars if the default background layer is enabled
+             * Turn off stars if the default background layer is enabled.
+             * @param {Boolean} newValue day/night ensbled state 
              */
             this.dayNightEnabled.subscribe(function (newValue) {
                 if (atmosphereLayer) {
@@ -128,32 +144,15 @@ define(['knockout',
                 }
                 // Tickle the time to force a redraw of the day/night
                 var time = new moment(globe.dateTime());
-                globe.dateTime(time.add(1,'ms').toDate());
+                globe.dateTime(time.add(1, 'ms').toDate());
                 globe.redraw();
-                globe.dateTime(time.subtract(1,'ms').toDate());
+                globe.dateTime(time.subtract(1, 'ms').toDate());
                 globe.redraw();
-                
+
             });
 
-            //
-            // Load the view html into the DOM and apply the Knockout bindings
-            //
-            $.ajax({
-                async: false,
-                dataType: 'html',
-                url: viewUrl,
-                success: function (data) {
-                    // Load the view html into the specified DOM element
-                    $("#" + appendToId).append(data);
-
-                    // Update the view member
-                    self.view = document.getElementById(viewElementId);
-
-                    // Binds the view to this view model.
-                    ko.applyBindings(self, self.view);
-                }
-            });
-
+            // Binds the view to this view model.
+            ko.applyBindings(this, this.view);
         }
 
         return SettingsViewModel;

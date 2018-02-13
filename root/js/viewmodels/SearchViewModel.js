@@ -7,17 +7,17 @@
 /*global WorldWind*/
 
 /**
- * Search content module
+ * Search content module.
+ * @param {Knockout} ko library
  */
-define(['knockout',
-    'jquery',
-    'worldwind'],
-    function (ko, $, ww) {
+define(['knockout', 'worldwind'],
+    function (ko) {
         "use strict";
         /**
          * The view model for the Search panel.
-         * @param {Globe} globe The globe that provides the supported projections
          * @constructor
+         * @param {Globe} globe The globe that provides the supported projections
+         * @param {String} viewElementId  
          */
         function SearchViewModel(globe, viewElementId) {
             var self = this,

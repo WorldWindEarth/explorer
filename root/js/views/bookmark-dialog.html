@@ -1,13 +1,11 @@
-<!--
-Bookmark View/Dialog (bound to the BookmarkDialog view model)
--->
-<div style="display: none">
-    <div id="bookmark-dialog">
-        <label for="url">URL</label>
-        <textarea  name="url"  id="bookmark-url" class="textarea ui-widget-content ui-corner-all"
-                   data-bind="value: bookmark()"></textarea>
-        <button type="button" data-bind="click: copyUrlToClipboard">
-            Copy
-        </button>            
-    </div>
+<div id="bookmark-dialog">
+    <!--
+    Bookmark View/Dialog (bound to the BookmarkDialog view model)
+    -->
+    <label for="url">URL</label>
+    <textarea  name="url"  id="bookmark-url" class="textarea ui-widget-content ui-corner-all"
+               data-bind="value: bookmark()"></textarea>
+    <button type="button" data-bind="click: copyUrlToClipboard">
+        Copy
+    </button>            
 </div>
