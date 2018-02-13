@@ -16,7 +16,7 @@
  */
 define([
     'model/markers/BasicMarker',
-    'model/milstd2525/TacticalSymbol',
+    'model/military/TacticalSymbol',
     'model/weather/WeatherScout',
     'model/util/WmtUtil',
     'knockout',
@@ -157,7 +157,7 @@ define([
         };
 
         /**
-         * Arms the click-drop handler to add a marker to the globe. See: handleClick below.
+         * Arms the click-drop handler to add a tactical symbol to the globe. See: handleClick below.
          */
         GlobeViewModel.prototype.armDropSymbol = function () {
             this.dropIsArmed(true);

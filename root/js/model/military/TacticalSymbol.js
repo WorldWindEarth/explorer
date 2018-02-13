@@ -6,11 +6,10 @@
 /*global WorldWind*/
 
 define([
-    'model/Events',
+    'model/military/SymbolPlacemark',
     'model/util/ContextSensitive',
     'model/util/Formatter',
     'model/util/Openable',
-    'model/util/Log',
     'model/util/Movable',
     'model/util/Removable',
     'model/util/Selectable',
@@ -21,11 +20,10 @@ define([
     'jquery-growl',
     'worldwind'],
     function (
-        events,
+        SymbolPlacemark,
         contextSensitive,
         formatter,
         openable,
-        log,
         movable,
         removable,
         selectable,
@@ -50,14 +48,13 @@ define([
          */
         var TacticalSymbol = function (manager, position, params) {
             var self = this,
-                args = params || {},
-                normalAttributes, highlightAttributes, placemark;
+                args = params || {};
 
             this.globe = manager.globe;
 
-            // TODO: assert validitiy of method arguments
-
-            // Add the mix-in capabilites:
+            // ---------------------------
+            // Add the mix-in capabilites
+            // ---------------------------
 
             // Make movable by the PickController: adds the isMovable, latitude and longitude
             // observables. The SymbolManager toggles the isMovable state when a symbol is selected.
@@ -96,7 +93,9 @@ define([
                     message: "Location: " + self.toponym() + ", " + self.location()});
             });
 
+            // ------------
             // Observables
+            // ------------
 
             /** The unique id used to identify this particular symbol object */
             this.id = ko.observable(args.id || util.guid());
@@ -105,37 +104,18 @@ define([
             /** The movable mix-in state */
             this.isMovable(args.isMovable === undefined ? false : args.isMovable);
             /** The latitude of this symbol -- set be by the Movable interface during pick/drag operations. See PickController */
-            this.latitude(position.latitude)
+            this.latitude(position.latitude);
             /** The longitude of this symbol -- may be set by the Movable interface during pick/drag operations See PickController */
             this.longitude(position.longitude);
             /** The lat/lon location string of this symbol */
             this.location = ko.computed(function () {
                 return formatter.formatDecimalDegreesLat(self.latitude(), 3) + ", " + formatter.formatDecimalDegreesLon(self.longitude(), 3);
             });
-            this.toponym = ko.observable("");
 
-            // Properties
-
-            /** The image source url, stored/recalled in the persistant store */
-            this.source = args.imageSource;
-            /** DOM element id to display view when this symbol is selected. */
-            this.viewTemplateName = 'tactical-symbol-view-template';
-
-
-            // Create the placemark property
-            normalAttributes = new WorldWind.PlacemarkAttributes(TacticalSymbol.commonAttributes());
-//            if (args.imageSource) {
-//                normalAttributes.imageSource = args.imageSource;
-//            } else {
-//                // When there no imageSource, Placemark will draw a colored square
-//                normalAttributes.imageScale = 20;   // size of the square, in pixels
-//                normalAttributes.imageOffset = new WorldWind.Offset(
-//                    WorldWind.OFFSET_FRACTION, 0.5,
-//                    WorldWind.OFFSET_FRACTION, 0.5);
-//            }
-
-             var symbol = new ms.Symbol("sfgpewrh--mt", {
-                size: 35,
+            //this.symbolCode = ko.observable("SUG------------"); // Warfighting. Unknown. Ground.
+            this.symbolCode = ko.observable("sfgpewrh--mt");
+            this.modifiers = ko.observable({
+                size: 30,
                 quantity: 200,
                 staffComments: "for reinforcements".toUpperCase(),
                 additionalInformation: "added support for JJ".toUpperCase(),
@@ -143,26 +123,31 @@ define([
                 type: "machine gun".toUpperCase(),
                 dtg: "30140000ZSEP97",
                 location: "0900000.0E570306.0N"
-            }).asCanvas();
-            normalAttributes.imageSource = new WorldWind.ImageSource(symbol);
+            });
 
-            highlightAttributes = new WorldWind.PlacemarkAttributes(normalAttributes);
-            highlightAttributes.imageScale = normalAttributes.imageScale * 1.2;
 
-            this.placemark = new WorldWind.Placemark(position, true, normalAttributes); // eye distance scaling enabled
-            this.placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-            this.placemark.eyeDistanceScalingThreshold = 4000000;
-            this.placemark.highlightAttributes = highlightAttributes;
-            this.placemark.label = this.name();
+            // ----------
+            // Internals
+            // ----------
+            /** The image source url, stored/recalled in the persistant store */
+            this.source = args.imageSource;
+            /** DOM element id to display view when this symbol is selected. */
+            this.viewTemplateName = 'tactical-symbol-view-template';
+
+            this.placemark = new SymbolPlacemark(position, this.symbolCode(), this.modifiers());
+            
+            //this.placemark.label = this.name();
+
             // Configure the placemark to return this symbol object when the placemark is picked, 
             // See: PickController
             this.placemark.pickDelegate = this;
 
             // Synchronize the placemark to this symbol's the observable properties
 
-            this.name.subscribe(function (newName) {
-                self.placemark.label = newName;
-            });
+//            this.name.subscribe(function (newName) {
+//                self.placemark.label = newName;
+//            });
+
             this.latitude.subscribe(function (newLat) {
                 self.placemark.position.latitude = newLat;
             });
@@ -170,43 +155,9 @@ define([
                 self.placemark.position.longitude = newLon;
             });
 
-            // Self subscribe to move operations so we can update the toponyn when
-            // the move is finished. We don't want to update during the move itself.
-            this.on(events.EVENT_OBJECT_MOVE_FINISHED, this.refresh);
-
-            this.refresh();
         };
 
-        /**
-         * Updates the symbol's place data.
-         */
-        TacticalSymbol.prototype.refresh = function () {
-            //this.refreshPlace();
-        };
-
-
-        TacticalSymbol.commonAttributes = function () {
-            var attributes = new WorldWind.PlacemarkAttributes(null);
-
-            // Set up the common placemark attributes for symbols
-            attributes.depthTest = true;
-            attributes.imageScale = 0.7;
-            attributes.imageColor = WorldWind.Color.WHITE;
-            attributes.imageOffset = new WorldWind.Offset(
-                WorldWind.OFFSET_FRACTION, 0.3,
-                WorldWind.OFFSET_FRACTION, 0.0);
-            attributes.labelAttributes.color = WorldWind.Color.YELLOW;
-            attributes.labelAttributes.offset = new WorldWind.Offset(
-                WorldWind.OFFSET_FRACTION, 0.5,
-                WorldWind.OFFSET_FRACTION, 1.0);
-            attributes.labelAttributes.color = WorldWind.Color.WHITE;
-            attributes.labelAttributes.depthTest = true;
-            attributes.drawLeaderLine = true;
-            attributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
-            attributes.leaderLineAttributes.outlineWidth = 2;
-            return attributes;
-        };
-
+  
         TacticalSymbol.imagePath = 'js/model/images/milstd2525c/64/';
         TacticalSymbol.templates = [
             {name: "Air ", imageSource: TacticalSymbol.imagePath + "sfap-----------.png"},

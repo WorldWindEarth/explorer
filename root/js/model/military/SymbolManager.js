@@ -6,14 +6,14 @@
 /*global WorldWind*/
 
 define([
+    'model/military/TacticalSymbol',
     'knockout',
     'model/Constants',
-    'model/milstd2525/TacticalSymbol',
     'worldwind'],
     function (
+        TacticalSymbol,
         ko,
-        constants,
-        TacticalSymbol) {
+        constants) {
 
         "use strict";
         /**

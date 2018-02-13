@@ -13,7 +13,7 @@ define([
     'model/util/Log',
     'model/util/Settings',
     'model/markers/MarkerManager',
-    'model/milstd2525/SymbolManager',
+    'model/military/SymbolManager',
     'model/weather/WeatherScoutManager',
     'viewmodels/BookmarkViewModel',
     'viewmodels/GlobeViewModel',
