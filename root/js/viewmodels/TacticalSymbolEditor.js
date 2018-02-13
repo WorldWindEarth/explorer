@@ -5,8 +5,8 @@
 
 /*global WorldWind*/
 
-define(['knockout', 'jquery', 'jqueryui'],
-    function (ko, $) {
+define(['milsymbol','knockout', 'jquery', 'jqueryui'],
+    function (ms, ko, $) {
         "use strict";
         /**
          * @constructor
