@@ -40,6 +40,8 @@ requirejs.config({
         // JQuery UI touch event support
         'jquery-touch': 'libs/jquery-plugins/touch-punch/jquery.ui.touch-punch.min',
         // MomentJS date/time library
+        'milsymbol': 'libs/milsymbol/1.3.3/milsymbol',
+        // MomentJS date/time library
         'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min',
         // PaceJS progress bar library
         'pace': 'libs/pace/pace.min',
