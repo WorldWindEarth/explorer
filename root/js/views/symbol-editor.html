@@ -2,4 +2,47 @@
     <label for="name">Name</label>
     <input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all"
            data-bind="value: symbol().name">
+
+    <!--    <div class="dropdown">
+            <select data-bind="options: schemeNames, value: selectedSchemeName"></select>        
+        </div>     -->
+    <div class="dropdown">
+        <select data-bind="options: schemes, 
+                           optionsText: 'name',
+                           value: selectedScheme,
+                           optionsCaption: 'Choose...'"></select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: options, 
+                           optionsText: 'name',
+                           value: selectedOption,
+                           optionsCaption: 'Choose...'">
+
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: icons, 
+                           optionsText: 'name',
+                           value: selectedIcon,
+                           optionsCaption: 'Choose...'">
+
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: modifiers1, 
+                           optionsText: 'name',
+                           value: selectedModifier1,
+                           optionsCaption: 'Choose...'">
+
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: modifiers2, 
+                           optionsText: 'name',
+                           value: selectedModifier2,
+                           optionsCaption: 'Choose...'">
+
+        </select>        
+    </div>     
+
 </div>
