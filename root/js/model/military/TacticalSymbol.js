@@ -112,18 +112,21 @@ define([
                 return formatter.formatDecimalDegreesLat(self.latitude(), 3) + ", " + formatter.formatDecimalDegreesLon(self.longitude(), 3);
             });
 
-            //this.symbolCode = ko.observable("SUG------------"); // Warfighting. Unknown. Ground.
-            this.symbolCode = ko.observable("sfgpewrh--mt");
-            this.modifiers = ko.observable({
-                size: 30,
-                quantity: 200,
-                staffComments: "for reinforcements".toUpperCase(),
-                additionalInformation: "added support for JJ".toUpperCase(),
-                direction: (750 * 360 / 6400),
-                type: "machine gun".toUpperCase(),
-                dtg: "30140000ZSEP97",
-                location: "0900000.0E570306.0N"
-            });
+            this.symbolCode = ko.observable("SUG------------"); // Warfighting. Unknown. Ground.
+            this.modifiers = ko.observable({size: 30});
+            
+
+//            this.symbolCode = ko.observable("sfgpewrh--mt");
+//            this.modifiers = ko.observable({
+//                size: 30,
+//                quantity: 200,
+//                staffComments: "for reinforcements".toUpperCase(),
+//                additionalInformation: "added support for JJ".toUpperCase(),
+//                direction: (750 * 360 / 6400),
+//                type: "machine gun".toUpperCase(),
+//                dtg: "30140000ZSEP97",
+//                location: "0900000.0E570306.0N"
+//            });
 
 
             // ----------
@@ -135,18 +138,22 @@ define([
             this.viewTemplateName = 'tactical-symbol-view-template';
 
             this.placemark = new SymbolPlacemark(position, this.symbolCode(), this.modifiers());
-            
+
             //this.placemark.label = this.name();
 
             // Configure the placemark to return this symbol object when the placemark is picked, 
             // See: PickController
             this.placemark.pickDelegate = this;
 
-            // Synchronize the placemark to this symbol's the observable properties
+            // --------------
+            // Event handlers
+            // --------------
 
-//            this.name.subscribe(function (newName) {
-//                self.placemark.label = newName;
-//            });
+            this.symbolCode.subscribe(function (newCode) {
+                self.placemark.symbolCode = newCode;
+                self.placemark.attributes = SymbolPlacemark.getPlacemarkAttributes(
+                    newCode, self.modifiers(), self.placemark.lastLevelOfDetail);
+            });
 
             this.latitude.subscribe(function (newLat) {
                 self.placemark.position.latitude = newLat;
@@ -154,11 +161,14 @@ define([
             this.longitude.subscribe(function (newLon) {
                 self.placemark.position.longitude = newLon;
             });
+//            this.name.subscribe(function (newName) {
+//                self.placemark.label = newName;
+//            });
 
         };
 
-  
-        TacticalSymbol.imagePath = 'js/model/images/milstd2525c/64/';
+
+        TacticalSymbol.imagePath = 'js/model/images/milstd2525c/';
         TacticalSymbol.templates = [
             {name: "Air ", imageSource: TacticalSymbol.imagePath + "sfap-----------.png"},
             {name: "Ground ", imageSource: TacticalSymbol.imagePath + "sfgp-----------.png"},

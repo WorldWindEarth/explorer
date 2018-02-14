@@ -25,6 +25,8 @@ define(['milsymbol', 'worldwind'],
 
             this.symbolCode = symbolCode;
             this.symbolModifiers = symbolModifiers;
+            this.lastLevelOfDetail = SymbolPlacemark.LOW_LEVEL_OF_DETAIL;
+            
             this.altitudeMode = WorldWind.ABSOLUTE;
             this.eyeDistanceScalingThreshold = 4000000;
 
@@ -42,6 +44,7 @@ define(['milsymbol', 'worldwind'],
 
             this.symbolCode = that.symbolCode;
             this.symbolModifiers = that.symbolModifiers;
+            this.lastLevelOfDetail = that.levelOfDetail;
 
             return this;
         };
