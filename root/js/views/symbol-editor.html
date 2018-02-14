@@ -10,21 +10,34 @@
         <select data-bind="options: schemes, 
                            optionsText: 'name',
                            value: selectedScheme,
-                           optionsCaption: 'Choose...'"></select>        
+                           optionsCaption: 'Scheme...'"></select>        
     </div>     
     <div class="dropdown">
-        <select data-bind="options: options, 
+        <select data-bind="options: affiliations, 
                            optionsText: 'name',
-                           value: selectedOption,
-                           optionsCaption: 'Choose...'">
-
+                           value: selectedAffiliation,
+                           optionsCaption: 'Affiliation...'">
         </select>        
     </div>     
     <div class="dropdown">
-        <select data-bind="options: icons, 
+        <select data-bind="options: dimensions, 
                            optionsText: 'name',
-                           value: selectedIcon,
-                           optionsCaption: 'Choose...'">
+                           value: selectedDimension,
+                           optionsCaption: 'Dimension...'">
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: status, 
+                           optionsText: 'name',
+                           value: selectedStatus,
+                           optionsCaption: 'Status...'">
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: functions, 
+                           optionsText: 'name',
+                           value: selectedFunction,
+                           optionsCaption: 'Function...'">
 
         </select>        
     </div>     
@@ -32,7 +45,7 @@
         <select data-bind="options: modifiers1, 
                            optionsText: 'name',
                            value: selectedModifier1,
-                           optionsCaption: 'Choose...'">
+                           optionsCaption: 'Modifier 1...'">
 
         </select>        
     </div>     
@@ -40,7 +53,7 @@
         <select data-bind="options: modifiers2, 
                            optionsText: 'name',
                            value: selectedModifier2,
-                           optionsCaption: 'Choose...'">
+                           optionsCaption: 'Modifier 2...'">
 
         </select>        
     </div>     

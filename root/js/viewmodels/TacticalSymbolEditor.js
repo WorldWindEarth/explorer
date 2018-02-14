@@ -33,68 +33,96 @@ define([
                 signals = JSON.parse(signalsIntel2525c),
                 stability = JSON.parse(stabilityOps2525c),
                 emergency = JSON.parse(emergencyMgmt2525c);
-
+            
             // Load the view fragment into the DOM's body.
             // Wrap the view in a hidden div for use in a JQuery UI dialog.
             var $view = $('<div style="display: none"></div>')
                 .append(viewFragment)
                 .appendTo($('body'));
             this.view = $view.children().first().get(0);
-
+            
             // The symbol object to be edited 
             this.symbol = ko.observable({});
-
-            // Coding scheme options
+            
+            // Symbol Coding 
             this.schemes = ko.observableArray([warfighting, signals, stability, emergency]);
             this.selectedScheme = ko.observable();
-
-            this.options = ko.observableArray([]);
-            this.selectedOption = ko.observable();
-
-            this.icons = ko.observableArray([]);
-            this.selectedIcon = ko.observable();
-
+            
+            this.dimensions = ko.observableArray([]);
+            this.selectedDimension = ko.observable();
+            
+            this.functions = ko.observableArray([]);
+            this.selectedFunction = ko.observable();
+            
             this.modifiers1 = ko.observableArray([]);
             this.selectedModifier1 = ko.observable();
-
+            
             this.modifiers2 = ko.observableArray([]);
             this.selectedModifier2 = ko.observable();
+            
+            this.status = [
+                {value: "-", name: "-"},
+                {value: "A", name: "Anticipated/Planned"},
+                {value: "P", name: "Present"},
+                {value: "C", name: "Present/Fully Capable"},
+                {value: "D", name: "Present/Damaged"},
+                {value: "X", name: "Present/Destroyed"},
+                {value: "F", name: "Present/Full To Capacity"}
+            ];
+            this.selectedStatus = ko.observable();
+            
+            this.affiliations = [
+                {value: "P", name: "Pending"},
+                {value: "U", name: "Unknown"},
+                {value: "A", name: "Assumed Friend"},
+                {value: "F", name: "Friend"},
+                {value: "N", name: "Neutral"},
+                {value: "S", name: "Suspect"},
+                {value: "H", name: "Hostile"},
+                {value: "G", name: "Exercise Pending"},
+                {value: "W", name: "Exercise Unknown"},
+                {value: "D", name: "Exercise Friend"},
+                {value: "L", name: "Exercise Neutral"},
+                {value: "M", name: "Exercise Assumed Friend"},
+                {value: "J", name: "Joker"},
+                {value: "K", name: "Faker"},
+                {value: "O", name: "None Specified"}
+            ];
+            this.selectedAffiliation = ko.observable();
 
-            this.selectedScheme.subscribe(function (newScheme) {
-                self.options.removeAll();
-                for (var obj in newScheme) {
-                    if (newScheme[obj].name) {
-                        self.options.push(newScheme[obj]);
+
+            this.selectedScheme.subscribe(function (scheme) {
+                self.dimensions.removeAll();
+                for (var obj in scheme) {
+                    if (scheme[obj].name) {
+                        self.dimensions.push(scheme[obj]);
                     }
                 }
             });
 
-            this.selectedOption.subscribe(function (newOption) {
-                var icons, modifiers, obj;
-
-                self.icons.removeAll();
+            this.selectedDimension.subscribe(function (dimension) {
+                var functions, modifiers, obj;
+                self.functions.removeAll();
                 self.modifiers1.removeAll();
                 self.modifiers2.removeAll();
-
-                if (newOption) {
-//                self.icons(newOption["main icon"]);
-                    icons = newOption["main icon"];
-                    for (obj in icons) {
-                        self.icons.push(icons[obj]);
+                if (dimension) {
+//                self.functions(newOption["main icon"]);
+                    functions = dimension["main icon"];
+                    for (obj in functions) {
+                        self.functions.push(functions[obj]);
                     }
 
-                    modifiers = newOption["modifier 1"];
+                    modifiers = dimension["modifier 1"];
                     for (obj in modifiers) {
                         self.modifiers1.push(modifiers[obj]);
                     }
 
-                    modifiers = newOption["modifier 2"];
+                    modifiers = dimension["modifier 2"];
                     for (obj in modifiers) {
                         self.modifiers2.push(modifiers[obj]);
                     }
                 }
             });
-
 
             this.open = function (symbol) {
                 console.log("Open Symbol: " + symbol.name());
@@ -104,12 +132,18 @@ define([
                 var $symbolEditor = $(self.view);
                 $symbolEditor.dialog({
                     autoOpen: false,
-                    title: "Edit Symbol"
+                    title: "Edit Symbol",
+                    buttons: {
+                        "Save": function () {
+                            $(this).dialog("close");
+                        },
+                        Cancel: function () {
+                            $(this).dialog("close");
+                        }
+                    }
                 });
                 $symbolEditor.dialog("open");
             };
-
-
             // Binds the view to this view model.
             ko.applyBindings(this, this.view);
         }
