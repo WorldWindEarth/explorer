@@ -61,9 +61,18 @@ define([
              * An observable array of servers
              */
             this.servers = layerManager.servers;
+
             // Setting a default server address to some interesting data
-            this.serverAddress = ko.observable("https://neowms.sci.gsfc.nasa.gov/wms/wms");
-            //this.serverAddress = ko.observable("http://apps.ecmwf.int/wms/?token=public"); 
+
+            this.serverAddress = ko.observable();
+            this.serverAddresses = ko.observableArray([
+                {name: "NASA Earth Observations", url: "https://neowms.sci.gsfc.nasa.gov/wms/wms"},
+                {name: "European Centre for Medium-Range Weather Forecast", url: "http://apps.ecmwf.int/wms/?token=public"}
+//                {name: "NOAA nowCOAST Observations", url: "https://nowcoast.noaa.gov/arcgis/services/nowcoast/obs_meteocean_insitu_sfc_time/MapServer/WMSServer"},
+//                {name: "NOAA nowCOAST Radar Imagery", url: "https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer"},
+//                {name: "NOAA nowCOAST Surface Analysis", url: "https://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_rtma_time/MapServer/WMSServer"},
+//                {name: "GEOMac Wildfire Support", url: "https://wildfire.cr.usgs.gov/arcgis/services/geomac_dyn/MapServer/WMSServer"}
+            ]);
             this.baseLayersCount = ko.observable(this.baseLayers().length);
             this.baseLayers.subscribe(function (changes) {
                 this.baseLayersCount(this.baseLayers().length);
