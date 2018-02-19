@@ -29,6 +29,7 @@ define([
             this.globe = globe;
             this.layer = layer || globe.findLayer(constants.LAYER_NAME_WEATHER);
             this.scouts = ko.observableArray();
+            this.scoutCount = ko.observable(0);
             this.selectedScout = null;
 
             // Subscribe to "arrayChange" events in the scouts array.
@@ -47,6 +48,7 @@ define([
                         self.doRemoveScoutFromLayer(change.value);
                     }
                 });
+                self.scoutCount(self.scouts().length);
             }, null, "arrayChange");
 
             /**

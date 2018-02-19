@@ -26,6 +26,7 @@ define(['knockout',
             this.globe = globe;
             this.layer = layer || globe.findLayer(constants.LAYER_NAME_MARKERS);
             this.markers = ko.observableArray();
+            this.markerCount = ko.observable(0);
 
             // Subscribe to "arrayChange" events ...
             // documented here: http://blog.stevensanderson.com/2013/10/08/knockout-3-0-release-candidate-available/
@@ -42,8 +43,9 @@ define(['knockout',
                         self.doRemoveMarkerFromLayer(change.value);
                     }
                 });
+                self.markerCount(self.markers().length);
             }, null, "arrayChange");
-                
+
             /**
              * Adds a BasicMarker to this manager.
              * @param {BasicMarker} marker The marker to be managed.
@@ -202,7 +204,7 @@ define(['knockout',
 
                 return uniqueName;
             };
-            
+
         };
 
         return MarkerManager;
