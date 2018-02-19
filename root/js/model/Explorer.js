@@ -26,6 +26,7 @@ define([
     'viewmodels/SettingsViewModel',
     'viewmodels/WeatherScoutEditor',
     'viewmodels/WeatherViewModel',
+    'text!views/basic-markers.html',
     'text!views/bookmark.html',
     'text!views/globe.html',
     'text!views/info.html',
@@ -36,6 +37,7 @@ define([
     'text!views/projections.html',
     'text!views/settings.html',
     'text!views/weather.html',
+    'text!views/weather-scouts.html',
     'text!views/weather-scout-editor.html',
     'url-search-params',
     'knockout',
@@ -62,7 +64,7 @@ define([
         SearchViewModel,
         SettingsViewModel,
         WeatherScoutEditor,
-        WeatherViewModel,
+        basicMarkersHtml,
         bookmarkHtml,
         globeHtml,
         infoHtml,
@@ -72,7 +74,7 @@ define([
         markerEditorHtml,
         projectionsHtml,
         settingsHtml,
-        weatherHtml,
+        weatherScoutsHtml,
         weatherScoutEditorHtml,
         URLSearchParams,
         ko,
@@ -160,8 +162,7 @@ define([
 
             // Tab Panels
             new LayersViewModel(this.globe, layersHtml, "left-sidebar");
-            new MarkersViewModel(this.globe, this.markerManager, markersHtml, "left-sidebar");
-            new WeatherViewModel(this.globe, this.weatherManager, weatherHtml, "left-sidebar");
+            var markersViewModel = new MarkersViewModel(markersHtml, "left-sidebar");
             new SettingsViewModel(this.globe, settingsHtml, "left-sidebar");
             new InfoViewModel(this.globe, infoHtml, "info-panel");
 
@@ -169,6 +170,11 @@ define([
             new LayerSettings(this.globe, layerSettingsHtml);
             new MarkerEditor(markerEditorHtml);
             new WeatherScoutEditor(weatherScoutEditorHtml);
+            
+            // Marker content
+            markersViewModel.addMarkers(this.markerManager, basicMarkersHtml, "markers-body");
+            markersViewModel.addMarkers(this.weatherManager, weatherScoutsHtml, "markers-body");
+
 
         };
 
