@@ -62,31 +62,31 @@ define([
 
             this.status = [
                 {value: "-", name: "-"},
-                {value: "A", name: "Anticipated/Planned"},
-                {value: "P", name: "Present"},
-                {value: "C", name: "Present/Fully Capable"},
-                {value: "D", name: "Present/Damaged"},
-                {value: "X", name: "Present/Destroyed"},
-                {value: "F", name: "Present/Full To Capacity"}
+                {value: "P", name: "P: Present"},
+                {value: "C", name: "C: Present/Fully Capable"},
+                {value: "F", name: "F: Present/Full To Capacity"},
+                {value: "D", name: "D: Present/Damaged"},
+                {value: "X", name: "X: Present/Destroyed"},
+                {value: "A", name: "A: Anticipated/Planned"}
             ];
             this.selectedStatus = ko.observable();
 
             this.affiliations = [
-                {value: "P", name: "Pending"},
-                {value: "U", name: "Unknown"},
-                {value: "A", name: "Assumed Friend"},
-                {value: "F", name: "Friend"},
-                {value: "N", name: "Neutral"},
-                {value: "S", name: "Suspect"},
-                {value: "H", name: "Hostile"},
-                {value: "G", name: "Exercise Pending"},
-                {value: "W", name: "Exercise Unknown"},
-                {value: "D", name: "Exercise Friend"},
-                {value: "L", name: "Exercise Neutral"},
-                {value: "M", name: "Exercise Assumed Friend"},
-                {value: "J", name: "Joker"},
-                {value: "K", name: "Faker"},
-                {value: "O", name: "None Specified"}
+                {value: "U", name: "U: Unknown"},
+                {value: "F", name: "F: Friend"},
+                {value: "N", name: "N: Neutral"},
+                {value: "H", name: "H: Hostile"},
+                {value: "P", name: "P: Pending"},
+                {value: "A", name: "A: Assumed Friend"},
+                {value: "S", name: "S: Suspect"},
+                {value: "G", name: "G: Exercise Pending"},
+                {value: "W", name: "W: Exercise Unknown"},
+                {value: "D", name: "D: Exercise Friend"},
+                {value: "L", name: "L: Exercise Neutral"},
+                {value: "M", name: "M: Exercise Assumed Friend"},
+                {value: "J", name: "J: Joker"},
+                {value: "K", name: "K: Faker"},
+                {value: "O", name: "O: None Specified"}
             ];
             this.selectedAffiliation = ko.observable();
 
