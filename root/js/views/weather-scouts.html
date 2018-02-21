@@ -1,20 +1,18 @@
-<div id="weather" class="tab-pane" role="tabpanel">
-    <!--
-    Weather View (bound to WeatherViewModel)
-    -->
-    <div class="section-heading">
-        <h4 class="sub-header">
-            <span class="glyphicon glyphicon-cloud" aria-hidden="true"
-                  style="padding-right:5px;"></span>
-            Weather
-            <a class="section-toggle" data-toggle="collapse" href="#weather-body"></a>
-        </h4>
+<div id="weather-scouts" class="panel panel-default">
+    <!--This panel is to be appended to markers.html > markers-body element-->
+    <div class="panel-heading">
+        <h5 class="panel-title">
+            <a data-toggle="collapse" href="#weather-scouts-panel" aria-expanded="false"
+               aria-controls="weather-scouts-panel">
+                Weather Forecasts<span class="badge pull-right" data-bind="text: scoutCount"></span>
+            </a>
+        </h5>
     </div>
-    <div id="weather-body" class="section-body collapse in">
+    <div class="panel-collapse collapse in" id="weather-scouts-panel">
         <!-- Bind the list to the 'weatherScouts' observableArray -->
-        <div data-bind="template: { name: 'weather-scout-template', foreach: weatherScouts}"></div>
+        <div data-bind="template: { name: 'weather-scout-template', foreach: scouts}"></div>
     </div>
-</div> 
+</div>
 
 <script type="text/html" id="weather-scout-template">
     <!--
@@ -24,17 +22,17 @@
     <div class="btn-group btn-block">
         <button type="button" class="btn btn-default"
                 style="display: block; width: 70%"
-                data-bind="click: $root.gotoWeatherScout">
+                data-bind="click: $root.gotoScout">
             <span data-bind="text: $data.name"></span>
             <br/>
             <span data-bind="text: $data.location"></span>
         </button>
         <!-- Edit Button -->
         <button type="button" class="btn btn-default glyphicon glyphicon-pencil"
-                data-bind="click: $parent.editWeatherScout"></button>
+                data-bind="click: $data.open"></button>
         <!-- Delete Button -->
         <button type="button" class="btn btn-default glyphicon glyphicon-trash"
-                data-bind="click: $parent.removeWeatherScout"></button>
+                data-bind="click: $data.remove"></button>
     </div>
 </script>
 
