@@ -112,8 +112,8 @@ define([
                 return formatter.formatDecimalDegreesLat(self.latitude(), 3) + ", " + formatter.formatDecimalDegreesLon(self.longitude(), 3);
             });
 
-            this.symbolCode = ko.observable("SUG------------"); // Warfighting. Unknown. Ground.
-            this.modifiers = ko.observable({size: 30});
+            this.symbolCode = ko.observable("SUG------------"); // Default to  Warfighting. Unknown. Ground.
+            this.modifiers = ko.observable({size: 30}); // Set the default size
             
 
 //            this.symbolCode = ko.observable("sfgpewrh--mt");
@@ -135,7 +135,7 @@ define([
             /** The image source url, stored/recalled in the persistant store */
             this.source = args.imageSource;
             /** DOM element id to display view when this symbol is selected. */
-            this.viewTemplateName = 'tactical-symbol-view-template';
+            this.viewTemplateName = 'milstd2525c-view-template';
 
             this.placemark = new SymbolPlacemark(position, this.symbolCode(), this.modifiers());
 
