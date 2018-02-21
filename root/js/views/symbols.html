@@ -1,38 +1,39 @@
-<div id="symbols" class="tab-pane" role="tabpanel">
-    <div class="section-heading">
-        <h4 class="sub-header">
-            <span class="glyphicon glyphicon-map-symbol" aria-hidden="true"
-                  style="padding-right:5px;"></span>
-            Symbols
-            <a class="section-toggle" data-toggle="collapse" href="#symbols-body"></a>
-        </h4>
+<div id="tactical-symbols" class="panel panel-default">
+    <!--This panel is to be appended to markers.html > markers-body element-->
+    <div class="panel-heading">
+        <h5 class="panel-title">
+            <a data-toggle="collapse" href="#tactical-symbols-panel" aria-expanded="false"
+               aria-controls="tactical-symbols-panel">
+                Tactical Symbols<span class="badge pull-right" data-bind="text: symbolCount"></span>
+            </a>
+        </h5>
     </div>
-    <div id="symbols-body" class="section-body collapse in">
+    <div class="panel-collapse collapse in" id="tactical-symbols-panel">
         <!-- Bind the list to the 'symbols' observableArray -->
-        <div data-bind="template: { name: 'symbol-template', foreach: symbols}"></div>
+        <div data-bind="template: { name: 'tactical-symbol-template', foreach: symbols}"></div>
     </div>
 </div>
 
 
 <!--
-Symbol Item Template
+Tactical Symbol Item Template
 This script renders the individual symbol view model items in the Tactical Symbols panel.
 -->
-<script type="text/html" id="symbol-template">
+<script type="text/html" id="tactical-symbol-template">
     <div class="btn-group btn-block">
         <button type="button" class="btn btn-default"
                 style="display: block; width: 70%"
-                data-bind="click: $root.goto">
+                data-bind="click: $root.gotoSymbol">
             <span class="pull-left"><img width="16px" height="16px"
                                          data-bind="attr:{src: $data.placemark.attributes.imageSource}"/>  </span>
             <span data-bind="text: $data.name"></span>
         </button>
         <!-- Edit Button -->
         <button type="button" class="btn btn-default glyphicon glyphicon-pencil"
-                data-bind="click: $parent.editMarker"></button>
+                data-bind="click: $data.open"></button>
         <!-- Delete Button -->
         <button type="button" class="btn btn-default glyphicon glyphicon-trash"
-                data-bind="click: $parent.removeMarker"></button>
+                data-bind="click: $data.remove"></button>
     </div>
 </script>
 

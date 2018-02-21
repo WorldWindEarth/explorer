@@ -135,7 +135,7 @@ define([
             /** The image source url, stored/recalled in the persistant store */
             this.source = args.imageSource;
             /** DOM element id to display view when this symbol is selected. */
-            this.viewTemplateName = 'milstd2525c-view-template';
+            this.viewTemplateName = 'tactical-symbol-view-template';
 
             this.placemark = new SymbolPlacemark(position, this.symbolCode(), this.modifiers());
 
@@ -150,6 +150,7 @@ define([
             // --------------
 
             this.symbolCode.subscribe(function (newCode) {
+                self.name(newCode);
                 self.placemark.symbolCode = newCode;
                 self.placemark.attributes = SymbolPlacemark.getPlacemarkAttributes(
                     newCode, self.modifiers(), self.placemark.lastLevelOfDetail);
