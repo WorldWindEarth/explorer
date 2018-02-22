@@ -1,2 +1,11 @@
 /.idea/workspace.xml
 /nbproject/private/
+/.idea/jsLinters/
+/.idea/shelf/
+/.idea/inspectionProfiles/
+/.idea/dictionaries/
+/.idea/vcs.xml
+/.idea/encodings.xml
+/.idea/misc.xml
+/root/data/timezones/ne_05deg_time_zones_clipped.cpg
+/root/data/timezones/ne_05deg_time_zones.shp.rtree

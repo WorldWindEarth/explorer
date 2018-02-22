@@ -3,7 +3,8 @@
  * The MIT License
  * http://www.opensource.org/licenses/mit-license
  */
-define([], function () {
+define([],
+    function () {
         "use strict";
         var Events = {
             EVENT_MARKER_ADDED: "markerAdded",
@@ -30,6 +31,10 @@ define([], function () {
             EVENT_SURFACEFUEL_CHANGED: "surfaceFuelChanged",
             EVENT_SURFACEFIRE_CHANGED: "surfaceFireChanged",
             EVENT_TERRAIN_CHANGED: "terrainChanged",
+            EVENT_WEATHER_CHANGED: "weatherChanged",
+            EVENT_WEATHER_SCOUT_ADDED: "weatherScoutAdded",
+            EVENT_WEATHER_SCOUT_CHANGED: "weatherScoutChanged",
+            EVENT_WEATHER_SCOUT_REMOVED: "weatherScoutRemoved",
             /**
              * Publish/subscibe event name for notifcation of changes in the application time.
              * @constant
@@ -40,7 +45,7 @@ define([], function () {
              * @constant
              */
             EVENT_VIEWPOINT_CHANGED: "viewpointChanged"
-        }
+        };
 
         return Events;
     }

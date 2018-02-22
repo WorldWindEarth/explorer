@@ -1,570 +1,288 @@
 <!DOCTYPE html>
 <!--
  The MIT License
- Copyright (c) 2016 Bruce Schubert.
+ Copyright (c) 2016-2017 Bruce Schubert.
 -->
 <!--suppress XmlHighlighting, HtmlUnknownTag, HtmlUnknownTag, HtmlUnknownTag, HtmlUnknownTag, HtmlUnknownTag -->
 <html lang="en-us">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
-    <!-- Bootstrap: The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+        <!-- Bootstrap: The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <title>World Wind Explorer</title>
+        <title>WorldWind Explorer</title>
 
-    <meta name="description" content="World Wind Explorer">
-    <meta name="author" content="Bruce Schubert">
+        <meta name="description" content="WorldWind Explorer">
+        <meta name="author" content="Bruce Schubert">
+        <meta name="description" content="The NASA WorldWind Explorer is a geospatial web 
+              application for visualizing the earth. It uses NASA's Web WorldWind JavaScript SDK
+              to display a 3D globe with terrain and imagery as well as 2D maps.
+              It displays the sunrise and sunset times and solar angles for any 
+              point on the earth. It shows the terrain's aspect and slope for any 
+              location. It features user-defined markers and point weather forecasts.
+              It has a search feature to find places.">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="css/images/nasa-logo_32.png"/>
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="css/images/nasa-logo_32.png"/>
 
-    <!-- JQuery UI provides some UI elements (e.g, a slider) -->
-    <link rel="stylesheet" type="text/css" href="css/libs/jquery-ui/v1.11.4/jquery-ui.min.css"/>
-    <!-- Bootstrap's 'Slate' theme provides the main styling -->
-    <link rel="stylesheet" type="text/css" href="css/libs/bootstrap/v3.3.6/bootstrap.min.css"/>
-    <link rel="stylesheet" type="text/css" href="css/libs/bootstrap/v3.3.6/bootstrap-slate.min.css"/>
-    <!-- JQuery-Growl plugin for growl style messages-->
-    <link rel="stylesheet" type="text/css" href="css/libs/jquery-plugins/jquery.growl.css"/>
-    <!-- Font Awesome provides icons -->
-    <link rel="stylesheet" type="text/css" href="css/libs/fa/v4.6.2/font-awesome.min.css"/>
-    <!-- Custom application specific styling -->
-    <link rel="stylesheet" type="text/css" href="css/override.css"/>
+        <!-- JQuery UI provides some UI elements (e.g, a slider) -->
+        <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css"/>
+        <!-- Bootstrap's 'Slate' theme provides the main styling -->
+        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/slate/bootstrap.min.css"/>
+        <!-- Vis.js provides graphs and charting -->
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"/>
+        <!-- JQuery-Growl plugin for growl style messages-->
+        <link rel="stylesheet" type="text/css" href="css/libs/jquery-plugins/jquery.growl.css"/>
+        <!-- Dragula provides layer dragging -->
+        <link rel="stylesheet" type="text/css" href="css/libs/dragula/dragula.css">
+        <!-- Custom application specific styling -->
+        <link rel="stylesheet" type="text/css" href="css/override.css"/>
+        <!--Pace progress indicator styling-->
+        <link rel="stylesheet" type="text/css" href="css/libs/pace/themes/white/pace-theme-big-counter.css"/>
 
-
-</head>
-<body>
-<!--
-Main Menu NavBar
--->
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Branding and 'hamburger' menu -->
-        <div id="header" class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar"
-                    aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand"
-               href="https://github.com/NASAWorldWindResearch/WorldWindExplorer" target="_blank"
-               data-bind="text:appName"></a>
-        </div>
-        <!-- Navigation links, Projections and Search Box -->
-        <div class="collapse navbar-collapse" id="main-navbar">
-            <ul class="nav navbar-nav">
-                <!-- Home navigation button -->
-                <li class="active left-sidebar-btn">
-                    <a href="#home" role="tab" data-toggle="tab">
-                                <span class="glyphicon glyphicon-home visible-sm-block" aria-hidden="true"
-                                      style="padding-top:4px; padding-bottom:4px"></span>
-                        <span class="hidden-sm" aria-hidden="true">Home</span>
+    </head>
+    <body>
+        <!--
+        Main Menu NavBar
+        -->
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <!-- Branding and 'hamburger' menu -->
+                <div id="header" class="navbar-header">
+                    <!-- Branding icon and text on left--> 
+                    <a href="https://worldwind.arc.nasa.gov" target="_blank">
+                        <img class="navbar-brand" id="nasa-logo" src="css/images/nasa-logo_32.png" alt="NASA"/>
+                    </a>                    
+                    <a class="navbar-brand" href="http://worldwind.earth" target="_blank">
+                        Explorer
                     </a>
-                </li>
-                <!-- Layers navigation button -->
-                <li class="left-sidebar-btn">
-                    <a href="#layers" role="tab" data-toggle="tab">
-                                <span class="glyphicon glyphicon-list visible-sm-block" aria-hidden="true"
-                                      style="padding-top:4px; padding-bottom:4px"></span>
-                        <span class="hidden-sm" aria-hidden="true">Layers</span>
-                    </a>
-                </li>
-                <!-- Markers navigation button -->
-                <li class="left-sidebar-btn">
-                    <a href="#markers" role="tab" data-toggle="tab">
-                                <span class="glyphicon glyphicon-map-marker visible-sm-block" aria-hidden="true"
-                                      style="padding-top:4px; padding-bottom:4px"></span>
-                        <span class="hidden-sm" aria-hidden="true">Markers</span>
-                    </a>
-                </li>
-                <!-- Search box and button (bound to SearchViewModel)-->
-                <form id="search" class="navbar-form navbar-left" role="search">
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Destination" id="searchText"
-                               data-bind="value: searchText, valueUpdate: 'keyup', event: {keypress: onEnter}"/>
-                    </div>
-                    <button id="searchButton" class="btn btn-primary" type="submit"
-                            data-bind="click: $root.performSearch">Go To
+                    <!--Hamburger menu on right (displayed on small layout)-->
+                    <button type="button" class="navbar-toggle collapsed" 
+                            data-toggle="collapse" 
+                            data-target="#main-navbar"
+                            aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
                     </button>
-                </form>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <!-- Projections dropdown (bound to ProjectionsViewModel)-->
-                <li id="projections" class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false"><span data-bind="text: currentProjection"></span> <span
-                            class="caret"></span></a>
-                    <!-- Bind the list to the 'projections' observableArray -->
-                    <ul id="projections-menu" class="dropdown-menu" data-bind="foreach: $root.projections">
-                        <li data-bind="click: $root.changeProjection">
-                            <a><span data-bind="text: $data"></span></a>
+                </div>
+                <!-- Navigation links, Projections and Search Box -->
+                <div id="main-navbar" class="collapse navbar-collapse" >
+                    <ul id="main-navbar-tabs" class="nav navbar-nav" role="tablist">                        
+                        <!-- Layers button (the default active tab)-->
+                        <li class="left-sidebar-btn active">
+                            <a href="#layers" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-list" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Layers</span>
+                            </a>
+                        </li>
+                        <!-- Markers button -->
+                        <li class="left-sidebar-btn">
+                            <a href="#markers" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-map-marker" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Markers</span>
+                            </a>
+                        </li>                    
+                        <!-- Settings button -->
+                        <li class="left-sidebar-btn">
+                            <a href="#settings" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-cog" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Settings</span>
+                            </a>
+                        </li>        
+                    </ul>
+                    <ul id="main-navbar-tabs-aux" class="nav navbar-nav" role="tablist">                        
+                        <!-- Info button -->
+                        <li class="info-panel-btn">
+                            <a href="#infoBtn" role="tab" data-toggle="tab">
+                                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Info</span>
+                            </a>
                         </li>
                     </ul>
-                </li>
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
-    </div>
-    <!-- /.container-fluid -->
-</nav>
-
-<!--
-Main Content
--->
-<!--fluid or split-->
-<div id="main" class="container-split">
-    <!--
-    Left Sidebar
-    -->
-    <div id="left-sidebar" class="split split-horizontal tab-content">
+                    <!-- Search box and button (bound to SearchViewModel)-->
+                    <div id="main-navbar-search">
+                        <form id="search" class="navbar-form navbar-left" role="search">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Destination" id="searchText"
+                                       data-bind="value: searchText, valueUpdate: 'keyup', event: {keypress: onEnter}"/>
+                            </div>
+                            <button id="searchButton" class="btn btn-primary" type="submit"
+                                    data-bind="click: $root.performSearch">
+                                <span class="glyphicon glyphicon-search visible-sm-block" aria-hidden="true"
+                                      style="padding-top:4px; padding-bottom:4px"></span>
+                                <span class="hidden-sm" aria-hidden="true">Go To</span>
+                            </button>
+                        </form>
+                    </div>
+                    <ul id="right-navbar" class="nav navbar-nav navbar-right">   
+                        <!--Contents set by view/view-model bindings in main.js-->
+                    </ul>
+                </div>
+                <!-- /.navbar-collapse -->
+            </div>
+            <!-- /.container-fluid -->
+        </nav>
+        <!-- ==================================================================== -->
         <!--
-        Collapse sidebar button
+        Main Content
         -->
-        <button type="button" id="collapse-left-sidebar"
-                class="btn btn-primary btn-sm"
-                style="float: right;">
-            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-        </button>
-
-        <!--
-        Home tab
-        -->
-        <div id="home" class="tab-pane active" role="tabpanel">
-            <div class="section-heading">
-                <h4 class="sub-header">
-                    <span class="glyphicon glyphicon-home" aria-hidden="true" style="padding-right:5px;"></span>
-                    Home
-                    <a class="section-toggle" data-toggle="collapse" href="#home-body"></a>
-                </h4>
-            </div>
-            <div id="home-body" class="section-body collapse in">
-                <div class="panel panel-default">
-                    <div class="panel-heading">Date/Time Settings</div>
-                    <div class="panel-body">
-                        <text class="label">Auto Detect Time Zone:</text>
-                        <input type="checkbox" data-bind="checked: timeZoneDetectEnabled"/>
-                        <text class="label">Use 24 Time:</text>
-                        <input type="checkbox" data-bind="checked: use24Time"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!--
-        Layers View (bound to LayersViewModel)
-        -->
-        <div id="layers" class="tab-pane" role="tabpanel">
-            <div class="section-heading">
-                <h4 class="sub-header">
-                    <span class="glyphicon glyphicon-list" aria-hidden="true" style="padding-right:5px;"></span>
-                    Layers
-                    <a class="section-toggle" data-toggle="collapse" href="#layers-body">
-                    </a>
-                </h4>
-            </div>
-            <div id="layers-body" class="section-body collapse in">
-                <!--TODO: This entire section could be driven by an observable array-->
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h5 class="panel-title">
-                            <a data-toggle="collapse" href="#base-layers-panel" aria-expanded="false"
-                               aria-controls="base-layers-panel">
-                                Base Maps
-                            </a>
-                        </h5>
-                    </div>
-                    <div class="panel-collapse collapse in" id="base-layers-panel">
-                        <div data-bind="template: { name: 'layer-template', foreach: baseLayers}"></div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h5 class="panel-title">
-                            <a data-toggle="collapse" href="#overlay-layers-panel" aria-expanded="false"
-                               aria-controls="overlay-layers-panel">
-                                Overlays
-                            </a>
-                        </h5>
-                    </div>
-                    <div class="panel-collapse collapse in" id="overlay-layers-panel">
-                        <div data-bind="template: { name: 'layer-template', foreach: overlayLayers}"></div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h5 class="panel-title">
-                            <a data-toggle="collapse" href="#data-layers-panel" aria-expanded="false"
-                               aria-controls="data-layers-panel">
-                                Datasets
-                            </a>
-                        </h5>
-                    </div>
-                    <div class="panel-collapse collapse" id="data-layers-panel">
-                        <div data-bind="template: { name: 'layer-template', foreach: dataLayers}"></div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h5 class="panel-title">
-                            <a data-toggle="collapse" href="#effect-layers-panel" aria-expanded="false"
-                               aria-controls="effect-layers-panel">
-                                Effects
-                            </a>
-                        </h5>
-                    </div>
-                    <div class="panel-collapse collapse" id="effect-layers-panel">
-                        <div data-bind="template: { name: 'layer-template', foreach: effectsLayers}"></div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h5 class="panel-title">
-                            <a data-toggle="collapse" href="#widget-layers-panel" aria-expanded="false"
-                               aria-controls="widget-layers-panel">
-                                Widgets
-                            </a>
-                        </h5>
-                    </div>
-                    <div class="panel-collapse collapse" id="widget-layers-panel">
-                        <div data-bind="template: { name: 'layer-template', foreach: widgetLayers}"></div>
-                    </div>
-                </div>
-            </div>
+        <div id="main" class="container-split">
             <!--
-                                    <div>
-                                        <button type="button"
-                                                class="btn btn-primary btn-sm"
-                                                data-bind="click: onAddLayer">
-                                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                                            Add Layer
-                                        </button>
-                                    </div>
+            Left Sidebar
             -->
-            <div class="section-heading">
-                <h4 class="sub-header">
-                    Servers
-                </h4>
-            </div>
-            <!--Display the server address text box and the add server button-->
-            <div class="input-group">
-                <input id="add-server-text" type="text"
-                       data-bind="value: serverAddress"
-                       placeholder="Add new server URL"/>
-                <button type="button" id="add-server-button"
+            <div id="left-sidebar" class="split split-horizontal tab-content">
+                <!--
+                Collapse left sidebar button
+                -->
+                <button type="button" id="collapse-left-sidebar"
                         class="btn btn-primary btn-sm"
-                        data-bind="click: onAddServer">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                    Add Server
+                        style="float: right;">
+                    <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
                 </button>
             </div>
-            <!--Display the servers and their capabilities-->
-            <div class="panel-group" role="tablist" aria-multiselectable="true" id="servers">
-                <!-- ko template: { name: 'server-template', foreach: servers } -->
-                <!-- /ko -->
-            </div>
-
+            <!-- =========================SPLITTER============================== -->
             <!--
-            Add Layer Dialog
+            Explorer window
             -->
-            <div style="display: none">
-                <div id="add-layer-dialog">
-                    Layer Type:
-                    <select data-bind="options: optionValues, value: selectedOptionValue"></select>
-                    <div>
-                        Server Address:
-                        <input style="display: block"/>
-                    </div>
+            <div id="explorer" class="split split-horizontal">
+                <!--
+                Globe canvas (see override css for #globe styling)
+                -->
+                <div id="globe" class="split split-vertical" style="height: 100%;">
+                    <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
+                    <canvas id="globe-canvas" tabindex='1' 
+                            data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
+                        Try Chrome or FireFox.
+                    </canvas>           
                 </div>
-            </div>
-        </div>
+                <!-- =========================SPLITTER================================ -->
+                <!--
+                Info Panel
+                -->
+                <div id="info-panel" class="split split-vertical">
+                    <!--Button to collapse info panel-->
+                    <button type="button" id="collapse-info-panel"
+                            class="btn btn-primary btn-sm"
+                            style="float: right">
+                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </button>
 
-        <!--
-        Markers View (bound to MarkersViewModel)
-        -->
-        <div id="markers" class="tab-pane" role="tabpanel">
-            <div class="section-heading">
-                <h4 class="sub-header">
-                            <span class="glyphicon glyphicon-map-marker" aria-hidden="true"
-                                  style="padding-right:5px;"></span>
-                    Markers
-                    <a class="section-toggle" data-toggle="collapse" href="#markers-body"></a>
-                </h4>
-            </div>
-            <div id="markers-body" class="section-body collapse in">
-                <!-- Bind the list to the 'markers' observableArray -->
-                <div data-bind="template: { name: 'marker-template', foreach: markers}"></div>
-            </div>
-        </div>
-    </div>
-
-    <!--
-    Explorer
-    -->
-    <div id="explorer" class="split split-horizontal">
-        <!--
-        Globe View (bound to the GlobeViewModel)
-        -->
-        <div id="globe" class="split split-vertical" style="height: 100%;">
-            <!--Set canvas' tabindex so keydown events can be captured by the KeyboardController -->
-            <canvas id="canvasOne" tabindex='1'
-                    data-bind="style: { cursor: dropIsArmed() ? 'crosshair' : 'default' }">
-                Try Chrome or FireFox.
-            </canvas>
-            <!--
-            Globe Buttons
-            -->
-            <div class="non-interactive" style="position: absolute; top: 0; right: 0;">
-                <div id="globe-buttons" class="interactive"
-                     style='float: right; margin-top: 30px; max-width: 100px'>
-                            <span class="btn-group" style="float: left">
-                                <!-- Add Marker button and palette -->
-                                <button type="button"
-                                        class="btn btn-primary btn-sm globe-button"
-                                        style="padding-top: 0; padding-bottom: 0; padding-right: 0"
-                                        data-bind="click: armDropMarker">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                                    <img width="28px" height="28px;"
-                                         data-bind="attr:{src: selectedMarkerTemplate().imageSource}"/>
-                                </button>
-                                <!-- Marker palette dropdown button-->
-                                <button type="button"
-                                        class="btn btn-primary btn-sm globe-button dropdown-toggle"
-                                        data-toggle="dropdown"
-                                        aria-haspopup="true">
-                                    <span class="caret"></span>
-                                    <span class="sr-only">Markers Dropdown</span>
-                                </button>
-                                <!-- Dropdown list bound the 'markerPalette' observableArray -->
-                                <ul id="marker-palette"
-                                    class="dropdown-menu"
-                                    style="left: initial; right: 0; min-width: 30px"
-                                    data-bind="foreach: markerPalette">
-                                    <li data-bind="click: $parent.selectedMarkerTemplate">
-                                        <a><img width="28px" height="28px;"
-                                                data-bind="attr:{src: $data.imageSource}"/></a>
-                                    </li>
-                                </ul>
-                            </span>
-                </div>
-            </div>
-            <!--
-            Time Controls
-            -->
-            <div class="col-xs-12 non-interactive">
-                <div class="row">
-                    <!--Create a shallow div along the bottom edge of the globe-->
-                    <div class="interactive" style="position: absolute; bottom: 0; width: 100%">
-
-                        <!--Date/Time Buttons-->
-                        <div id="timeControlButtons"
-                             style="width: 166px; margin-right: auto; margin-left: auto">
-                            <div class="btn-group btn-group-sm interactive" role="group"
-                                 style="float:bottom"
-                                 aria-label="time controls">
-                                <button id="time-fast-backward" type="button"
-                                        class="btn btn-default repeatButton">
-                                            <span class="glyphicon glyphicon-fast-backward"
-                                                  aria-hidden="true"></span>
-                                </button>
-                                <button id="time-step-backward" type="button"
-                                        class="btn btn-default repeatButton">
-                                            <span class="glyphicon glyphicon-step-backward"
-                                                  aria-hidden="true"></span>
-                                </button>
-                                <button id="time-reset" type="button" class="btn btn-default"
-                                        data-bind="click: onTimeReset, css:{active: autoUpdateTime}">
-                                    <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-                                </button>
-                                <button id="time-step-forward" type="button"
-                                        class="btn btn-default repeatButton">
-                                            <span class="glyphicon glyphicon-step-forward"
-                                                  aria-hidden="true"></span>
-                                </button>
-                                <button id="time-fast-forward" type="button"
-                                        class="btn btn-default repeatButton">
-                                            <span class="glyphicon glyphicon-fast-forward"
-                                                  aria-hidden="true"></span>
-                                </button>
-                            </div>
-                        </div>
-                        <!--Date/Time Slider-->
-                        <div id="timeControlSlider"
-                             style="width: 166px; margin-right: auto; margin-left: auto"></div>
-                    </div>
                 </div>
             </div>
         </div>
         <!--
-        Output View (bound to the OutputViewModel)
+        Window Splitter (placed here vs in main.js so that its layout is visible ASAP)
+        See: https://nathancahill.github.io/Split.js/
+        --> 
+        <script src="http://code.jquery.com/jquery-2.2.4.min.js" type="text/javascript"></script>
+        <script src="js/libs/split/v1.3.5/split.min.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            // -----------------------------------------------------------
+            // Add the window splitters
+            // -----------------------------------------------------------
+            var gutterWidth = 4;
+            var minWidths = [160, 240]; // pixels
+            var minHeights = [100, 100]; // pixels
+            var horzInitialSizes = [30, 70]; // percents
+            var vertInitialSizes = [70, 30]; // percents
+            var horzSplitPanes = ['#left-sidebar', '#explorer'];
+            var vertSplitPanes = ['#globe', '#info-panel'];
+            var sidebarSplitter = Split(horzSplitPanes, {
+                direction: 'horizontal',
+                minSize: minWidths, // pixels
+                sizes: horzInitialSizes, // percentages
+                gutterSize: gutterWidth
+            });
+            var infoSplitter = Split(vertSplitPanes, {
+                direction: 'vertical',
+                minSize: minHeights,
+                sizes: vertInitialSizes,
+                gutterSize: gutterWidth
+            });
+            sidebarSplitter.collapse(0); // collapse the sidebar (left) panel
+            infoSplitter.collapse(1); // collapse the info (bottom) panel
+            // For IE/Edge - hide the scrollbar
+            $(horzSplitPanes[0]).css('overflow-y', 'hidden');
+
+            // Add a handler to collapse the left side panel
+            $('#collapse-left-sidebar').on('click', sidebarSplitter, function (event) {
+                // Collapse the sidebar (1st item in splitter array
+                var splitter = event.data;
+                splitter.lastSizes = splitter.getSizes();
+                splitter.collapse(0);
+                // For IE/Edge
+                $(horzSplitPanes[0]).css('overflow-y', 'hidden');
+            });
+            // Add a handler to collapse the bottom panel
+            $('#collapse-info-panel').on('click', infoSplitter, function (event) {
+                // Collapse the bottom panel (2nd item in splitter array)
+                var splitter = event.data;
+                splitter.collapse(1);
+            });
+            // Add a handler to toggle the left side panel
+            $('.left-sidebar-btn').on('click', sidebarSplitter, function (event) {
+                var splitter = event.data;
+                if ($(horzSplitPanes[0]).width() < 100) {
+                    // Expand the sidebar
+                    if (splitter.lastSizes === undefined) {
+                        splitter.setSizes(horzInitialSizes); // percentages
+                    } else {
+                        splitter.setSizes(splitter.lastSizes);
+                    }
+                    // For IE/Edge
+                    $(horzSplitPanes[0]).css('overflow-y', 'auto');
+                } else if ($(this).is('.active')) {
+                    // Collapse the sidebar (first index in the splitter array)
+                    splitter.lastSizes = splitter.getSizes();
+                    splitter.collapse(0);
+                    // For IE/Edge - hide the scrollbar when collapsed
+                    $(horzSplitPanes[0]).css('overflow-y', 'hidden');
+                }
+
+            });
+            // Add a handler to toggle the info panel
+            $('.info-panel-btn').on('click', infoSplitter, function (event) {
+                var splitter = event.data;
+                if ($(vertSplitPanes[1]).height() < 100) {
+                    // Expand the panel
+                    if (splitter.lastSizes === undefined) {
+                        splitter.setSizes(vertInitialSizes); // percentages
+                    } else {
+                        splitter.setSizes(splitter.lastSizes);
+                    }
+                } else {
+                    // Collapse the panel (second index in the splitter array)
+                    splitter.collapse(1);
+                }
+            });
+            $(window).resize(function () {
+                // Force re-calc of size percentages when collapsed.
+                // The collapsed window has a 'fixed' size (0), but the
+                // size percentages vary during the resize. We need to 
+                // re-calc the size percentages during resizing to a 
+                // smaller window, else the remaining split-pane's size 
+                // could be fractionally to big to fit into its container
+                // and cause the layout to fail.
+                if ($(horzSplitPanes[0]).width() < 5) {
+                    sidebarSplitter.collapse(0);
+                    // FOR IE/Edge - hide the scroll bar when collapsed
+                    $(horzSplitPanes[0]).css('overflow-y', 'hidden');
+                }
+            });
+        </script>
+
+        <!-- 
+        Application Entry Point: RequireJS AMD configuration file 
+        main.js
         -->
-        <div id="output" class="split split-vertical">
-            <!--Button to collapse output panel-->
-            <button type="button" id="collapse-output-panel"
-                    class="btn btn-primary btn-sm"
-                    style="float: right">
-                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-            </button>
-            <!--Output panel-->
-            <div style="height: 100%;" data-bind="template: {
-                            if: viewTemplateName()!==null,
-                            name: viewTemplateName,
-                            data: selectedItem
-                            }">
-            </div>
-        </div>
-    </div>
-</div>
+        <script data-main="js/main" src="js/libs/require/require-2.3.5.min.js"></script>
 
-<!--
-Layer Settings Dialog
--->
-<div style="display: none">
-    <div id="layer-settings-dialog">
-        Opacity
-        <div id="opacity-slider" auto-focus></div>
-    </div>
-</div>
-
-<!--
-Marker Editor Dialog
--->
-<div style="display: none">
-    <div id="marker-editor">
-        <label for="name">Name</label>
-        <input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all"
-               data-bind="value: marker().name">
-    </div>
-</div>
-
-
-<!--
-Layer Template
-This script renders the individual layer view model items in the Layers panel.
--->
-<script type="text/html" id="layer-template">
-    <div class="btn-group btn-block">
-        <!--Layer name and visibility button-->
-        <button type="button"
-                class="btn btn-default layer-name wrap-panel-heading"
-                style="display: block; width: 70%;"
-                data-bind="click: $root.onToggleLayer, css: {active: $data.enabled()}">
-                    <span class="glyphicon pull-left"
-                          data-bind="css: {'glyphicon-eye-open': $data.enabled(), 'glyphicon-eye-close': !$data.enabled()}"></span>
-            <span class="layer" data-bind="text: $data.name()"></span>
-        </button>
-        <!--Display legend button-->
-        <button type="button"
-                class="btn btn-default collapse"
-                style="display: block; width: 15%;"
-                data-toggle="collapse"
-                data-bind="css: {active: $data.enabled(), in: $data.enabled()},
-                            attr: {
-                        'data-target': '#collapse-layer-' + $data.id(),
-                        'aria-controls': 'collapse-layer-' + $data.id(),
-                        'aria-expanded': $data.enabled() ? 'true' : 'false'}">
-            <span class="glyphicon glyphicon-stats"></span>
-        </button>
-        <!--Settings button-->
-        <button type="button"
-                class="btn btn-default"
-                style="display: block; width: 15%;"
-                data-bind="css: {active: $data.enabled()}, click: $root.onEditSettings">
-            <span class="glyphicon glyphicon-cog"></span>
-        </button>
-    </div>
-    <div class="collapse" data-bind="attr: {id: 'collapse-layer-' + $data.id()}">
-        <div class="well">
-            <!--Controls and Legend-->
-            <div>
-                <img data-bind="attr: {src: legendUrl}"/>
-            </div>
-        </div>
-    </div>
-
-</script>
-
-<!--
-Marker Item Template
-This script renders the individual marker view model items in the Markers panel.
--->
-<script type="text/html" id="marker-template">
-    <div class="btn-group btn-block">
-        <button type="button" class="btn btn-default"
-                style="display: block; width: 70%"
-                data-bind="click: $root.gotoMarker">
-                    <span class="pull-left"><img width="16px" height="16px"
-                                                 data-bind="attr:{src: $data.placemark.attributes.imageSource}"/>  </span>
-            <span data-bind="text: $data.name"></span>
-        </button>
-        <!-- Edit Button -->
-        <button type="button" class="btn btn-default glyphicon glyphicon-pencil"
-                data-bind="click: $parent.editMarker"></button>
-        <!-- Delete Button -->
-        <button type="button" class="btn btn-default glyphicon glyphicon-trash"
-                data-bind="click: $parent.removeMarker"></button>
-    </div>
-</script>
-
-<!--
-Server Template
-This server-template script renders a server's tab content
--->
-<script type="text/html" id="server-template">
-    <!-- ko if: layers().length -->
-    <div class="panel panel-default">
-        <div class="panel-heading" role="tab"
-             data-bind=" attr: {id: 'server-panel-' + $index}">
-            <h5 class="panel-title wrap-panel-heading">
-                <a data-toggle="collapse"
-                   aria-expanded="true"
-                   data-bind="text:$data.title,
-                            attr: {'aria-controls': 'server-layers-' + $data.id, href:'#server-layers-' + $data.id}">
-                </a>
-                <a href="#">
-                    <small><span class="pull-right glyphicon glyphicon-remove clickable_space"></span></small>
-                </a>
-            </h5>
-        </div>
-        <div class="panel-collapse collapse in" role="tabpanel"
-             data-bind="attr: {id:'server-layers-' + $data.id, 'aria-labelledby': 'server-panel-' + $index()}">
-            <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
-            <!-- /ko -->
-        </div>
-    </div>
-    <!-- /ko -->
-</script>
-
-<!--
-Server Layer Template
-This server-layer-template script recursively renders a server's layer list items
--->
-<script type="text/html" id="server-layer-template">
-    <li>
-        <input type="checkbox" data-bind="click: $root.onServerLayerClicked, checked: isChecked, visible: isLayer"/>
-        <span data-bind="text: title"></span>
-        <!-- ko if: layers().length -->
-        <ul>
-            <!-- ko template: { name: 'server-layer-template', foreach: layers } -->
-            <!-- /ko -->
-        </ul>
-        <!-- /ko -->
-    </li>
-</script>
-<!--
-Hello World Template
-This test template renders 'Hello World'
--->
-<script type="text/html" id="hello-world-template">
-    <p>Hello World!</p>
-</script>
-
-<!--Prototyping the jquery fancytree plugin-->
-<!--<script src="//cdn.jsdelivr.net/jquery.fancytree/2.9.0/jquery.fancytree-all.min.js" type="text/javascript"></script>-->
-
-<!-- RequireJS AMD configuration file -->
-<script data-main="js/main" src="js/libs/require/require-debug.js"></script>
-
-</body>
+    </body>
 </html>

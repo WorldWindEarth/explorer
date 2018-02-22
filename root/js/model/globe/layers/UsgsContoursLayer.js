@@ -4,7 +4,7 @@
  * http://www.opensource.org/licenses/mit-license
  */
 
-/*global define */
+/*global define, WorldWind */
 
 /**
  * The USGS Contours layer.
@@ -14,12 +14,7 @@
  * @returns {UsgsContoursLayer}
  */
 
-define([
-    'model/Explorer',
-    'worldwind'],
-    function (
-        wmt,
-        ww) {
+define(['worldwind'], function () {
         "use strict";
 
         /**
