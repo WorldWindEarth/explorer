@@ -12,7 +12,7 @@
  * @param {JQuery} $ library
  * @returns {InfoViewModel}
  */
-define(['viewmodels/WeatherScoutView', 'knockout', 'jquery'],
+define(['viewmodels/WeatherScoutView', 'knockout', 'jquery', 'bootstrap'],
     function (WeatherScoutView, ko, $) {
         "use strict";
 
@@ -55,8 +55,19 @@ define(['viewmodels/WeatherScoutView', 'knockout', 'jquery'],
                 }
             });
 
-            // Binds the view to this view model.
+            // Binds the view fragment to this view model.
             ko.applyBindings(this, this.view);
+
+            // HACK! Bootstrap nav-tabs workaround.
+            // The previous tab's hide.bs.tab event is not being fired. Thus it  
+            // remains in the 'active' state after another tab is selected.
+            // This hack removes the 'active' class from the previous tab.
+            // Note, the event.target is the <a/> element, not the <li/> element containing the <a/>
+            $('.nav-tabs>li').on('shown.bs.tab', function (e) {
+                // Remove the active class from all the <li> elements except the target's parent
+                $(".nav-tabs>li.active").not($(e.target).parent()).removeClass("active");
+            });
+
         }
 
         return InfoViewModel;
