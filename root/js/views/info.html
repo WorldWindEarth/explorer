@@ -1,14 +1,14 @@
 <div id="info">
     <!-- Info View (bound to the InfoViewModel) -->
     <ui id="info-tabs" class="nav nav-tabs" role="tablist">
-        <li class="active"><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">About</a></li>
-        <li><a data-toggle="tab" href="#info-location" aria-controls="info-location" role="tab">Location</a></li>
+        <li><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">About</a></li>
+        <li class="active"><a data-toggle="tab" href="#info-location" aria-controls="info-location" role="tab">Location</a></li>
         <li><a data-toggle="tab" href="#info-selected" aria-controls="info-selected" role="tab">Selected Item</a></li>
     </ui>
 
     <div class="tab-content">
-        <div id="info-about" class="tab-pane fade in active">
-            <div id="basic-marker-output" class="panel panel-default" style="height: 100%;">
+        <div id="info-about" class="tab-pane fade">
+            <div id="info-about-panel" class="panel panel-default" style="height: 100%;">
                 <div class="panel-heading">
                     <h1 class="panel-title">
                         <span class="glyphicon glyphicon-info-sign" aria-hidden="true"
@@ -55,9 +55,30 @@
                 </div>
             </div>
         </div>
-        <div id="info-location" class="tab-pane fade">
-            <h3>Current Location</h3>
-            <p>Some content about the current location</p>
+        <div id="info-location" class="tab-pane fade in active">
+            <div id="info-location-panel" class="panel panel-default" style="height: 100%;">
+                <div class="panel-heading">
+                    <h1 class="panel-title">
+                        <span class="glyphicon glyphicon-globe" aria-hidden="true"
+                              style="padding-top:4px; padding-bottom:4px"></span>
+                        Current Location
+                    </h1>
+                </div>
+                <div class="panel-body" style="height: calc(100% - 45px); overflow-y: scroll;">
+                    <h4>Crosshairs</h4>
+                    <h5>Latitude <span data-bind="text: formatter.formatDecimalDegreesLat(globe.viewpoint().target.latitude, 4)"></span></h4>
+                    <h5>Longitude <span data-bind="text: formatter.formatDecimalDegreesLon(globe.viewpoint().target.longitude, 4)"></span></h5>
+                    <h5>Elevation <span data-bind="text: formatter.formatAltitude(globe.viewpoint().target.elevation, 'm')"></span></h5>
+                    <h4>Eye/Camera</h4>
+                    <h5>Latitude <span data-bind="text: formatter.formatDecimalDegreesLat(globe.viewpoint().eye.latitude, 4)"></span></h4>
+                    <h5>Longitude <span data-bind="text: formatter.formatDecimalDegreesLon(globe.viewpoint().eye.longitude, 4)"></span></h5>
+                    <h5>Altitude <span data-bind="text: formatter.formatAltitude(globe.viewpoint().eye.altitude, 'm')"></span></h5>
+                    <h4>Terrain</h4>
+                    <h5>Aspect <span data-bind="text: formatter.formatAngle360(globe.viewpoint().target.aspect, 0)"></span></h4>
+                    <h5>Slope <span data-bind="text: formatter.formatPercentSlope(globe.viewpoint().target.slope, 1)"></span>, 
+                    <span data-bind="text: formatter.formatAngle360(globe.viewpoint().target.slope, 2)"></span></h5>
+                </div>
+            </div>
         </div>
         <div id="info-selected" class="tab-pane fade">
             <div style="height: 100%; overflow-y: hidden;" data-bind="template: {

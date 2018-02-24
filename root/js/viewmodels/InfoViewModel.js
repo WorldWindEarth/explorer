@@ -8,12 +8,17 @@
  * Info content module
  *
  * @param {WeatherScoutView} WeatherScoutView module
+ * @param {Formatter} formatter utility
  * @param {Knockout} ko library
  * @param {JQuery} $ library
  * @returns {InfoViewModel}
  */
-define(['viewmodels/WeatherScoutView', 'knockout', 'jquery', 'bootstrap'],
-    function (WeatherScoutView, ko, $) {
+define(['viewmodels/WeatherScoutView', 
+    'model/util/Formatter',
+    'knockout', 
+    'jquery', 
+    'bootstrap'],
+    function (WeatherScoutView, formatter, ko, $) {
         "use strict";
 
         /**
@@ -33,7 +38,8 @@ define(['viewmodels/WeatherScoutView', 'knockout', 'jquery', 'bootstrap'],
             this.view = domNodes[0];
 
             this.globe = globe;
-
+            this.formatter = formatter;
+            
             // Get a reference to the SelectController's selectedItem observable
             this.selectedItem = this.globe.selectController.lastSelectedItem;
 
