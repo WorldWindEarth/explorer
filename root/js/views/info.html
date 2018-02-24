@@ -1,9 +1,71 @@
 <div id="info">
     <!-- Info View (bound to the InfoViewModel) -->
-    <div style="height: 100%; overflow-y: hidden;" data-bind="template: {
-                            if: viewTemplateName()!==null,
-                            name: viewTemplateName,
-                            data: selectedItem
-                            }">
+    <ui id="info-tabs" class="nav nav-tabs" role="tablist">
+        <li class="active"><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">About</a></li>
+        <li><a data-toggle="tab" href="#info-location" aria-controls="info-location" role="tab">Location</a></li>
+        <li><a data-toggle="tab" href="#info-selected" aria-controls="info-selected" role="tab">Selected Item</a></li>
+    </ui>
+
+    <div class="tab-content">
+        <div id="info-about" class="tab-pane fade in active">
+            <div id="basic-marker-output" class="panel panel-default" style="height: 100%;">
+                <div class="panel-heading">
+                    <h1 class="panel-title">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"
+                              style="padding-top:4px; padding-bottom:4px"></span>
+                        WorldWind Explorer
+                    </h1>
+                </div>
+                <div class="panel-body" style="height: calc(100% - 45px); overflow-y: scroll;">
+                    <p>Welcome to the <b><i>WorldWind Explorer</i></b>. 
+                        This app was created by <a href="https://github.com/emxsys" target="_blank">Bruce Schubert</a> and is 
+                        <i><a href="https://worldwind.arc.nasa.gov/web/" target="_blank">powered by ESA-NASA Web WorldWind</a></i> 
+                        which provides the 3D Earth visualzation with WMS maps, imagery and terrain. 
+                        You are encouraged to use the Explorer online or to use its 
+                        <a href="https://github.com/NASAWorldWindResearch/WorldWindExplorer" target="_blank">source code</a> 
+                        to build your own 3D globe application. 
+                        The <a href="http://worldwind.earth" target="_blank">User Guide and developer documentation</a> 
+                        are available online.</p>
+                    <p>Copyright © 2016-2018, Bruce Schubert. <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+
+                    <hr/>
+                    <h4>Acknowledgments</h4>
+                    <h5>Open Source Credits</h5>
+                    <ul>
+                        <li><a href="https://worldwind.arc.nasa.gov/web">ESA-NASA WorldWind</a> provides the 3D virtual globe</li>
+                        <li><a href="http://knockoutjs.com">KnockoutJS</a> provides the Model-View-View Model (MVVM) architecture</li>
+                        <li><a href="https://getbootstrap.com/docs/3.3/">Bootstrap</a> provides the responsive styling</li>
+                        <li><a href="https://jquery.com/">JQuery</a> is used to dynamically load DOM view fragments</li>
+                        <li><a href="https://jqueryui.com/">JQuery UI</a> adds UI elements</li>
+                        <li><a href="https://github.com/bevacqua/dragula">Dragula</a> adds drag-n-drop support</li>
+                        <li><a href="https://nathancahill.github.io/Split.js/">SplitJS</a> adds window splitters to the main layout</li>
+                        <li><a href="http://visjs.org/">Vis</a> provides data visualizations</li>
+                        <li><a href="https://spatialillusions.com/milsymbol/index.html">Milsymbol</a> provides tactical and military symbols</li>
+                        <li><a href="https://momentjs.com/">Moment</a> provides date/time parsing and manipulation</li>
+                        <li><a href="http://requirejs.org/">RequireJS</a> is a JavaScript file and module loader used improve the speed and quality of the code</li>
+                    </ul>
+                    <hr/>
+                    <h4>Disclaimer</h4>
+                    <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+                        INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+                        PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
+                        FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+                        OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+                        DEALINGS IN THE SOFTWARE.</p>
+                </div>
+            </div>
+        </div>
+        <div id="info-location" class="tab-pane fade">
+            <h3>Current Location</h3>
+            <p>Some content about the current location</p>
+        </div>
+        <div id="info-selected" class="tab-pane fade">
+            <div style="height: 100%; overflow-y: hidden;" data-bind="template: {
+                                        if: viewTemplateName()!==null,
+                                        name: viewTemplateName,
+                                        data: selectedItem
+                                        }">
+            </div>
+        </div>
     </div>
 </div>
