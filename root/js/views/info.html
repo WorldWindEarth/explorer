@@ -79,68 +79,66 @@
         <div id="info-location" class="tab-pane fade">
             <div id="info-location-panel" class="panel panel-default" style="height: 100%;">
                 <div class="row">
-                    <div class="panel panel-default" style="height: calc(100% - 45px); overflow-y: scroll;">
-                        <div class="col-md-4 col-sm-6 panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">Crosshairs</h4>
-                            </div>
-                            <div class="panel-body">
-                                <dl class="dl-horizontal ">
-                                    <dt>Latitude:</dt>
-                                    <dd>
-                                        <span data-bind="text: formatter.formatDMSLatitude(globe.viewpoint().target.latitude, 0)"></span>
-                                        &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLat(globe.viewpoint().target.latitude, 4)"></span>)</i>
-                                    </dd>
-                                    <dt>Longitude:</dt>
-                                    <dd>
-                                        <span data-bind="text: formatter.formatDMSLongitude(globe.viewpoint().target.longitude, 0)"></span>
-                                        &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLon(globe.viewpoint().target.longitude, 4)"></span>)</i></dd>
-                                    <dt>Elevation</dt>
-                                    <dd>
-                                        <span data-bind="text: formatter.formatAltitude(globe.viewpoint().target.elevation, 'm')"></span>
-                                        &emsp;<i>(<span data-bind="text: formatter.formatAltitude(globe.viewpoint().target.elevation, 'ft')"></span>)</i>
-                                    </dd>
-                                </dl>  
-                            </div>
+                    <div class="col-md-4 col-sm-6 panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Crosshairs</h4>
                         </div>
-                        <div class="col-md-4 col-sm-6 panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">Eye/Camera</h4>
-                            </div>
-                            <div class="panel-body">
-                                <dl class="dl-horizontal ">
-                                    <dt>Latitude:</dt>
-                                    <dd>
-                                        <span data-bind="text: formatter.formatDecimalMinutesLat(globe.viewpoint().eye.latitude, 3)"></span>
-                                        &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLat(globe.viewpoint().eye.latitude, 4)"></span>)</i>
-                                    </dd>
-                                    <dt>Longitude:</dt>
-                                    <dd>
-                                        <span data-bind="text: formatter.formatDecimalMinutesLon(globe.viewpoint().eye.longitude, 3)"></span>
-                                        &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLon(globe.viewpoint().eye.longitude, 4)"></span>)</i></dd>
-                                    <dt>Altitude:</dt>
-                                    <dd>
-                                        <span data-bind="text: formatter.formatAltitude(globe.viewpoint().eye.altitude, 'm')"></span>
-                                        &emsp;<i>(<span data-bind="text: formatter.formatAltitude(globe.viewpoint().eye.altitude, 'ft')"></span>)</i>
-                                    </dd>
-                                </dl>                          
-                            </div>
+                        <div class="panel-body">
+                            <dl class="dl-horizontal ">
+                                <dt>Latitude:</dt>
+                                <dd>
+                                    <span data-bind="text: formatter.formatDMSLatitude(globe.viewpoint().target.latitude, 0)"></span>
+                                    &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLat(globe.viewpoint().target.latitude, 4)"></span>)</i>
+                                </dd>
+                                <dt>Longitude:</dt>
+                                <dd>
+                                    <span data-bind="text: formatter.formatDMSLongitude(globe.viewpoint().target.longitude, 0)"></span>
+                                    &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLon(globe.viewpoint().target.longitude, 4)"></span>)</i></dd>
+                                <dt>Elevation</dt>
+                                <dd>
+                                    <span data-bind="text: formatter.formatAltitude(globe.viewpoint().target.elevation, 'm')"></span>
+                                    &emsp;<i>(<span data-bind="text: formatter.formatAltitude(globe.viewpoint().target.elevation, 'ft')"></span>)</i>
+                                </dd>
+                            </dl>  
                         </div>
-                        <div class="col-md-4  col-sm-6 panel panel-default">
-                            <div class="panel-heading">
-                                <h4 class="panel-title">Terrain</h4>
-                            </div>
-                            <div class="panel-body">
-                                <dl class="dl-horizontal ">
+                    </div>
+                    <div class="col-md-4 col-sm-6 panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Eye/Camera</h4>
+                        </div>
+                        <div class="panel-body">
+                            <dl class="dl-horizontal ">
+                                <dt>Latitude:</dt>
+                                <dd>
+                                    <span data-bind="text: formatter.formatDecimalMinutesLat(globe.viewpoint().eye.latitude, 3)"></span>
+                                    &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLat(globe.viewpoint().eye.latitude, 4)"></span>)</i>
+                                </dd>
+                                <dt>Longitude:</dt>
+                                <dd>
+                                    <span data-bind="text: formatter.formatDecimalMinutesLon(globe.viewpoint().eye.longitude, 3)"></span>
+                                    &emsp;<i>(<span data-bind="text: formatter.formatDecimalDegreesLon(globe.viewpoint().eye.longitude, 4)"></span>)</i></dd>
+                                <dt>Altitude:</dt>
+                                <dd>
+                                    <span data-bind="text: formatter.formatAltitude(globe.viewpoint().eye.altitude, 'm')"></span>
+                                    &emsp;<i>(<span data-bind="text: formatter.formatAltitude(globe.viewpoint().eye.altitude, 'ft')"></span>)</i>
+                                </dd>
+                            </dl>                          
+                        </div>
+                    </div>
+                    <div class="col-md-4  col-sm-6 panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">Terrain</h4>
+                        </div>
+                        <div class="panel-body">
+                            <dl class="dl-horizontal ">
 
-                                    <dt>Aspect:</dt>
-                                    <dd><span data-bind="text: formatter.formatAngle360(globe.viewpoint().target.aspect, 0)"></span></dd>
-                                    <dt>Slope:</dt>
-                                    <dd><span data-bind="text: formatter.formatPercentSlope(globe.viewpoint().target.slope, 1)"></span> 
-                                        &emsp;<i>(<span data-bind="text: formatter.formatAngle360(globe.viewpoint().target.slope, 2)"></span>)</i>
-                                    </dd>
-                                </dl>
-                            </div>
+                                <dt>Aspect:</dt>
+                                <dd><span data-bind="text: formatter.formatAngle360(globe.viewpoint().target.aspect, 0)"></span></dd>
+                                <dt>Slope:</dt>
+                                <dd><span data-bind="text: formatter.formatPercentSlope(globe.viewpoint().target.slope, 1)"></span> 
+                                    &emsp;<i>(<span data-bind="text: formatter.formatAngle360(globe.viewpoint().target.slope, 2)"></span>)</i>
+                                </dd>
+                            </dl>
                         </div>
                     </div>
                 </div>
