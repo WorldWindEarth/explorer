@@ -28,6 +28,14 @@ body {
     min-height:100%;
 }
 
+.dl-horizontal dt { 
+    /*text-align: left;*/ 
+    width: 100px;
+}
+.dl-horizontal dd { 
+    margin-left: 110px;
+}
+
 .globe-button {
     background:rgba(255,255,255,0.3);
 }
