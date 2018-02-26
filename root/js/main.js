@@ -132,6 +132,10 @@ require([
             // Use local resources
             WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
         }
+        // Enter your Bing Bing Maps key to use when requesting Bing Maps resources.
+        // See: https://www.bingmapsportal.com/ to register for your own key and then enter it below
+        //WorldWind.BingMapsKey = "";
+        
         // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
         var wwd = new WorldWind.WorldWindow("globe-canvas");
         // Provide an initial location to view
