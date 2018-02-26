@@ -77,15 +77,15 @@ define([
                 {value: "N", name: "N: Neutral"},
                 {value: "H", name: "H: Hostile"},
                 {value: "P", name: "P: Pending"},
-                {value: "A", name: "A: Assumed Friend"},
+                {value: "J", name: "J: Joker"},
+                {value: "K", name: "K: Faker"},
                 {value: "S", name: "S: Suspect"},
+                {value: "A", name: "A: Assumed Friend"},
                 {value: "G", name: "G: Exercise Pending"},
                 {value: "W", name: "W: Exercise Unknown"},
                 {value: "D", name: "D: Exercise Friend"},
                 {value: "L", name: "L: Exercise Neutral"},
                 {value: "M", name: "M: Exercise Assumed Friend"},
-                {value: "J", name: "J: Joker"},
-                {value: "K", name: "K: Faker"},
                 {value: "O", name: "O: None Specified"}
             ];
             this.selectedAffiliation = ko.observable();
@@ -101,7 +101,7 @@ define([
             });
 
             this.selectedDimension.subscribe(function (dimension) {
-                var functions, modifiers, obj;
+                var functions, modifiers, obj, item, lastItemIdx;
                 self.functions.removeAll();
                 self.modifiers1.removeAll();
                 self.modifiers2.removeAll();
@@ -109,6 +109,10 @@ define([
 //                self.functions(newOption["main icon"]);
                     functions = dimension["main icon"];
                     for (obj in functions) {
+                        item = functions[obj];
+                        lastItemIdx = item.name.length - 1;
+                        // Replace preceeding elements in the name hierarchy wih en dashes
+                        item.displayName = "\u2013 ".repeat(lastItemIdx) + item.name[lastItemIdx];
                         self.functions.push(functions[obj]);
                     }
 
