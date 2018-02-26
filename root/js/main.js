@@ -151,7 +151,7 @@ require([
 
         // Load the Explorer and its dependencies asynchronously while the 
         // WorldWind globe is loading its background layer(s).
-        require(['model/Explorer'], function (Explorer) {
+        require(['Explorer'], function (Explorer) {
 
             // Initialize the Explorer with a WorldWind virtual globe to "explore"
             var explorer = new Explorer(wwd);
