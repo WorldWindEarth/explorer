@@ -10,14 +10,7 @@
         <select data-bind="options: schemes, 
                            optionsText: 'name',
                            value: selectedScheme,
-                           optionsCaption: 'Scheme...'"></select>        
-    </div>     
-    <div class="dropdown">
-        <select data-bind="options: affiliations, 
-                           optionsText: 'name',
-                           value: selectedAffiliation,
-                           optionsCaption: 'Affiliation...'">
-        </select>        
+                           optionsCaption: '- Scheme...'"></select>        
     </div>     
     <div class="dropdown">
         <select data-bind="options: dimensions, 
@@ -27,18 +20,25 @@
         </select>        
     </div>     
     <div class="dropdown">
+        <select data-bind="options: functions, 
+                           optionsText: 'name',
+                           value: selectedFunction,
+                           optionsCaption: 'Function...'">
+
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: affiliations, 
+                           optionsText: 'name',
+                           value: selectedAffiliation,
+                           optionsCaption: '- Identity...'">
+        </select>        
+    </div>     
+    <div class="dropdown">
         <select data-bind="options: status, 
                            optionsText: 'name',
                            value: selectedStatus,
                            optionsCaption: 'Status...'">
-        </select>        
-    </div>     
-    <div class="dropdown">
-        <select data-bind="options: functions, 
-                           optionsText: 'displayName',
-                           value: selectedFunction,
-                           optionsCaption: 'Function...'">
-
         </select>        
     </div>     
     <div class="dropdown">
