@@ -45,7 +45,11 @@ define([
             this.symbol = ko.observable({});
 
             // Symbol Coding 
-            this.schemes = ko.observableArray([warfighting, signals, stability, emergency]);
+            this.schemes = ko.observableArray([
+                {value: "S", name: "S: " + warfighting.name, code: "WAR", symbols: warfighting},
+                {value: "I", name: "I: " + signals.name, code: "SIGINT", symbols: signals},
+                {value: "O", name: "O: " + stability.name, code: "STBOPS", symbols: stability},
+                {value: "E", name: "E: " + emergency.name, code: "EMS", symbols: emergency}]);
             this.selectedScheme = ko.observable();
 
             this.dimensions = ko.observableArray([]);
@@ -77,15 +81,15 @@ define([
                 {value: "N", name: "N: Neutral"},
                 {value: "H", name: "H: Hostile"},
                 {value: "P", name: "P: Pending"},
-                {value: "A", name: "A: Assumed Friend"},
+                {value: "J", name: "J: Joker"},
+                {value: "K", name: "K: Faker"},
                 {value: "S", name: "S: Suspect"},
+                {value: "A", name: "A: Assumed Friend"},
                 {value: "G", name: "G: Exercise Pending"},
                 {value: "W", name: "W: Exercise Unknown"},
                 {value: "D", name: "D: Exercise Friend"},
                 {value: "L", name: "L: Exercise Neutral"},
                 {value: "M", name: "M: Exercise Assumed Friend"},
-                {value: "J", name: "J: Joker"},
-                {value: "K", name: "K: Faker"},
                 {value: "O", name: "O: None Specified"}
             ];
             this.selectedAffiliation = ko.observable();
@@ -93,23 +97,29 @@ define([
 
             this.selectedScheme.subscribe(function (scheme) {
                 self.dimensions.removeAll();
-                for (var obj in scheme) {
-                    if (scheme[obj].name) {
-                        self.dimensions.push(scheme[obj]);
+                for (var obj in scheme.symbols) {
+                    if (scheme.symbols[obj].name) {
+                        self.dimensions.push({
+                            name: scheme.symbols[obj].name,
+                            functions: scheme.symbols[obj]["main icon"]});
                     }
                 }
             });
 
             this.selectedDimension.subscribe(function (dimension) {
-                var functions, modifiers, obj;
+                var functions, modifiers, obj, item, lastItemIdx;
                 self.functions.removeAll();
                 self.modifiers1.removeAll();
                 self.modifiers2.removeAll();
                 if (dimension) {
-//                self.functions(newOption["main icon"]);
-                    functions = dimension["main icon"];
+                    functions = dimension.functions;
                     for (obj in functions) {
-                        self.functions.push(functions[obj]);
+                        item = functions[obj];
+                        lastItemIdx = item.name.length - 1;
+                        self.functions.push({
+                            // Replace preceeding elements in the name hierarchy wih en dashes  
+                            name: "\u2013 ".repeat(lastItemIdx) + item.name[lastItemIdx],
+                            function: functions[obj]});
                     }
 
                     modifiers = dimension["modifier 1"];
@@ -124,24 +134,69 @@ define([
                 }
             });
 
+            this.symbol.subscribe(function (newSymbol) {
+                var symbolCode = newSymbol.symbolCode(),
+                    codingScheme = symbolCode.substring(0, 1),
+                    stdIdentity = symbolCode.substring(1, 2),
+                    battleDim = symbolCode.substring(2, 3),
+                    operationalStatus = symbolCode.substring(3, 4),
+                    functionId = symbolCode.substring(4, 10),
+                    scheme, affiliation, opStatus, icon, dimension;
+
+                scheme = self.schemes().find(function (element) {
+                    return element.value === codingScheme;
+                });
+                self.selectedScheme(scheme);
+
+                dimension = self.dimensions().find(function (element) {
+                    return element.functions.find(function (iconElement) {
+                        return iconElement["battle dimension"] === battleDim
+                            && iconElement["code"] === functionId;
+                    });
+                });
+                self.selectedDimension(dimension);
+
+                if (self.selectedDimension()) {
+                    // The 'functions' obserable array contains the name/function pairs
+                    // for the selected dimension
+                    icon = self.functions().find(function (element) {
+                        return element.function.code === functionId;
+                    });
+                    self.selectedFunction(icon);
+                }
+
+                affiliation = self.affiliations.find(function (element) {
+                    return element.value === stdIdentity;
+                });
+                self.selectedAffiliation(affiliation);
+
+                opStatus = self.status.find(function (element) {
+                    return element.value === operationalStatus;
+                });
+                self.selectedStatus(opStatus);
+
+
+            });
+
             this.onSave = function () {
-                var icon = self.selectedFunction(),
-                    codingScheme = icon ? icon["code scheme"] : "S",
+                var icon = self.selectedFunction() ? self.selectedFunction().function : null,
+                    codingScheme = self.selectedScheme() ? self.selectedScheme().value : "S",
                     stdIdentity = self.selectedAffiliation() ? self.selectedAffiliation().value : "U",
-                    battleDim = icon ? icon["battle dimension"] : "Z",
                     operationalStatus = self.selectedStatus() ? self.selectedStatus().value : "-",
+                    battleDim = icon ? icon["battle dimension"] : "Z",
                     functionId = icon ? icon["code"] : "------",
                     modifier1 = self.selectedModifier1() ? self.selectedModifier1().value : "-",
                     modifier2 = self.selectedModifier2() ? self.selectedModifier1().value : "-",
                     symbolCode;
 
-                symbolCode = codingScheme +
+                symbolCode = 
+                    codingScheme +
                     stdIdentity +
                     battleDim +
                     operationalStatus +
                     functionId +
                     modifier1 +
-                    modifier2 ;
+                    modifier2;
 
                 console.log(symbolCode);
                 self.symbol().symbolCode(symbolCode);
@@ -156,7 +211,7 @@ define([
                 var $symbolEditor = $(self.view);
                 $symbolEditor.dialog({
                     autoOpen: false,
-                    title: "Edit MIL-STD-25252C",
+                    title: "Edit Tactical Symbol",
                     buttons: {
                         "Save": function () {
                             self.onSave();
