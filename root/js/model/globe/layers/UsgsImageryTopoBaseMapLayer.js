@@ -29,10 +29,10 @@ define(['worldwind'], function () {
             service: "https://basemap.nationalmap.gov/arcgis/services/USGSImageryTopo/MapServer/WmsServer?",
             layerNames: "0",
             sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
-            levelZeroDelta: new WorldWind.Location(36, 36),
+            levelZeroDelta: new WorldWind.Location(90,90),
             numLevels: 12,
             format: "image/png",
-            size: 512,
+            size: 256,
             coordinateSystem: "EPSG:4326", // optional
             styleNames: "" // (optional): {String} A comma separated list of the styles to include in this layer.</li>
         };

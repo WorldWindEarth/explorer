@@ -224,6 +224,16 @@ body {
         padding-left: 20px;
         padding-right: 20px;
     }
+    
+    
+    .dl-horizontal dt { 
+        /*text-align: left;*/ 
+        width: 100px;
+    }
+    .dl-horizontal dd { 
+        margin-left: 110px;
+    }
+    
 }
 
 /*Mobile phone or table*/
