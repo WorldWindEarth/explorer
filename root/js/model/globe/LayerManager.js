@@ -26,6 +26,9 @@ define([
     'model/globe/LayerProxy',
     'model/util/Log',
     'worldwind',
+    'model/globe/layers/EoxOpenStreetMapLayer',
+    'model/globe/layers/EoxSentinal2CloudlessLayer',
+    'model/globe/layers/EoxSentinal2WithLabelsLayer',
     'model/globe/layers/UsgsContoursLayer',
     'model/globe/layers/UsgsImageryTopoBaseMapLayer',
     'model/globe/layers/UsgsTopoBaseMapLayer',
@@ -39,6 +42,9 @@ define([
                 LayerProxy,
                 log,
                 ww,
+                EoxOpenStreetMapLayer,
+                EoxSentinal2CloudlessLayer,
+                EoxSentinal2WithLabelsLayer,
                 UsgsContoursLayer,
                 UsgsImageryTopoBaseMapLayer,
                 UsgsTopoBaseMapLayer,
@@ -136,16 +142,13 @@ define([
                 this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: false, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new EoxSentinal2CloudlessLayer(), {enabled: false, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new EoxSentinal2WithLabelsLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
-                //this.addBaseLayer(new WorldWind.OpenStreetMapImageLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new EoxOpenStreetMapLayer(), {enabled: false, opacity: 0.8, detailControl: config.imagerydetailControl});
 
-                // TODO: Add Sentinel-2 layers from EOX (with attribution).
-
-                //this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
-
-                this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
 
 //            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
 //            this.addAvailableWmsLayers();
@@ -545,11 +548,11 @@ define([
                             if (a.order && !isNaN(a.order()) && b.order && !isNaN(b.order())) {
                                 return a.order() - b.order();
                             } else if (a.order && !isNaN(a.order())) {
-                                return -1;
-                            } else if (b.order && !isNaN(b.order())) {
                                 return 1;
+                            } else if (b.order && !isNaN(b.order())) {
+                                return -1;
                             } else {
-                                return 0;
+                                return 0;   
                                 //return a.name().localeCompare(b.name());
                             }
                         };

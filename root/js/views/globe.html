@@ -36,7 +36,7 @@
                 </ul>
             </span>
             <span class="btn-group" style="float: left">
-                <!-- Add Symbol button and palette -->
+                <!-- Add Tactical Symbol button and palette -->
                 <button type="button"
                         class="btn btn-primary btn-sm globe-button"
                         style="padding-top: 0; padding-bottom: 0; padding-right: 0"
@@ -45,7 +45,7 @@
                     <img width="28px" height="28px;"
                          data-bind="attr:{src: selectedSymbolTemplate().imageSource}"/>
                 </button>
-                <!-- Symbol palette dropdown button-->
+                <!-- Tactical Symbol palette dropdown button-->
                 <button type="button"
                         class="btn btn-primary btn-sm globe-button dropdown-toggle"
                         data-toggle="dropdown"
@@ -53,26 +53,7 @@
                     <span class="caret"></span>
                     <span class="sr-only">Symbols Dropdown</span>
                 </button>
-                <!-- Dropdown list bound the 'symbolsPalette' observableArray -->
-                <ul id="symbol-palette"
-                    class="dropdown-menu"
-                    style="left: initial; right: 0; min-width: 30px"
-                    data-bind="foreach: symbolPalette">
-                    <li data-bind="click: $parent.selectedSymbolTemplate">
-                        <a>
-                            <img width="28px" height="28px;" data-bind="attr:{src: $data.imageSource}"/>
-                        </a>
-                    </li>
-                </ul>
-            </span>
-            <!--Add Weather Scout button-->
-            <button type="button"
-                    class="btn btn-primary btn-sm globe-button"
-                    style="float: left; padding-top: 0; padding-bottom: 0; height: 30px;"
-                    data-bind="click: armDropScout">
-                <span class="glyphicon glyphicon-plus" style="padding-right: 5px;" aria-hidden="true"> </span>
-                <span class="glyphicon glyphicon-cloud" aria-hidden="true"></span>
-            </button>                             
+            </span>                           
         </div>
     </div>
     <!--
