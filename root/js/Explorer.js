@@ -13,7 +13,6 @@ define([
     'model/util/Log',
     'model/util/Settings',
     'model/markers/MarkerManager',
-    'model/weather/WeatherScoutManager',
     'viewmodels/BookmarkViewModel',
     'viewmodels/GlobeViewModel',
     'viewmodels/InfoViewModel',
@@ -24,7 +23,6 @@ define([
     'viewmodels/ProjectionsViewModel',
     'viewmodels/SearchViewModel',
     'viewmodels/SettingsViewModel',
-    'viewmodels/WeatherScoutEditor',
     'text!views/basic-markers.html',
     'text!views/bookmark.html',
     'text!views/globe.html',
@@ -35,8 +33,6 @@ define([
     'text!views/marker-editor.html',
     'text!views/projections.html',
     'text!views/settings.html',
-    'text!views/weather-scouts.html',
-    'text!views/weather-scout-editor.html',
     'url-search-params',
     'knockout',
     'jquery',
@@ -50,7 +46,6 @@ define([
         log,
         settings,
         MarkerManager,
-        WeatherScoutManager,
         BookmarkViewModel,
         GlobeViewModel,
         InfoViewModel,
@@ -61,7 +56,6 @@ define([
         ProjectionsViewModel,
         SearchViewModel,
         SettingsViewModel,
-        WeatherScoutEditor,
         basicMarkersHtml,
         bookmarkHtml,
         globeHtml,
@@ -72,8 +66,6 @@ define([
         markerEditorHtml,
         projectionsHtml,
         settingsHtml,
-        weatherScoutsHtml,
-        weatherScoutEditorHtml,
         URLSearchParams,
         ko,
         $) {
@@ -111,7 +103,6 @@ define([
 
             // Configure the manager of objects on the globe
             this.markerManager = new MarkerManager(this.globe);
-            this.weatherManager = new WeatherScoutManager(this.globe);
 
             // Configure the objects used to animate the globe when performing "go to" operations
             this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
@@ -149,10 +140,7 @@ define([
             // --------------------------------------------------------
             Explorer.createKnockoutBindingsForSlider();
 
-            new GlobeViewModel(this, {
-                markerManager: this.markerManager,
-                weatherManager: this.weatherManager},
-                globeHtml, "globe");
+            new GlobeViewModel(this, { markerManager: this.markerManager}, globeHtml, "globe");
 
             new SearchViewModel(this.globe, "search");
             new BookmarkViewModel(this.globe, bookmarkHtml, "right-navbar");
@@ -167,12 +155,9 @@ define([
             // Dialogs
             new LayerSettings(this.globe, layerSettingsHtml);
             new MarkerEditor(markerEditorHtml);
-            new WeatherScoutEditor(weatherScoutEditorHtml);
             
             // Marker content
             markersViewModel.addMarkers(this.markerManager, basicMarkersHtml, "markers-body");
-            markersViewModel.addMarkers(this.weatherManager, weatherScoutsHtml, "markers-body");
-
 
         };
 
@@ -270,7 +255,6 @@ define([
         Explorer.prototype.restoreSession = function () {
             log.info('Explorer', 'restoreSession', 'Restoring the model and view.');
             this.markerManager.restoreMarkers();
-            this.weatherManager.restoreScouts();
             this.restoreSessionView();
             // Update all time sensitive objects
             this.globe.updateDateTime(new Date());
@@ -331,7 +315,6 @@ define([
             log.info('Explorer', 'saveSession', 'Saving the model and view.');
             this.saveSessionView();
             this.markerManager.saveMarkers();
-            this.weatherManager.saveScouts();
             this.globe.layerManager.saveLayers();
         };
 

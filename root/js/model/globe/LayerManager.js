@@ -149,9 +149,6 @@ define([
                 this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new EoxOpenStreetMapLayer(), {enabled: false, opacity: 0.8, detailControl: config.imagerydetailControl});
 
-                //this.addOverlayLayer(new UsgsContoursLayer(), {enabled: false});
-
-                this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
 
 //            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
 //            this.addAvailableWmsLayers();
