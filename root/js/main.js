@@ -140,6 +140,8 @@ require([
         wwd.navigator.range = config.startupAltitude;
         // Add initial background layer(s) to display during startup
         wwd.addLayer(new WorldWind.BMNGOneImageLayer());
+        //Indicates the Bing Maps key to use when requesting Bing Maps resources.
+        WorldWind.BingMapsKey = "Ap6BL_3VPzCeoojebk2R9y_mYoMYKyPEPOzz9ZTmSzXBcEzdxFsfgJtAaeH9jOlJ";
 
         // ------------------
         // Setup the Explorer
