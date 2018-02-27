@@ -149,11 +149,12 @@ define([
             // Event handlers
             // --------------
 
-            this.symbolCode.subscribe(function (newCode) {
-                self.name(newCode);
-                self.placemark.symbolCode = newCode;
+            // Update the placemark when the symbol code changes
+            this.symbolCode.subscribe(function (newSymbolCode) {
+                self.name(newSymbolCode);
+                self.placemark.updateSymbol(newSymbolCode, self.modifiers());
                 self.placemark.attributes = SymbolPlacemark.getPlacemarkAttributes(
-                    newCode, self.modifiers(), self.placemark.lastLevelOfDetail);
+                    newSymbolCode, self.modifiers(), self.placemark.lastLevelOfDetail);
             });
 
             this.latitude.subscribe(function (newLat) {

@@ -21,26 +21,12 @@ define(['milsymbol', 'worldwind'],
 
             var normalAttributes = SymbolPlacemark.getPlacemarkAttributes(
                 symbolCode, symbolModifiers, SymbolPlacemark.LOW_LEVEL_OF_DETAIL);
+            
             WorldWind.Placemark.call(this, position, true, normalAttributes);
-
-            this.symbolCode = symbolCode;
-            this.symbolModifiers = symbolModifiers;
+            this.eyeDistanceScalingThreshold = 5000000;
             this.lastLevelOfDetail = SymbolPlacemark.LOW_LEVEL_OF_DETAIL;
-
-            this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-            if (symbolCode.substring(2, 3) === "A") {
-                // Air
-                this.position.altitude = 15000;
-            } else if (symbolCode.substring(2, 3) === "P") {
-                // Space
-                this.position.altitude = 150000;
-            } else {
-                // Ground/Sea/Subsurface
-                this.position.altitude = 0;
-            }
-
-            this.eyeDistanceScalingThreshold = 4000000;
-
+            
+            this.updateSymbol(symbolCode, symbolModifiers);
         };
         SymbolPlacemark.prototype = Object.create(WorldWind.Placemark.prototype);
 
@@ -74,6 +60,29 @@ define(['milsymbol', 'worldwind'],
         };
 
         /**
+         * 
+         * @param {String} symbolCode
+         * @param {Object} symbolModifiers
+         */
+        SymbolPlacemark.prototype.updateSymbol = function (symbolCode, symbolModifiers) {
+            this.symbolCode = symbolCode;
+            this.symbolModifiers = symbolModifiers;
+
+            this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+            if (symbolCode.substring(2, 3) === "A") {
+                // Air
+                this.position.altitude = 15000;
+            } else if (symbolCode.substring(2, 3) === "P") {
+                // Space
+                this.position.altitude = 150000;
+            } else {
+                // Ground/Sea/Subsurface
+                this.position.altitude = 0;
+            }
+
+        };
+
+        /**
          * Render this TacticalSymbol.
          * @param {DrawContext} dc The current draw context.
          */
@@ -82,67 +91,9 @@ define(['milsymbol', 'worldwind'],
             WorldWind.Placemark.prototype.render.call(this, dc);
         };
 
-        /**
-         * Returns an attibutes bundle for the given symbol code and modifiers.
-         * @param {String} symbolCode
-         * @param {Object} symbolModifiers bundle
-         * @param {Number} levelOfDetail
-         * @returns {WorldWind.PlacemarkAttributes}
-         */
-        SymbolPlacemark.getPlacemarkAttributes = function (symbolCode, symbolModifiers, levelOfDetail) {
-            var symbol,
-                basicModifiers = {size: symbolModifiers.size},
-                attributes,
-                size,
-                anchor;
-
-            // TODO create cache and retrieve from cache
-
-            switch (levelOfDetail) {
-                case SymbolPlacemark.HIGHEST_LEVEL_OF_DETAIL:
-                    // Use the full version of the SIDC code and the given modifiers
-                    symbol = new ms.Symbol(symbolCode, symbolModifiers);
-                    break;
-                case SymbolPlacemark.MEDIUM_LEVEL_OF_DETAIL:
-                    // Use the full version of the SIDC code but with only basic modifiers
-                    symbol = new ms.Symbol(symbolCode, basicModifiers);
-                    break;
-                case SymbolPlacemark.LOW_LEVEL_OF_DETAIL:
-                // fall through to default
-                default:
-                    // Use a simplified version of the SIDC code and basid modifiers
-                    symbol = new ms.Symbol(symbolCode.slice(0, 5) + "-----*****", basicModifiers);
-            }
-            size = symbol.getSize();
-            anchor = symbol.getAnchor();
-
-            attributes = new WorldWind.PlacemarkAttributes(null);
-            attributes.imageSource = new WorldWind.ImageSource(symbol.asCanvas());
-            if (symbolCode.slice(2, 3) === "U") {
-                // Subsurface
-                attributes.imageOffset = new WorldWind.Offset(
-                    WorldWind.OFFSET_PIXELS, anchor.x, // x offset
-                    WorldWind.OFFSET_PIXELS, size.height); // Anchor at top    
-            } else {
-                attributes.imageOffset = new WorldWind.Offset(
-                    WorldWind.OFFSET_PIXELS, anchor.x, // x offset
-                    WorldWind.OFFSET_PIXELS, 0); // Anchor at bottom    
-                    // Achor at center 
-                    // WorldWind.OFFSET_PIXELS, size.height - anchor.y); // y offset converted to lower-left origin       
-            }
-
-            attributes.depthTest = false;
-            attributes.imageScale = 1.0;
-            attributes.imageColor = WorldWind.Color.WHITE;
-
-            attributes.drawLeaderLine = true;
-            attributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
-            attributes.leaderLineAttributes.outlineWidth = 2;
-
-            return attributes;
-        };
-
-
+        SymbolPlacemark.HIGHEST_LEVEL_OF_DETAIL = 0;
+        SymbolPlacemark.MEDIUM_LEVEL_OF_DETAIL = 1;
+        SymbolPlacemark.LOW_LEVEL_OF_DETAIL = 2;
         /**
          * Sets the far distance threshold; camera distances greater than this value use the low level of detail, and
          * distances less than this value but greater than the near threshold use the medium level of detail.
@@ -153,9 +104,6 @@ define(['milsymbol', 'worldwind'],
          * the medium level of detail, and distances less than this value use the high level of detail.
          */
         SymbolPlacemark.NEAR_THRESHOLD = 3000000;
-        SymbolPlacemark.HIGHEST_LEVEL_OF_DETAIL = 0;
-        SymbolPlacemark.MEDIUM_LEVEL_OF_DETAIL = 1;
-        SymbolPlacemark.LOW_LEVEL_OF_DETAIL = 2;
 
         /**
          * Sets the active attributes for the current distance to the camera and highlighted state.
@@ -200,7 +148,70 @@ define(['milsymbol', 'worldwind'],
                 }
             }
             this.lastHighlightState = this.highlighted;
-
         };
+
+
+        /**
+         * Returns an attibutes bundle for the given symbol code and modifiers.
+         * @param {String} symbolCode
+         * @param {Object} symbolModifiers bundle
+         * @param {Number} levelOfDetail
+         * @returns {WorldWind.PlacemarkAttributes}
+         */
+        SymbolPlacemark.getPlacemarkAttributes = function (symbolCode, symbolModifiers, levelOfDetail) {
+            var symbol,
+                basicModifiers = {size: symbolModifiers.size},
+                attributes,
+                size,
+                anchor;
+
+            // TODO create cache and retrieve from cache
+
+            switch (levelOfDetail) {
+                case SymbolPlacemark.HIGHEST_LEVEL_OF_DETAIL:
+                    // Use the full version of the SIDC code and the given modifiers
+                    symbol = new ms.Symbol(symbolCode, symbolModifiers || basicModifiers);
+                    break;
+                case SymbolPlacemark.MEDIUM_LEVEL_OF_DETAIL:
+                    // Use the full version of the SIDC code but with only basic modifiers
+                    symbol = new ms.Symbol(symbolCode, basicModifiers);
+                    break;
+                case SymbolPlacemark.LOW_LEVEL_OF_DETAIL:
+                // fall through to default
+                default:
+                    // Use a simplified version of the SIDC code and basid modifiers
+                    symbol = new ms.Symbol(symbolCode.slice(0, 5) + "-----*****", basicModifiers);
+            }
+            size = symbol.getSize();
+            anchor = symbol.getAnchor();
+
+            attributes = new WorldWind.PlacemarkAttributes(null);
+            attributes.imageSource = new WorldWind.ImageSource(symbol.asCanvas());
+            if (symbolCode.slice(2, 3) === "U") {
+                // Subsurface
+                attributes.imageOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_PIXELS, anchor.x, // x offset
+                    WorldWind.OFFSET_PIXELS, size.height); // Anchor at top    
+            } else {
+                attributes.imageOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_PIXELS, anchor.x, // x offset
+                    WorldWind.OFFSET_PIXELS, 0); // Anchor at bottom    
+                // Achor at center 
+                // WorldWind.OFFSET_PIXELS, size.height - anchor.y); // y offset converted to lower-left origin       
+            }
+
+            attributes.depthTest = false;
+            attributes.imageScale = 1.0;
+            attributes.imageColor = WorldWind.Color.WHITE;
+
+            attributes.drawLeaderLine = true;
+            attributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
+            attributes.leaderLineAttributes.outlineWidth = 2;
+
+            return attributes;
+        };
+
+
+
         return SymbolPlacemark;
     });
