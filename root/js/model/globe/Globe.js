@@ -173,6 +173,10 @@ define([
             enabled: true,
             pickEnabled: true
         });
+        this.layerManager.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_TACTICAL_SYMBOLS), {
+            enabled: true,
+            pickEnabled: true
+        });
 
         // Add TimeZone support
         this.timeZoneLayer = new TimeZoneLayer();
