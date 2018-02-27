@@ -18,7 +18,7 @@ define(['milsymbol', 'worldwind'],
          * @returns {SymbolPlacemark}
          */
         var SymbolPlacemark = function (position, symbolCode, symbolModifiers) {
-            
+
             var normalAttributes = SymbolPlacemark.getPlacemarkAttributes(
                 symbolCode, symbolModifiers, SymbolPlacemark.LOW_LEVEL_OF_DETAIL);
             WorldWind.Placemark.call(this, position, true, normalAttributes);
@@ -26,8 +26,19 @@ define(['milsymbol', 'worldwind'],
             this.symbolCode = symbolCode;
             this.symbolModifiers = symbolModifiers;
             this.lastLevelOfDetail = SymbolPlacemark.LOW_LEVEL_OF_DETAIL;
-            
-            this.altitudeMode = WorldWind.ABSOLUTE;
+
+            this.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+            if (symbolCode.substring(2, 3) === "A") {
+                // Air
+                this.position.altitude = 15000;
+            } else if (symbolCode.substring(2, 3) === "P") {
+                // Space
+                this.position.altitude = 150000;
+            } else {
+                // Ground/Sea/Subsurface
+                this.position.altitude = 0;
+            }
+
             this.eyeDistanceScalingThreshold = 4000000;
 
         };
@@ -100,23 +111,31 @@ define(['milsymbol', 'worldwind'],
                 // fall through to default
                 default:
                     // Use a simplified version of the SIDC code and basid modifiers
-                    symbol = new ms.Symbol(symbolCode.slice(0, 3) + "*------*****", basicModifiers);
+                    symbol = new ms.Symbol(symbolCode.slice(0, 5) + "-----*****", basicModifiers);
             }
             size = symbol.getSize();
             anchor = symbol.getAnchor();
 
             attributes = new WorldWind.PlacemarkAttributes(null);
             attributes.imageSource = new WorldWind.ImageSource(symbol.asCanvas());
-            attributes.imageOffset = new WorldWind.Offset(
-                WorldWind.OFFSET_PIXELS, anchor.x, // x offset
-                WorldWind.OFFSET_PIXELS, 0); // Anchor at bottom    
-//                WorldWind.OFFSET_PIXELS, size.height - anchor.y); // y offset converted to lower-left origin       
+            if (symbolCode.slice(2, 3) === "U") {
+                // Subsurface
+                attributes.imageOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_PIXELS, anchor.x, // x offset
+                    WorldWind.OFFSET_PIXELS, size.height); // Anchor at top    
+            } else {
+                attributes.imageOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_PIXELS, anchor.x, // x offset
+                    WorldWind.OFFSET_PIXELS, 0); // Anchor at bottom    
+                    // Achor at center 
+                    // WorldWind.OFFSET_PIXELS, size.height - anchor.y); // y offset converted to lower-left origin       
+            }
 
             attributes.depthTest = false;
             attributes.imageScale = 1.0;
             attributes.imageColor = WorldWind.Color.WHITE;
 
-            attributes.drawLeaderLine = false;
+            attributes.drawLeaderLine = true;
             attributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
             attributes.leaderLineAttributes.outlineWidth = 2;
 
