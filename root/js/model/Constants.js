@@ -66,6 +66,7 @@ define([],
              * The local storage key for markers.
              */
             STORAGE_KEY_MARKERS: "markers",
+            STORAGE_KEY_TACTICAL_SYMBOLS: "tactical_symbols",
 
             /**
              * Base URL for Web World Wind SDK. (Do not use a relative path.)
