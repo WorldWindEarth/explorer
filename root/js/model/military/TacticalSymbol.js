@@ -6,7 +6,7 @@
 /*global WorldWind*/
 
 define([
-    'model/military/SymbolPlacemark',
+    'model/military/TacticalSymbolPlacemark',
     'model/util/ContextSensitive',
     'model/util/Formatter',
     'model/util/Openable',
@@ -20,7 +20,7 @@ define([
     'jquery-growl',
     'worldwind'],
     function (
-        SymbolPlacemark,
+        TacticalSymbolPlacemark,
         contextSensitive,
         formatter,
         openable,
@@ -137,7 +137,7 @@ define([
             /** DOM element id to display view when this symbol is selected. */
             this.viewTemplateName = 'tactical-symbol-view-template';
 
-            this.placemark = new SymbolPlacemark(position, this.symbolCode(), this.modifiers());
+            this.placemark = new TacticalSymbolPlacemark(position, this.symbolCode(), this.modifiers());
 
             //this.placemark.label = this.name();
 
@@ -153,7 +153,7 @@ define([
             this.symbolCode.subscribe(function (newSymbolCode) {
                 self.name(newSymbolCode);
                 self.placemark.updateSymbol(newSymbolCode, self.modifiers());
-                self.placemark.attributes = SymbolPlacemark.getPlacemarkAttributes(
+                self.placemark.attributes = TacticalSymbolPlacemark.getPlacemarkAttributes(
                     newSymbolCode, self.modifiers(), self.placemark.lastLevelOfDetail);
             });
 
