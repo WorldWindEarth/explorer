@@ -38,14 +38,13 @@ define([],
             LAYER_NAME_ATMOSPHERE: "Atmosphere",
             LAYER_NAME_COMPASS: "Compass",
             LAYER_NAME_MARKERS: "Markers",
+            LAYER_NAME_TACTICAL_SYMBOLS: "Tactical Symbols",
             LAYER_NAME_RETICLE: "Crosshairs",
             LAYER_NAME_SKY: "Sky",
             LAYER_NAME_STARS: "Stars",
             LAYER_NAME_TIME_ZONES: "Time Zones",
             LAYER_NAME_VIEW_CONTROLS: "Controls",
-            LAYER_NAME_WEATHER: "Weather Scouts",
             LAYER_NAME_WIDGETS: "Widgets",
-            MAP_SYMBOL_ALTITUDE_WEATHER: 500,
             MARKER_LABEL_LATLON: "markerLabelLatLon",
             MARKER_LABEL_NAME: "markerLabelName",
             MARKER_LABEL_NONE: "markerLabelNone",
@@ -68,14 +67,7 @@ define([],
              * The local storage key for markers.
              */
             STORAGE_KEY_MARKERS: "markers",
-            /**
-             * The URL for the weather REST service.
-             */
-            WEATHER_REST_SERVICE: "http://emxsys.net/wmt-rest/rs/weather",
-            WEATHER_SCOUT_LABEL_LATLON: "weatherScoutLabelLatLon",
-            WEATHER_SCOUT_LABEL_NAME: "weatherScoutLabelName",
-            WEATHER_SCOUT_LABEL_NONE: "weatherScoutLabelNone",
-            WEATHER_SCOUT_LABEL_PLACE: "weatherScoutLabelPlace",
+            STORAGE_KEY_TACTICAL_SYMBOLS: "tactical_symbols",
 
             /**
              * Base URL for Web World Wind SDK. (Do not use a relative path.)

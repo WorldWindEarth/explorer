@@ -8,33 +8,33 @@
 /**
  * 
  * @param {BasicMarker} BasicMarker module
+ * @param {TacticalSymbol} TacticalSymbol module 
  * @param {WmtUtil} util object
- * @param {WeatherScout} WeatherScout module
  * @param {Knockout} ko
  * @param {JQuery} $ 
  * @returns {GlobeViewModelL#18.GlobeViewModel}
  */
 define([
     'model/markers/BasicMarker',
+    'model/military/TacticalSymbol',
     'model/util/WmtUtil',
-    'model/weather/WeatherScout',
     'knockout',
     'jquery',
     'jqueryui',
     'worldwind'],
     function (
         BasicMarker,
+        TacticalSymbol,
         util,
-        WeatherScout,
         ko,
         $) {
         "use strict";
 
         /**
-         * 
+         * A view model for the Globe.
          * @constructor
          * @param {Explorer} explorer
-         * @param {Array} params Array containing markerManager and weatherManager objects
+         * @param {Object} params Object containing with manager objects
          * @param {String} viewFragment
          * @param {String} appendToId
          * @returns {GlobeViewModelL#25.GlobeViewModel}
@@ -49,8 +49,10 @@ define([
 
             this.explorer = explorer;
             this.globe = explorer.globe;
+            
+            // TODO: This is fragile; find a better way to inject managers
             this.markerManager = params.markerManager;
-            this.weatherManager = params.weatherManager;
+            this.symbolManager = params.symbolManager;
 
             // Save a reference to the auto-update time observable for the view view
             this.autoUpdateTime = explorer.autoUpdateTimeEnabled;
@@ -59,6 +61,11 @@ define([
             this.markerPalette = ko.observableArray(BasicMarker.templates);
             // The currently selected marker icon in the marker palette
             this.selectedMarkerTemplate = ko.observable(this.markerPalette()[0]);
+
+            // Create the symbol templates used in the symbol palette
+            this.symbolPalette = ko.observableArray(TacticalSymbol.templates);
+            // The currently selected symbol icon in the symbol palette
+            this.selectedSymbolTemplate = ko.observable(this.symbolPalette()[0]);
 
             // Used for cursor style and click handling (see Globe's canvas in index.html)
             this.dropIsArmed = ko.observable(false);
@@ -130,7 +137,9 @@ define([
             });
 
             // Invoke armDropMarker when a template is selected from the palette
-            this.selectedMarkerTemplate.subscribe(this.armDropMarker);
+            this.selectedMarkerTemplate.subscribe(this.armDropMarker, this);
+            // Invoke armDropMarker when a template is selected from the palette
+            this.selectedSymbolTemplate.subscribe(this.armDropSymbol, this);
 
 
         }
@@ -145,14 +154,13 @@ define([
         };
 
         /**
-         * Arms the click-drop handler to add a weather scout to the globe. See: handleClick below.
+         * Arms the click-drop handler to add a tactical symbol to the globe. See: handleClick below.
          */
-        GlobeViewModel.prototype.armDropScout = function () {
+        GlobeViewModel.prototype.armDropSymbol = function () {
             this.dropIsArmed(true);
-            this.dropCallback = this.dropScoutCallback;
-            this.dropObject = null;
+            this.dropCallback = this.dropSymbolCallback;
+            this.dropObject = this.selectedSymbolTemplate();
         };
-
 
         // This "Drop" action callback creates and adds a marker to the globe
         // when the globe is clicked while dropIsArmed is true.
@@ -161,11 +169,13 @@ define([
             this.markerManager.addMarker(new BasicMarker(
                 this.markerManager, position, {imageSource: markerTemplate.imageSource}));
         };
-
-        // This "Drop" action callback creates and adds a weather scout to the globe
+        
+        // This "Drop" action callback creates and adds a symbol to the globe
         // when the globe is clicked while dropIsArmed is true.
-        GlobeViewModel.prototype.dropScoutCallback = function (position) {
-            this.weatherManager.addScout(new WeatherScout(this.weatherManager, position));
+        GlobeViewModel.prototype.dropSymbolCallback = function (position, symbolTemplate) {
+            // Add the placemark to the layer and to the observable array
+            this.symbolManager.addSymbol(new TacticalSymbol(
+                this.symbolManager, position, {symbolCode: symbolTemplate.symbolCode}));
         };
 
         /**
@@ -247,5 +257,4 @@ define([
         };
 
         return GlobeViewModel;
-    }
-);
+    });
