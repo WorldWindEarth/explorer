@@ -132,7 +132,7 @@ require([
         }
         // Enter your Bing Bing Maps key to use when requesting Bing Maps resources.
         // See: https://www.bingmapsportal.com/ to register for your own key and then enter it below
-        //WorldWind.BingMapsKey = "";
+        WorldWind.BingMapsKey = "Ap6BL_3VPzCeoojebk2R9y_mYoMYKyPEPOzz9ZTmSzXBcEzdxFsfgJtAaeH9jOlJ";
         
         // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
         var wwd = new WorldWind.WorldWindow("globe-canvas");
@@ -142,8 +142,6 @@ require([
         wwd.navigator.range = config.startupAltitude;
         // Add initial background layer(s) to display during startup
         wwd.addLayer(new WorldWind.BMNGOneImageLayer());
-        //Indicates the Bing Maps key to use when requesting Bing Maps resources.
-        WorldWind.BingMapsKey = "Ap6BL_3VPzCeoojebk2R9y_mYoMYKyPEPOzz9ZTmSzXBcEzdxFsfgJtAaeH9jOlJ";
 
         // ------------------
         // Setup the Explorer
