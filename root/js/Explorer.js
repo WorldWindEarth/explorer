@@ -13,6 +13,7 @@ define([
     'model/util/Log',
     'model/util/Settings',
     'model/markers/MarkerManager',
+    'model/military/SymbolManager',
     'viewmodels/BookmarkViewModel',
     'viewmodels/GlobeViewModel',
     'viewmodels/InfoViewModel',
@@ -23,6 +24,7 @@ define([
     'viewmodels/ProjectionsViewModel',
     'viewmodels/SearchViewModel',
     'viewmodels/SettingsViewModel',
+    'viewmodels/TacticalSymbolEditor',
     'text!views/basic-markers.html',
     'text!views/bookmark.html',
     'text!views/globe.html',
@@ -33,6 +35,8 @@ define([
     'text!views/marker-editor.html',
     'text!views/projections.html',
     'text!views/settings.html',
+    'text!views/symbols.html',
+    'text!views/symbol-editor.html',
     'url-search-params',
     'knockout',
     'jquery',
@@ -46,6 +50,7 @@ define([
         log,
         settings,
         MarkerManager,
+        SymbolManager,
         BookmarkViewModel,
         GlobeViewModel,
         InfoViewModel,
@@ -56,6 +61,7 @@ define([
         ProjectionsViewModel,
         SearchViewModel,
         SettingsViewModel,
+        TacticalSymbolEditor,
         basicMarkersHtml,
         bookmarkHtml,
         globeHtml,
@@ -66,6 +72,8 @@ define([
         markerEditorHtml,
         projectionsHtml,
         settingsHtml,
+        tacticalSymbolsHtml,
+        tacticalSymbolEditorHtml,
         URLSearchParams,
         ko,
         $) {
@@ -103,6 +111,7 @@ define([
 
             // Configure the manager of objects on the globe
             this.markerManager = new MarkerManager(this.globe);
+            this.symbolManager = new SymbolManager(this.globe);
 
             // Configure the objects used to animate the globe when performing "go to" operations
             this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
@@ -140,7 +149,10 @@ define([
             // --------------------------------------------------------
             Explorer.createKnockoutBindingsForSlider();
 
-            new GlobeViewModel(this, { markerManager: this.markerManager}, globeHtml, "globe");
+            new GlobeViewModel(this, { 
+                markerManager: this.markerManager, 
+                symbolManager: this.symbolManager}, 
+            globeHtml, "globe");
 
             new SearchViewModel(this.globe, "search");
             new BookmarkViewModel(this.globe, bookmarkHtml, "right-navbar");
@@ -155,9 +167,11 @@ define([
             // Dialogs
             new LayerSettings(this.globe, layerSettingsHtml);
             new MarkerEditor(markerEditorHtml);
+            new TacticalSymbolEditor(tacticalSymbolEditorHtml);
             
             // Marker content
             markersViewModel.addMarkers(this.markerManager, basicMarkersHtml, "markers-body");
+            markersViewModel.addMarkers(this.symbolManager, tacticalSymbolsHtml, "markers-body");
 
         };
 
@@ -255,6 +269,7 @@ define([
         Explorer.prototype.restoreSession = function () {
             log.info('Explorer', 'restoreSession', 'Restoring the model and view.');
             this.markerManager.restoreMarkers();
+            this.symbolManager.restoreSymbols();
             this.restoreSessionView();
             // Update all time sensitive objects
             this.globe.updateDateTime(new Date());
@@ -315,6 +330,7 @@ define([
             log.info('Explorer', 'saveSession', 'Saving the model and view.');
             this.saveSessionView();
             this.markerManager.saveMarkers();
+            this.symbolManager.saveSymbols();
             this.globe.layerManager.saveLayers();
         };
 

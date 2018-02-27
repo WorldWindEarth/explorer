@@ -38,6 +38,7 @@ define([],
             LAYER_NAME_ATMOSPHERE: "Atmosphere",
             LAYER_NAME_COMPASS: "Compass",
             LAYER_NAME_MARKERS: "Markers",
+            LAYER_NAME_TACTICAL_SYMBOLS: "Tactical Symbols",
             LAYER_NAME_RETICLE: "Crosshairs",
             LAYER_NAME_SKY: "Sky",
             LAYER_NAME_STARS: "Stars",
@@ -66,6 +67,7 @@ define([],
              * The local storage key for markers.
              */
             STORAGE_KEY_MARKERS: "markers",
+            STORAGE_KEY_TACTICAL_SYMBOLS: "tactical_symbols",
 
             /**
              * Base URL for Web World Wind SDK. (Do not use a relative path.)
