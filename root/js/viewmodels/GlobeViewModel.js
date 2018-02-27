@@ -137,9 +137,9 @@ define([
             });
 
             // Invoke armDropMarker when a template is selected from the palette
-            this.selectedMarkerTemplate.subscribe(this.armDropMarker);
+            this.selectedMarkerTemplate.subscribe(this.armDropMarker, this);
             // Invoke armDropMarker when a template is selected from the palette
-            this.selectedSymbolTemplate.subscribe(this.armDropSymbol);
+            this.selectedSymbolTemplate.subscribe(this.armDropSymbol, this);
 
 
         }
@@ -175,7 +175,7 @@ define([
         GlobeViewModel.prototype.dropSymbolCallback = function (position, symbolTemplate) {
             // Add the placemark to the layer and to the observable array
             this.symbolManager.addSymbol(new TacticalSymbol(
-                this.symbolManager, position, {imageSource: symbolTemplate.imageSource}));
+                this.symbolManager, position, {symbolCode: symbolTemplate.symbolCode}));
         };
 
         /**

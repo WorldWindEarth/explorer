@@ -112,9 +112,9 @@ define([
                 return formatter.formatDecimalDegreesLat(self.latitude(), 3) + ", " + formatter.formatDecimalDegreesLon(self.longitude(), 3);
             });
 
-            this.symbolCode = ko.observable("SUG------------"); // Default to  Warfighting. Unknown. Ground.
+            this.symbolCode = ko.observable(args.symbolCode || "SUG------------"); // Default to  Warfighting. Unknown. Ground.
             this.modifiers = ko.observable({size: 30}); // Set the default size
-            
+
 
 //            this.symbolCode = ko.observable("sfgpewrh--mt");
 //            this.modifiers = ko.observable({
@@ -162,20 +162,23 @@ define([
             this.longitude.subscribe(function (newLon) {
                 self.placemark.position.longitude = newLon;
             });
-//            this.name.subscribe(function (newName) {
-//                self.placemark.label = newName;
-//            });
 
         };
 
 
         TacticalSymbol.imagePath = 'js/model/images/milstd2525c/';
         TacticalSymbol.templates = [
-            {name: "Air ", imageSource: TacticalSymbol.imagePath + "sfap-----------.png"},
-            {name: "Ground ", imageSource: TacticalSymbol.imagePath + "sfgp-----------.png"},
-            {name: "Sea Surface ", imageSource: TacticalSymbol.imagePath + "sfsp-----------.png"},
-            {name: "Sea Sub Surface ", imageSource: TacticalSymbol.imagePath + "sfup-----------.png"},
-            {name: "SOF Unit ", imageSource: TacticalSymbol.imagePath + "sffp-----------.png"}
+            {name: "Air ", symbolCode: "SFAP-----------", imageSource: TacticalSymbol.imagePath + "sfap-----------.png"},
+            {name: "Ground ", symbolCode: "SFGP-----------", imageSource: TacticalSymbol.imagePath + "sfgp-----------.png"},
+            {name: "SOF Unit ", symbolCode: "SFFP-----------", imageSource: TacticalSymbol.imagePath + "sffp-----------.png"},
+            {name: "Sea Surface ", symbolCode: "SFSP-----------", imageSource: TacticalSymbol.imagePath + "sfsp-----------.png"},
+            {name: "Sea Sub Surface ", symbolCode: "SFUP-----------", imageSource: TacticalSymbol.imagePath + "sfup-----------.png"},
+            {name: "Fire Incident", symbolCode: "EHIPC----------", imageSource: TacticalSymbol.imagePath + "ehipc----------.png"},
+            {name: "HazMat Incident", symbolCode: "EHIPD----------", imageSource: TacticalSymbol.imagePath + "ehipd----------.png"},
+            {name: "EMS Operations", symbolCode: "EFOPA----------", imageSource: TacticalSymbol.imagePath + "efopa----------.png"},
+            {name: "Emergency Operations", symbolCode: "EFOPB----------", imageSource: TacticalSymbol.imagePath + "efopb----------.png"},
+            {name: "FF Operations", symbolCode: "EFOPC----------", imageSource: TacticalSymbol.imagePath + "efopc----------.png"},
+            {name: "Law Enforement Unit", symbolCode: "EFOPDA---------", imageSource: TacticalSymbol.imagePath + "efopda---------.png"}
         ];
 
         return TacticalSymbol;

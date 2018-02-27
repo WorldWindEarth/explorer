@@ -53,6 +53,16 @@
                     <span class="caret"></span>
                     <span class="sr-only">Symbols Dropdown</span>
                 </button>
+                <!-- Tactical Symbol dropdown list bound the 'symbolPalette' observableArray -->
+                <ul id="symbol-palette"
+                    class="dropdown-menu"
+                    style="left: initial; right: 0; min-width: 30px"
+                    data-bind="foreach: symbolPalette">
+                    <li data-bind="click: $parent.selectedSymbolTemplate">
+                        <a><img width="28px" height="28px;"
+                                data-bind="attr:{src: $data.imageSource}"/></a>
+                    </li>
+                </ul>          
             </span>                           
         </div>
     </div>

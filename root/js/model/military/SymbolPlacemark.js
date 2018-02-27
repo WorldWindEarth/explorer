@@ -109,7 +109,8 @@ define(['milsymbol', 'worldwind'],
             attributes.imageSource = new WorldWind.ImageSource(symbol.asCanvas());
             attributes.imageOffset = new WorldWind.Offset(
                 WorldWind.OFFSET_PIXELS, anchor.x, // x offset
-                WorldWind.OFFSET_PIXELS, size.height - anchor.y); // y offset converted to lower-left origin       
+                WorldWind.OFFSET_PIXELS, 0); // Anchor at bottom    
+//                WorldWind.OFFSET_PIXELS, size.height - anchor.y); // y offset converted to lower-left origin       
 
             attributes.depthTest = false;
             attributes.imageScale = 1.0;

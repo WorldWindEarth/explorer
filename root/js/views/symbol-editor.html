@@ -13,6 +13,20 @@
                            optionsCaption: '- Scheme...'"></select>        
     </div>     
     <div class="dropdown">
+        <select data-bind="options: affiliations, 
+                           optionsText: 'name',
+                           value: selectedAffiliation,
+                           optionsCaption: '*Identity...'">
+        </select>        
+    </div>     
+    <div class="dropdown">
+        <select data-bind="options: status, 
+                           optionsText: 'name',
+                           value: selectedStatus,
+                           optionsCaption: '*Status...'">
+        </select>        
+    </div>     
+    <div class="dropdown">
         <select data-bind="options: dimensions, 
                            optionsText: 'name',
                            value: selectedDimension,
@@ -25,20 +39,6 @@
                            value: selectedFunction,
                            optionsCaption: 'Function...'">
 
-        </select>        
-    </div>     
-    <div class="dropdown">
-        <select data-bind="options: affiliations, 
-                           optionsText: 'name',
-                           value: selectedAffiliation,
-                           optionsCaption: '- Identity...'">
-        </select>        
-    </div>     
-    <div class="dropdown">
-        <select data-bind="options: status, 
-                           optionsText: 'name',
-                           value: selectedStatus,
-                           optionsCaption: 'Status...'">
         </select>        
     </div>     
     <div class="dropdown">
