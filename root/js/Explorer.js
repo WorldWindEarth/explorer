@@ -269,6 +269,7 @@ define([
         Explorer.prototype.restoreSession = function () {
             log.info('Explorer', 'restoreSession', 'Restoring the model and view.');
             this.markerManager.restoreMarkers();
+            this.symbolManager.restoreSymbols();
             this.restoreSessionView();
             // Update all time sensitive objects
             this.globe.updateDateTime(new Date());
@@ -329,6 +330,7 @@ define([
             log.info('Explorer', 'saveSession', 'Saving the model and view.');
             this.saveSessionView();
             this.markerManager.saveMarkers();
+            this.symbolManager.saveSymbols();
             this.globe.layerManager.saveLayers();
         };
 

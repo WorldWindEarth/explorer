@@ -44,27 +44,8 @@ define([
             // The symbol object to be edited 
             this.symbol = ko.observable({});
 
-            // Symbol Coding 
-            this.schemes = ko.observableArray([
-                {value: "S", name: "S: " + warfighting.name, code: "WAR", symbols: warfighting},
-                {value: "I", name: "I: " + signals.name, code: "SIGINT", symbols: signals},
-                {value: "O", name: "O: " + stability.name, code: "STBOPS", symbols: stability},
-                {value: "E", name: "E: " + emergency.name, code: "EMS", symbols: emergency}]);
-            this.selectedScheme = ko.observable();
-
-            this.dimensions = ko.observableArray([]);
-            this.selectedDimension = ko.observable();
-
-            this.functions = ko.observableArray([]);
-            this.selectedFunction = ko.observable();
-
-            this.modifiers1 = ko.observableArray([]);
-            this.selectedModifier1 = ko.observable();
-
-            this.modifiers2 = ko.observableArray([]);
-            this.selectedModifier2 = ko.observable();
-
-            this.status = [
+            // Operational status name/value pairs for dropdown lists
+            this.statusOptions = [
                 {value: "-", name: "-"},
                 {value: "P", name: "P: Present"},
                 {value: "C", name: "C: Present/Fully Capable"},
@@ -75,7 +56,8 @@ define([
             ];
             this.selectedStatus = ko.observable();
 
-            this.affiliations = [
+            // Standard identity name/value pairs for dropdown lists
+            this.affiliationOptions = [
                 {value: "U", name: "U: Unknown"},
                 {value: "F", name: "F: Friend"},
                 {value: "N", name: "N: Neutral"},
@@ -94,61 +76,131 @@ define([
             ];
             this.selectedAffiliation = ko.observable();
 
+            // Symbology scheme objects for dropdown lists 
+            this.schemeOptions = ko.observableArray([
+                {value: "S", name: "S: " + warfighting.name, code: "WAR", symbols: warfighting},
+                {value: "I", name: "I: " + signals.name, code: "SIGINT", symbols: signals},
+                {value: "O", name: "O: " + stability.name, code: "STBOPS", symbols: stability},
+                {value: "E", name: "E: " + emergency.name, code: "EMS", symbols: emergency}]);
+            this.selectedScheme = ko.observable();
 
+            this.dimensionOptions = ko.observableArray([]);
+            this.selectedDimension = ko.observable();
+
+            this.functionOptions = ko.observableArray([]);
+            this.selectedFunction = ko.observable();
+
+            this.modifierOptions1 = ko.observableArray([]);
+            this.selectedModifier1 = ko.observable();
+
+            this.modifierOptions2 = ko.observableArray([]);
+            this.selectedModifier2 = ko.observable();
+
+
+            /**
+             * Builds the dimension options when the selected symbology scheme changes.
+             * @param {Object} scheme 
+             */
             this.selectedScheme.subscribe(function (scheme) {
-                self.dimensions.removeAll();
+                self.dimensionOptions.removeAll();
                 for (var obj in scheme.symbols) {
                     if (scheme.symbols[obj].name) {
-                        self.dimensions.push({
+                        self.dimensionOptions.push({
                             name: scheme.symbols[obj].name,
-                            functions: scheme.symbols[obj]["main icon"]});
+                            functions: scheme.symbols[obj]["main icon"],
+                            modifiers1: scheme.symbols[obj]["modifier 1"],
+                            modifiers2: scheme.symbols[obj]["modifier 2"]});
                     }
                 }
             });
 
+            /**
+             * Builds the function and modifier options when the seleted dimension changes.
+             * @param {Object} dimension 
+             */
             this.selectedDimension.subscribe(function (dimension) {
-                var functions, modifiers, obj, item, lastItemIdx;
-                self.functions.removeAll();
-                self.modifiers1.removeAll();
-                self.modifiers2.removeAll();
+                var functions, obj, item, lastItemIdx;
+                self.functionOptions.removeAll();
+                self.modifierOptions1.removeAll();
+                self.modifierOptions2.removeAll();
                 if (dimension) {
+                    // Extract the functions for this dimension
                     functions = dimension.functions;
                     for (obj in functions) {
                         item = functions[obj];
                         lastItemIdx = item.name.length - 1;
-                        self.functions.push({
+                        self.functionOptions.push({
                             // Replace preceeding elements in the name hierarchy wih en dashes  
                             name: "\u2013 ".repeat(lastItemIdx) + item.name[lastItemIdx],
                             function: functions[obj]});
                     }
-
-                    modifiers = dimension["modifier 1"];
-                    for (obj in modifiers) {
-                        self.modifiers1.push({value: obj, name: modifiers[obj].name});
+                    // Extract the modifiers for this dimension
+                    for (obj in dimension.modifiers1) {
+                        self.modifierOptions1.push({
+                            value: obj,
+                            name: dimension.modifiers1[obj].name
+                        });
                     }
-
-                    modifiers = dimension["modifier 2"];
-                    for (obj in modifiers) {
-                        self.modifiers2.push({value: obj, name: modifiers[obj].name});
+                    if (dimension.name === "Ground Equipment") {
+                        self.modifierOptions1.push({value: "M", name: "Mobility"});
+                        self.modifierOptions1.push({value: "N", name: "Towed Array"});
+                    }
+                    for (obj in dimension.modifiers2) {
+                        self.modifierOptions2.push({
+                            value: obj,
+                            name: dimension.modifiers2[obj].name
+                        });
                     }
                 }
             });
 
+            this.selectedModifier1.subscribe(function (modifier1) {
+                if (modifier1) {
+                    if (modifier1.value === "M") {
+                        self.modifierOptions2.removeAll();
+                        self.modifierOptions2.push({value: "O", name: "Wheeled/Limited XCountry"});
+                        self.modifierOptions2.push({value: "P", name: "Wheeled Cross Country"});
+                        self.modifierOptions2.push({value: "Q", name: "Tracked"});
+                        self.modifierOptions2.push({value: "R", name: "Wheeled and Tracked"});
+                        self.modifierOptions2.push({value: "S", name: "Towed"});
+                        self.modifierOptions2.push({value: "T", name: "Rail"});
+                        self.modifierOptions2.push({value: "U", name: "Over the Snow"});
+                        self.modifierOptions2.push({value: "V", name: "Sled"});
+                        self.modifierOptions2.push({value: "W", name: "Pack Animals"});
+                        self.modifierOptions2.push({value: "X", name: "Barge"});
+                        self.modifierOptions2.push({value: "Y", name: "Amphibious"});
+                    }
+                    if (modifier1.value === "N") {
+                        self.modifierOptions2.removeAll();
+                        self.modifierOptions2.push({value: "S", name: "Towed Array (Short)"});
+                        self.modifierOptions2.push({value: "L", name: "Towed Array (Long)"});
+                    }
+                }
+            });
+
+
+            /**
+             * Prepopulates the option lists when the symbol code changes.
+             * Invoked by open().
+             * @param {String} newSymbol symbol code 
+             */
             this.symbol.subscribe(function (newSymbol) {
                 var symbolCode = newSymbol.symbolCode(),
                     codingScheme = symbolCode.substring(0, 1),
-                    stdIdentity = symbolCode.substring(1, 2),
+                    stdIdenitiy = symbolCode.substring(1, 2),
                     battleDim = symbolCode.substring(2, 3),
-                    operationalStatus = symbolCode.substring(3, 4),
+                    statusValue = symbolCode.substring(3, 4),
                     functionId = symbolCode.substring(4, 10),
-                    scheme, affiliation, opStatus, icon, dimension;
+                    modifierValue1 = symbolCode.substring(10, 11),
+                    modifierValue2 = symbolCode.substring(11, 12),
+                    scheme, affiliation, status, icon, dimension, modifier1, modifier2;
 
-                scheme = self.schemes().find(function (element) {
+                scheme = self.schemeOptions().find(function (element) {
                     return element.value === codingScheme;
                 });
                 self.selectedScheme(scheme);
 
-                dimension = self.dimensions().find(function (element) {
+                dimension = self.dimensionOptions().find(function (element) {
                     return element.functions.find(function (iconElement) {
                         return iconElement["battle dimension"] === battleDim
                             && iconElement["code"] === functionId;
@@ -159,25 +211,39 @@ define([
                 if (self.selectedDimension()) {
                     // The 'functions' obserable array contains the name/function pairs
                     // for the selected dimension
-                    icon = self.functions().find(function (element) {
+                    icon = self.functionOptions().find(function (element) {
                         return element.function.code === functionId;
                     });
                     self.selectedFunction(icon);
                 }
 
-                affiliation = self.affiliations.find(function (element) {
-                    return element.value === stdIdentity;
+                affiliation = self.affiliationOptions.find(function (element) {
+                    return element.value === stdIdenitiy;
                 });
                 self.selectedAffiliation(affiliation);
 
-                opStatus = self.status.find(function (element) {
-                    return element.value === operationalStatus;
+                status = self.statusOptions.find(function (element) {
+                    return element.value === statusValue;
                 });
-                self.selectedStatus(opStatus);
+                self.selectedStatus(status);
+
+                modifier1 = self.modifierOptions1().find(function (element) {
+                    return element.value === modifierValue1;
+                });
+                self.selectedModifier1(modifier1);
+                
+                modifier2 = self.modifierOptions2().find(function (element) {
+                    return element.value === modifierValue2;
+                });
+                self.selectedModifier2(modifier2);
 
 
             });
 
+            /**
+             * Updates symbol code in the current symbol object.
+             * Invoked by the dialog Save button.
+             */
             this.onSave = function () {
                 var icon = self.selectedFunction() ? self.selectedFunction().function : null,
                     codingScheme = self.selectedScheme() ? self.selectedScheme().value : "S",
@@ -186,10 +252,10 @@ define([
                     battleDim = icon ? icon["battle dimension"] : "Z",
                     functionId = icon ? icon["code"] : "------",
                     modifier1 = self.selectedModifier1() ? self.selectedModifier1().value : "-",
-                    modifier2 = self.selectedModifier2() ? self.selectedModifier1().value : "-",
+                    modifier2 = self.selectedModifier2() ? self.selectedModifier2().value : "-",
                     symbolCode;
 
-                symbolCode = 
+                symbolCode =
                     codingScheme +
                     stdIdentity +
                     battleDim +
@@ -203,6 +269,10 @@ define([
             };
 
 
+            /**
+             * Opens a dialog to edit the symbol.
+             * @param {TacticalSymbol} symbol
+             */
             this.open = function (symbol) {
                 console.log("Open Symbol: " + symbol.name());
                 // Update observable(s)
@@ -224,6 +294,8 @@ define([
                 });
                 $symbolEditor.dialog("open");
             };
+
+
             // Binds the view to this view model.
             ko.applyBindings(this, this.view);
         }

@@ -125,22 +125,22 @@ define([
                         validSymbols.push({
                             id: symbol.id,
                             name: symbol.name,
-                            source: symbol.source,
+                            symbolCode: symbol.symbolCode,
                             latitude: symbol.latitude,
                             longitude: symbol.longitude,
                             isMovable: symbol.isMovable
                         });
                     }
                 }
-                symbolsString = ko.toJSON(validSymbols, ['id', 'name', 'source', 'latitude', 'longitude', 'isMovable']);
-                localStorage.setItem(constants.STORAGE_KEY_MARKERS, symbolsString);
+                symbolsString = ko.toJSON(validSymbols, ['id', 'name', 'symbolCode', 'latitude', 'longitude', 'isMovable']);
+                localStorage.setItem(constants.STORAGE_KEY_TACTICAL_SYMBOLS, symbolsString);
             };
 
             /**
              * Restores the symbols list from local storage.
              */
             this.restoreSymbols = function () {
-                var string = localStorage.getItem(constants.STORAGE_KEY_MARKERS),
+                var string = localStorage.getItem(constants.STORAGE_KEY_TACTICAL_SYMBOLS),
                     array, max, i,
                     position, params;
 
@@ -149,7 +149,7 @@ define([
                 if (array && array.length !== 0) {
                     for (i = 0, max = array.length; i < max; i++) {
                         position = new WorldWind.Position(array[i].latitude, array[i].longitude, 0);
-                        params = {id: array[i].id, name: array[i].name, imageSource: array[i].source, isMovable: array[i].isMovable};
+                        params = {id: array[i].id, name: array[i].name, symbolCode: array[i].symbolCode, isMovable: array[i].isMovable};
 
                         this.addSymbol(new TacticalSymbol(self, position, params));
                     }
