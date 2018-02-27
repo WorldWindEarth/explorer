@@ -25,7 +25,7 @@ define([
         var SymbolManager = function (globe, layer) {
             var self = this;
             this.globe = globe;
-            this.layer = layer || globe.findLayer(constants.LAYER_NAME_MARKERS);
+            this.layer = layer || globe.findLayer(constants.LAYER_NAME_TACTICAL_SYMBOLS);
             this.symbols = ko.observableArray();
             this.symbolCount = ko.observable(0);
 
