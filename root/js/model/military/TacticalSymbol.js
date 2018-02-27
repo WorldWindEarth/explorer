@@ -173,12 +173,15 @@ define([
             {name: "SOF Unit ", symbolCode: "SFFP-----------", imageSource: TacticalSymbol.imagePath + "sffp-----------.png"},
             {name: "Sea Surface ", symbolCode: "SFSP-----------", imageSource: TacticalSymbol.imagePath + "sfsp-----------.png"},
             {name: "Sea Sub Surface ", symbolCode: "SFUP-----------", imageSource: TacticalSymbol.imagePath + "sfup-----------.png"},
-            {name: "Fire Incident", symbolCode: "EHIPC----------", imageSource: TacticalSymbol.imagePath + "ehipc----------.png"},
-            {name: "HazMat Incident", symbolCode: "EHIPD----------", imageSource: TacticalSymbol.imagePath + "ehipd----------.png"},
+            {name: "Neutral ", symbolCode: "SNZP-----------", imageSource: TacticalSymbol.imagePath + "snzp-----------.png"},
+            {name: "Hostile ", symbolCode: "SHZP-----------", imageSource: TacticalSymbol.imagePath + "shzp-----------.png"},
+            {name: "Unknown ", symbolCode: "SUZP-----------", imageSource: TacticalSymbol.imagePath + "suzp-----------.png"},
             {name: "EMS Operations", symbolCode: "EFOPA----------", imageSource: TacticalSymbol.imagePath + "efopa----------.png"},
             {name: "Emergency Operations", symbolCode: "EFOPB----------", imageSource: TacticalSymbol.imagePath + "efopb----------.png"},
             {name: "FF Operations", symbolCode: "EFOPC----------", imageSource: TacticalSymbol.imagePath + "efopc----------.png"},
-            {name: "Law Enforement Unit", symbolCode: "EFOPDA---------", imageSource: TacticalSymbol.imagePath + "efopda---------.png"}
+            {name: "Law Enforement Unit", symbolCode: "EFOPDA---------", imageSource: TacticalSymbol.imagePath + "efopda---------.png"},
+            {name: "Fire Incident", symbolCode: "EHIPC----------", imageSource: TacticalSymbol.imagePath + "ehipc----------.png"},
+            {name: "HazMat Incident", symbolCode: "EHIPD----------", imageSource: TacticalSymbol.imagePath + "ehipd----------.png"}
         ];
 
         return TacticalSymbol;
