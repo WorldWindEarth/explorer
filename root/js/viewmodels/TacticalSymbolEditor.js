@@ -44,26 +44,7 @@ define([
             // The symbol object to be edited 
             this.symbol = ko.observable({});
 
-            // Symbol Coding 
-            this.schemes = ko.observableArray([
-                {value: "S", name: "S: " + warfighting.name, code: "WAR", symbols: warfighting},
-                {value: "I", name: "I: " + signals.name, code: "SIGINT", symbols: signals},
-                {value: "O", name: "O: " + stability.name, code: "STBOPS", symbols: stability},
-                {value: "E", name: "E: " + emergency.name, code: "EMS", symbols: emergency}]);
-            this.selectedScheme = ko.observable();
-
-            this.dimensions = ko.observableArray([]);
-            this.selectedDimension = ko.observable();
-
-            this.functions = ko.observableArray([]);
-            this.selectedFunction = ko.observable();
-
-            this.modifiers1 = ko.observableArray([]);
-            this.selectedModifier1 = ko.observable();
-
-            this.modifiers2 = ko.observableArray([]);
-            this.selectedModifier2 = ko.observable();
-
+            // Operational status name/value pairs for dropdown lists
             this.status = [
                 {value: "-", name: "-"},
                 {value: "P", name: "P: Present"},
@@ -75,6 +56,7 @@ define([
             ];
             this.selectedStatus = ko.observable();
 
+            // Standard identity name/value pairs for dropdown lists
             this.affiliations = [
                 {value: "U", name: "U: Unknown"},
                 {value: "F", name: "F: Friend"},
@@ -94,6 +76,26 @@ define([
             ];
             this.selectedAffiliation = ko.observable();
 
+            // Symbology scheme objects for dropdown lists 
+            this.schemes = ko.observableArray([
+                {value: "S", name: "S: " + warfighting.name, code: "WAR", symbols: warfighting},
+                {value: "I", name: "I: " + signals.name, code: "SIGINT", symbols: signals},
+                {value: "O", name: "O: " + stability.name, code: "STBOPS", symbols: stability},
+                {value: "E", name: "E: " + emergency.name, code: "EMS", symbols: emergency}]);
+            this.selectedScheme = ko.observable();
+
+            this.dimensions = ko.observableArray([]);
+            this.selectedDimension = ko.observable();
+
+            this.functions = ko.observableArray([]);
+            this.selectedFunction = ko.observable();
+
+            this.modifiers1 = ko.observableArray([]);
+            this.selectedModifier1 = ko.observable();
+
+            this.modifiers2 = ko.observableArray([]);
+            this.selectedModifier2 = ko.observable();
+
 
             this.selectedScheme.subscribe(function (scheme) {
                 self.dimensions.removeAll();
@@ -101,13 +103,15 @@ define([
                     if (scheme.symbols[obj].name) {
                         self.dimensions.push({
                             name: scheme.symbols[obj].name,
-                            functions: scheme.symbols[obj]["main icon"]});
+                            functions: scheme.symbols[obj]["main icon"],
+                            modifiers1: scheme.symbols[obj]["modifier 1"],
+                            modifiers2: scheme.symbols[obj]["modifier 2"]});
                     }
                 }
             });
 
             this.selectedDimension.subscribe(function (dimension) {
-                var functions, modifiers, obj, item, lastItemIdx;
+                var functions, obj, item, lastItemIdx;
                 self.functions.removeAll();
                 self.modifiers1.removeAll();
                 self.modifiers2.removeAll();
@@ -121,15 +125,18 @@ define([
                             name: "\u2013 ".repeat(lastItemIdx) + item.name[lastItemIdx],
                             function: functions[obj]});
                     }
-
-                    modifiers = dimension["modifier 1"];
-                    for (obj in modifiers) {
-                        self.modifiers1.push({value: obj, name: modifiers[obj].name});
+                    // Extract the modifiers for this dimension
+                    for (obj in dimension.modifiers1) {
+                        self.modifiers1.push({
+                            value: obj, 
+                            name: dimension.modifiers1[obj].name
+                        });
                     }
-
-                    modifiers = dimension["modifier 2"];
-                    for (obj in modifiers) {
-                        self.modifiers2.push({value: obj, name: modifiers[obj].name});
+                    for (obj in dimension.modifiers2) {
+                        self.modifiers2.push({
+                            value: obj, 
+                            name: dimension.modifiers2[obj].name
+                        });
                     }
                 }
             });
