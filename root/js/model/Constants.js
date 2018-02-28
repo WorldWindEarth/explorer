@@ -69,6 +69,8 @@ define([],
              * The local storage key for markers.
              */
             STORAGE_KEY_MARKERS: "markers",
+            STORAGE_KEY_TACTICAL_SYMBOLS: "tactical_symbols",
+            STORAGE_KEY_WEATHER_SCOUTS: "weather_scouts",
             /**
              * The URL for the weather REST service.
              */
