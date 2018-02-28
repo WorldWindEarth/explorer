@@ -237,6 +237,10 @@ define([
             event.stopImmediatePropagation();
         };
 
+        GlobeViewModel.prototype.refreshScouts = function () {
+            this.weatherManager.refreshScouts();
+        };
+        
         GlobeViewModel.prototype.onTimeReset = function () {
             this.explorer.autoUpdateTimeEnabled(true);   // reset enables the auto time adjustment
             this.globe.updateDateTime(new Date());
