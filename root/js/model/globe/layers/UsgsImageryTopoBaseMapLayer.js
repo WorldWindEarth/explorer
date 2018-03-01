@@ -26,10 +26,10 @@ define(['worldwind'], function () {
         var cfg = {
             title: "USGS Imagery Topo Basemap",
             version: "1.3.0",
-            service: "https://basemap.nationalmap.gov/arcgis/services/USGSImageryTopo/MapServer/WmsServer?",
+            service: "https://basemap.nationalmap.gov:443/arcgis/services/USGSImageryTopo/MapServer/WmsServer?",
             layerNames: "0",
             sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
-            levelZeroDelta: new WorldWind.Location(90,90),
+            levelZeroDelta: new WorldWind.Location(180,180),
             numLevels: 12,
             format: "image/png",
             size: 256,

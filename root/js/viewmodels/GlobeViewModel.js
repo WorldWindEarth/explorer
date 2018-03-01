@@ -128,19 +128,25 @@ define([
                     case "time-fast-backward":
                         self.intervalMinutes = -60 * 24;
                         break;
+                    default:
+                        return;
                 }
                 self.changeDateTime();
                 // Start a repeating interval that changes the time.
                 if (intervalId !== -1) {    // prevent duplicates
                     clearInterval(intervalId);
                 }
-                intervalId = setInterval(self.changeDateTime, 200);
+                intervalId = setInterval(
+                    function() { self.changeDateTime(); },
+                    200); // the INTERVAL
             }).mouseup(function () {
                 clearInterval(intervalId);
                 intervalId = -1;
+            }).mouseleave(function () {
+                clearInterval(intervalId);
+                intervalId = -1;
             });
-
-            // Invoke armDropMarker when a template is selected from the Pushpins palette
+            // Invoke armDropMarker when a template is selected from the palette
             this.selectedMarkerTemplate.subscribe(this.armDropMarker, this);
             // Invoke armDropSymbol when a template is selected from the Tactical Symbols palette
             this.selectedSymbolTemplate.subscribe(this.armDropSymbol, this);
