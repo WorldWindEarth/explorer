@@ -24,13 +24,13 @@ define(['worldwind'], function () {
         var cfg = {
             title: "USGS Topo Basemap",
             version: "1.3.0",
-            service: "https://basemap.nationalmap.gov/arcgis/services/USGSTopo/MapServer/WmsServer?",
+            service: "https://basemap.nationalmap.gov:443/arcgis/services/USGSTopo/MapServer/WmsServer?",
             layerNames: "0",
             sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
-            levelZeroDelta: new WorldWind.Location(36, 36),
-            numLevels: 12,
+            levelZeroDelta: new WorldWind.Location(180, 180),
+            numLevels: 15,
             format: "image/png",
-            size: 512,
+            size: 256,
             coordinateSystem: "EPSG:4326", // optional
             styleNames: "" // (optional): {String} A comma separated list of the styles to include in this layer.</li>
         };
