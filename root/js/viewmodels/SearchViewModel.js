@@ -15,7 +15,7 @@ define(['model/util/Log', 'knockout', 'jquery', 'jquery-growl', 'worldwind'],
         "use strict";
         /**
          * The view model for the Search panel.
-         * Uses the MapQuest Nominatim API
+         * Uses the MapQuest Nominatim API. Requires an access key. See: https://developer.mapquest.com/
          * @constructor
          * @param {Globe} globe The globe that provides the supported projections
          * @param {String} viewElementId  
