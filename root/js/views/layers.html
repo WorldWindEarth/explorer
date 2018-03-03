@@ -60,20 +60,40 @@
     -->
     <div class="section-heading">
         <h4 class="sub-header">
+            <span class="glyphicon glyphicon-cloud" aria-hidden="true" style="padding-right:5px;"></span>
             Servers
         </h4>
     </div>
-    <!--Display the server address text box and the add server button-->
-    <div class="input-group">
-        <input id="add-server-text" type="text"
-               data-bind="value: serverAddress"
-               placeholder="Add new server URL"/>
-        <button type="button" id="add-server-button"
-                class="btn btn-primary btn-sm"
-                data-bind="click: onAddServer">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-            Add Server
-        </button>
+    <!--Display the server address text box, dropdown popup, and the add server button-->
+    <div class="input-group" style="width:100%;">
+        <p>URL
+            <input id="add-server-text" type="text" style="width: calc(100% - 110px); min-width: 120px"
+                   data-bind="value: serverAddress"
+                   placeholder="Add new server URL"/>
+            <!-- servers dropdown button-->
+            <button type="button"
+                    class="btn btn-primary btn-sm dropdown-toggle"
+                    data-toggle="dropdown"
+                    aria-haspopup="true">
+                <span class="caret"></span>
+                <span class="sr-only">Server options</span>
+            </button>
+            <!--servers list-->
+            <select class="dropdown-menu" 
+                    size="3"
+                    data-bind="
+                    options: serverAddresses, 
+                    optionsText: 'name', 
+                    optionsValue: 'url',  
+                    value: serverAddress">
+            </select>
+            <!--add server button-->
+            <button type="button" id="add-server-button"
+                    class="btn btn-primary btn-sm"
+                    data-bind="click: onAddServer">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            </button>
+        </p>
     </div>
     <!--Display the servers and their capabilities-->
     <div class="panel-group" role="tablist" aria-multiselectable="true" id="servers">

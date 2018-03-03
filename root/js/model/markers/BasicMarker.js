@@ -55,8 +55,6 @@ define([
                         args = params || {},
                         normalAttributes, highlightAttributes, placemark;
 
-                this.globe = manager.globe;
-                
                 // TODO: assert validitiy of method arguments
 
                 // Add the mix-in capabilites:

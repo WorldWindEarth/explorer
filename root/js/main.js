@@ -21,8 +21,6 @@ requirejs.config({
     paths: {
         // Bootstrap responsive layout
         'bootstrap': window.DEBUG ? 'libs/bootstrap/v3.3.6/bootstrap.min' : 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min',
-        // d3 graphics library
-        'd3': window.DEBUG ? 'libs/d3/d3' : 'https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min',
         // RequireJS plugin to wait for DOM ready
         'domReady': 'libs/require/domReady',
         // Dragula drag-n-drop library
@@ -40,6 +38,8 @@ requirejs.config({
         // JQuery UI touch event support
         'jquery-touch': 'libs/jquery-plugins/touch-punch/jquery.ui.touch-punch.min',
         // MomentJS date/time library
+        'milsymbol': 'libs/milsymbol/1.3.3/milsymbol',
+        // MomentJS date/time library
         'moment': window.DEBUG ? 'libs/moment/moment-2.14.1.min' : 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min',
         // PaceJS progress bar library
         'pace': 'libs/pace/pace.min',
@@ -47,8 +47,6 @@ requirejs.config({
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         // RequireJS plugin to load text/html files using the 'text!' prefixed modules
         'text': 'libs/require/text',
-        // VisJS charting library
-        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min',
         // NASA WorldWind
         'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : 'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min'
     },
@@ -132,6 +130,10 @@ require([
             // Use local resources
             WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
         }
+        // Enter your Bing Bing Maps key to use when requesting Bing Maps resources.
+        // See: https://www.bingmapsportal.com/ to register for your own key and then enter it below
+        //WorldWind.BingMapsKey = "";
+        
         // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
         var wwd = new WorldWind.WorldWindow("globe-canvas");
         // Provide an initial location to view
@@ -147,7 +149,7 @@ require([
 
         // Load the Explorer and its dependencies asynchronously while the 
         // WorldWind globe is loading its background layer(s).
-        require(['model/Explorer'], function (Explorer) {
+        require(['Explorer'], function (Explorer) {
 
             // Initialize the Explorer with a WorldWind virtual globe to "explore"
             var explorer = new Explorer(wwd);
