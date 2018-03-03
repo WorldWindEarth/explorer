@@ -1,9 +1,9 @@
 <div id="globe-canvas-overlay">
     <!-- Globe overlay view fragment -->
-    <!-- 
-    Marker Buttons 
-    -->
     <div id="globe-marker-controls" class="non-interactive" style="position: absolute; top: 0; right: 0;">
+        <!-- 
+        Marker Buttons 
+        -->
         <div id="globe-buttons" class="interactive"
              style='float: right; margin-top: 30px; max-width: 100px'>
             <span class="btn-group" style="float: left">
@@ -35,14 +35,35 @@
                     </li>
                 </ul>
             </span>
-            <!--Add Weather Scout button-->
-            <button type="button"
-                    class="btn btn-primary btn-sm globe-button"
-                    style="float: left; padding-top: 0; padding-bottom: 0; height: 30px;"
-                    data-bind="click: armDropScout">
-                <span class="glyphicon glyphicon-plus" style="padding-right: 5px;" aria-hidden="true"> </span>
-                <span class="glyphicon glyphicon-cloud" aria-hidden="true"></span>
-            </button>                             
+            <span class="btn-group" style="float: left">
+                <!-- Add Tactical Symbol button and palette -->
+                <button type="button"
+                        class="btn btn-primary btn-sm globe-button"
+                        style="padding-top: 0; padding-bottom: 0; padding-right: 0"
+                        data-bind="click: armDropSymbol">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    <img width="28px" height="28px;"
+                         data-bind="attr:{src: selectedSymbolTemplate().imageSource}"/>
+                </button>
+                <!-- Tactical Symbol palette dropdown button-->
+                <button type="button"
+                        class="btn btn-primary btn-sm globe-button dropdown-toggle"
+                        data-toggle="dropdown"
+                        aria-haspopup="true">
+                    <span class="caret"></span>
+                    <span class="sr-only">Symbols Dropdown</span>
+                </button>
+                <!-- Tactical Symbol dropdown list bound the 'symbolPalette' observableArray -->
+                <ul id="symbol-palette"
+                    class="dropdown-menu"
+                    style="left: initial; right: 0; min-width: 30px"
+                    data-bind="foreach: symbolPalette">
+                    <li data-bind="click: $parent.selectedSymbolTemplate">
+                        <a><img width="28px" height="28px;"
+                                data-bind="attr:{src: $data.imageSource}"/></a>
+                    </li>
+                </ul>          
+            </span>                           
         </div>
     </div>
     <!--

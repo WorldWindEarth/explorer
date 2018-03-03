@@ -5,100 +5,99 @@
 
 /*global WorldWind*/
 
-define(['knockout',
+define([
+    'model/military/TacticalSymbol',
+    'knockout',
     'model/Constants',
-    'model/markers/BasicMarker',
     'worldwind'],
-    function (ko,
-        constants,
-        BasicMarker,
-        ww) {
+    function (
+        TacticalSymbol,
+        ko,
+        constants) {
 
         "use strict";
         /**
-         * Constructs a MarkerManager that manages a collection of BasicMarkers.
+         * Constructs a SymbolManager that manages a collection of TacticalSymbols.
          * @param {Globe} globe
          * @param {RenderableLayer} layer Optional.
          * @constructor
          */
-        var MarkerManager = function (globe, layer) {
+        var SymbolManager = function (globe, layer) {
             var self = this;
             this.globe = globe;
-            this.layer = layer || globe.findLayer(constants.LAYER_NAME_MARKERS);
-            this.markers = ko.observableArray();
-            this.markerCount = ko.observable(0);
+            this.layer = layer || globe.findLayer(constants.LAYER_NAME_TACTICAL_SYMBOLS);
+            this.symbols = ko.observableArray();
+            this.symbolCount = ko.observable(0);
+
 
             // Subscribe to "arrayChange" events ...
             // documented here: http://blog.stevensanderson.com/2013/10/08/knockout-3-0-release-candidate-available/
-            this.markers.subscribe(function (changes) {
+            this.symbols.subscribe(function (changes) {
                 changes.forEach(function (change) {
                     if (change.status === 'added' && change.moved === undefined) {
                         // Ensure the name is unique by appending a suffix if reqd.
                         // (but not if the array reordered -- i.e., moved items)
                         self.doEnsureUniqueName(change.value);
-                        self.doAddMarkerToLayer(change.value);
+                        self.doAddSymbolToLayer(change.value);
                     } else if (change.status === 'deleted' && change.moved === undefined) {
-                        // When a marker is removed we must remove the placemark,
+                        // When a symbol is removed we must remove the placemark,
                         // (but not if the array reordered -- i.e., moved items)
-                        self.doRemoveMarkerFromLayer(change.value);
+                        self.doRemoveSymbolFromLayer(change.value);
                     }
                 });
-                self.markerCount(self.markers().length);
+                self.symbolCount(self.symbols().length);
+
             }, null, "arrayChange");
 
             /**
-             * Adds a BasicMarker to this manager.
-             * @param {BasicMarker} marker The marker to be managed.
+             * Adds a TacticalSymbol to this manager.
+             * @param {TacticalSymbol} symbol The symbol to be managed.
              */
-            this.addMarker = function (marker) {
-                self.markers.push(marker);  // observable
+            this.addSymbol = function (symbol) {
+                self.symbols.push(symbol);  // observable
             };
-
-            /**
-             * Centers the globe on the given scout.
-             * @param {BasicMarker} marker
-             */
-            this.gotoMarker = function (marker) {
+            
+            this.gotoSymbol = function (marker) {
                 self.globe.goto(marker.latitude(), marker.longitude());
             };
 
             /**
-             * Finds the marker with the given id.
-             * @param {String} id System assigned id for the marker.
-             * @returns {MarkerNode} The marker object if found, else null.
+             * Finds the symbol with the given id.
+             * @param {String} id System assigned id for the symbol.
+             * @returns {SymbolNode} The symbol object if found, else null.
              */
-            this.findMarker = function (id) {
-                var marker, i, len;
-                for (i = 0, len = self.markers.length(); i < len; i += 1) {
-                    marker = self.markers()[i];
-                    if (marker.id === id) {
-                        return marker;
+            this.findSymbol = function (id) {
+                var symbol, i, len;
+                for (i = 0, len = self.symbols.length(); i < len; i += 1) {
+                    symbol = self.symbols()[i];
+                    if (symbol.id === id) {
+                        return symbol;
                     }
                 }
                 return null;
             };
 
             /**
-             * Removes the given marker from the markers array and from the marker's renderable layer.
-             * @param {BasicMarker} marker The marker to be removed
+             * Removes the given symbol from the symbols array and from the symbol's renderable layer.
+             * @param {TacticalSymbol} symbol The symbol to be removed
              */
-            this.removeMarker = function (marker) {
-                self.markers.remove(marker);
+            this.removeSymbol = function (symbol) {
+                self.symbols.remove(symbol);
             };
 
             // Internal method to ensure the name is unique by appending a suffix if reqd.
-            this.doEnsureUniqueName = function (marker) {
-                marker.name(self.generateUniqueName(marker));
+            this.doEnsureUniqueName = function (symbol) {
+                symbol.name(self.generateUniqueName(symbol));
             };
 
             // Internal method to remove the placemark from its layer.
-            this.doAddMarkerToLayer = function (marker) {
-                self.layer.addRenderable(marker.placemark);
+            this.doAddSymbolToLayer = function (symbol) {
+                self.layer.addRenderable(symbol.placemark);
             };
 
             // Internal method to remove the placemark from its layer.
-            this.doRemoveMarkerFromLayer = function (marker) {
-                var i, max, placemark = marker.placemark;
+            this.doRemoveSymbolFromLayer = function (symbol) {
+                var i, max, placemark = symbol.placemark;
                 // Remove the placemark from the renderable layer
                 for (i = 0, max = self.layer.renderables.length; i < max; i++) {
                     if (self.layer.renderables[i] === placemark) {
@@ -106,42 +105,42 @@ define(['knockout',
                         break;
                     }
                 }
-                self.globe.selectController.doDeselect(marker);
+                this.globe.selectController.doDeselect(symbol);
             };
 
             /**
-             * Saves the markers list to local storage.
+             * Saves the symbols list to local storage.
              */
-            this.saveMarkers = function () {
-                var validMarkers = [],
-                    markersString,
-                    i, len, marker;
+            this.saveSymbols = function () {
+                var validSymbols = [],
+                    symbolsString,
+                    i, len, symbol;
 
                 // Knockout's toJSON can fail on complex objects... it appears
                 // to recurse and a call stack limit can be reached. So here we
                 // create a simplfied version of the object here to pass to toJSON.
-                for (var i = 0, len = self.markers().length; i < len; i++) {
-                    marker = self.markers()[i];
-                    if (!marker.invalid) {
-                        validMarkers.push({
-                            id: marker.id,
-                            name: marker.name,
-                            source: marker.source,
-                            latitude: marker.latitude,
-                            longitude: marker.longitude,
-                            isMovable: marker.isMovable
+                for (var i = 0, len = self.symbols().length; i < len; i++) {
+                    symbol = self.symbols()[i];
+                    if (!symbol.invalid) {
+                        validSymbols.push({
+                            id: symbol.id,
+                            name: symbol.name,
+                            symbolCode: symbol.symbolCode,
+                            latitude: symbol.latitude,
+                            longitude: symbol.longitude,
+                            isMovable: symbol.isMovable
                         });
                     }
                 }
-                markersString = ko.toJSON(validMarkers, ['id', 'name', 'source', 'latitude', 'longitude', 'isMovable']);
-                localStorage.setItem(constants.STORAGE_KEY_MARKERS, markersString);
+                symbolsString = ko.toJSON(validSymbols, ['id', 'name', 'symbolCode', 'latitude', 'longitude', 'isMovable']);
+                localStorage.setItem(constants.STORAGE_KEY_TACTICAL_SYMBOLS, symbolsString);
             };
 
             /**
-             * Restores the markers list from local storage.
+             * Restores the symbols list from local storage.
              */
-            this.restoreMarkers = function () {
-                var string = localStorage.getItem(constants.STORAGE_KEY_MARKERS),
+            this.restoreSymbols = function () {
+                var string = localStorage.getItem(constants.STORAGE_KEY_TACTICAL_SYMBOLS),
                     array, max, i,
                     position, params;
 
@@ -150,9 +149,9 @@ define(['knockout',
                 if (array && array.length !== 0) {
                     for (i = 0, max = array.length; i < max; i++) {
                         position = new WorldWind.Position(array[i].latitude, array[i].longitude, 0);
-                        params = {id: array[i].id, name: array[i].name, imageSource: array[i].source, isMovable: array[i].isMovable};
+                        params = {id: array[i].id, name: array[i].name, symbolCode: array[i].symbolCode, isMovable: array[i].isMovable};
 
-                        self.addMarker(new BasicMarker(self, position, params));
+                        this.addSymbol(new TacticalSymbol(self, position, params));
                     }
                 }
             };
@@ -160,12 +159,12 @@ define(['knockout',
 
             /**
              * Generates a unique name by appending a suffix '(n)'.
-             * @param {BasicMarker} marker
+             * @param {TacticalSymbol} symbol
              * @returns {String}
              */
-            this.generateUniqueName = function (marker) {
-                var uniqueName = marker.name().trim(),
-                    otherMarker,
+            this.generateUniqueName = function (symbol) {
+                var uniqueName = symbol.name().trim(),
+                    otherSymbol,
                     isUnique,
                     suffixes,
                     seqNos,
@@ -176,13 +175,13 @@ define(['knockout',
                     // Assume uniqueness, set to false if we find a matching name
                     isUnique = true;
 
-                    // Test the name for uniqueness with the other markers
-                    for (i = 0, len = self.markers().length; i < len; i += 1) {
-                        otherMarker = self.markers()[i];
-                        if (otherMarker === marker) {
+                    // Test the name for uniqueness with the other symbols
+                    for (i = 0, len = self.symbols().length; i < len; i += 1) {
+                        otherSymbol = self.symbols()[i];
+                        if (otherSymbol === symbol) {
                             continue; // Don't test with self
                         }
-                        if (otherMarker.name() === uniqueName) {
+                        if (otherSymbol.name() === uniqueName) {
                             isUnique = false;
 
                             // check for existing suffix '(n)' and increment
@@ -204,10 +203,9 @@ define(['knockout',
 
                 return uniqueName;
             };
-
         };
 
-        return MarkerManager;
+        return SymbolManager;
     }
 );
 

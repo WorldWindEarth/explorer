@@ -1,5 +1,5 @@
 # NASA WorldWind Explorer
-An HTML5/JavaScript geo-browser built from the NASA WebWorldWind SDK using the Knockout and Bootstrap libraries.
+An HTML5/JavaScript geo-browser built from the [ESA-NASA WebWorldWind SDK](https://github.com/NASAWorldWind/WebWorldWind) using the KnockoutJS and Bootstrap libraries.
 
 ## Overview
 The WorldWind Explorer is a geospatial web application for visualizing the earth. 
