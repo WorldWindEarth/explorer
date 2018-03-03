@@ -10,18 +10,20 @@
  * Search content module.
  * @param {Knockout} ko library
  */
-define(['knockout', 'worldwind'],
-    function (ko) {
+define(['model/util/Log', 'knockout', 'jquery', 'jquery-growl', 'worldwind'],
+    function (log, ko, $) {
         "use strict";
         /**
          * The view model for the Search panel.
+         * Uses the MapQuest Nominatim API. Requires an access key. See: https://developer.mapquest.com/
          * @constructor
          * @param {Globe} globe The globe that provides the supported projections
          * @param {String} viewElementId  
          */
         function SearchViewModel(globe, viewElementId) {
             var self = this,
-                wwd = globe.wwd;
+                wwd = globe.wwd,
+                accessKey = null;   // MapQuest API key. 
 
             this.geocoder = new WorldWind.NominatimGeocoder();
             this.goToAnimator = new WorldWind.GoToAnimator(wwd);
@@ -35,6 +37,13 @@ define(['knockout', 'worldwind'],
             };
 
             this.performSearch = function () {
+                // MapQuest API access key is needed to use this function.
+                // See: https://developer.mapquest.com/
+                if (!accessKey) {
+                    log.error("SearchViewModel", "performSearch", "Missing MapQuest API key. See: https://developer.mapquest.com/");
+                    $.growl.warning({message: "A MapQuest API key is required to use the search. See https://developer.mapquest.com/"});
+                    return;
+                }
                 var queryString = self.searchText();
                 if (queryString) {
                     var latitude, longitude;
@@ -50,7 +59,7 @@ define(['knockout', 'worldwind'],
                                 longitude = parseFloat(result[0].lon);
                                 self.goToAnimator.goTo(new WorldWind.Location(latitude, longitude));
                             }
-                        });
+                        }, accessKey);
                     }
                 }
             };
