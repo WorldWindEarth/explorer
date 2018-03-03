@@ -23,7 +23,7 @@ define(['model/util/Log', 'knockout', 'jquery', 'jquery-growl', 'worldwind'],
         function SearchViewModel(globe, viewElementId) {
             var self = this,
                 wwd = globe.wwd,
-                accessKey = null;   // MapQuest API key. 
+                accessKey = "czi9YcGn9QCqUsqDqOwyGIDl0HhwlA3A";
 
             this.geocoder = new WorldWind.NominatimGeocoder();
             this.goToAnimator = new WorldWind.GoToAnimator(wwd);

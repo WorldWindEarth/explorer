@@ -1678,8 +1678,8 @@ define('geom/Vec3',[
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Vec3", "areColinear", "missingVector"));
             }
 
-            var ab = b.subtract(a).normalize(),
-                bc = c.subtract(b).normalize();
+           var ab = new Vec3(a[0]-b[0],a[1]-b[1],a[2]-b[2]).normalize(),
+               bc = new Vec3(c[0]-b[0],c[1]-b[1],c[2]-b[2]).normalize();
 
             // ab and bc are considered colinear if their dot product is near +/-1.
             return Math.abs(ab.dot(bc)) > 0.999;
@@ -3397,7 +3397,7 @@ define('shaders/BasicTextureProgram',[
                     '    gl_FragColor = color * floor(textureColor.a + 0.5);\n' +
                     'else\n' +
                     '    gl_FragColor = color * opacity;\n' +
-                    'if (gl_FragColor.a == 0.0) {discard; return;}\n' +
+                    'if (gl_FragColor.a == 0.0) {discard;}\n' +
                     'if (applyLighting) {\n' +
                     '    vec4 n = normal * (gl_FrontFacing ? 1.0 : -1.0);\n' +
                     '    gl_FragColor.rgb *= clamp(ambient + dot(lightDirection, n), 0.0, 1.0);\n' +
@@ -4289,7 +4289,7 @@ define('util/WWMath',[
                 }
 
                 // Taken from Moller and Trumbore
-                // http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+                // https://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 
                 var vx = line.direction[0],
                     vy = line.direction[1],
@@ -4443,7 +4443,7 @@ define('util/WWMath',[
                 }
 
                 // Taken from Moller and Trumbore
-                // http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+                // https://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 
                 // Adapted from the original ray-triangle intersection algorithm to optimize for ray-triangle strip
                 // intersection. We optimize by reusing constant terms, replacing use of Vec3 with inline primitives,
@@ -5176,7 +5176,7 @@ define('geom/Location',[
                 return 0;
             }
 
-            // "Haversine formula," taken from http://en.wikipedia.org/wiki/Great-circle_distance#Formul.C3.A6
+            // "Haversine formula," taken from https://en.wikipedia.org/wiki/Great-circle_distance#Formul.C3.A6
             a = Math.sin((lat2Radians - lat1Radians) / 2.0);
             b = Math.sin((lon2Radians - lon1Radians) / 2.0);
             c = a * a + Math.cos(lat1Radians) * Math.cos(lat2Radians) * b * b;
@@ -8869,13 +8869,6 @@ define('shaders/AtmosphereProgram',[
              * @readonly
              */
             this.scaleLocation = this.uniformLocation(gl, "scale");
-            
-            /**
-             * The WebGL location for this program's 'opacity' uniform.
-             * @type {WebGLUniformLocation}
-             * @readonly
-             */
-            this.opacityLocation = this.uniformLocation(gl, "opacity");
 
             /**
              * The WebGL location for this program's 'scaleDepth' uniform.
@@ -9047,20 +9040,6 @@ define('shaders/AtmosphereProgram',[
             gl.uniformMatrix3fv(this.texCoordMatrixLocation, false, this.scratchArray9);
         };
 
-        /**
-         * Loads the specified opacity as the value of this program's 'opacity' uniform variable.
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Number} opacity The opacity value.
-         */
-        AtmosphereProgram.prototype.loadOpacity = function (gl, opacity) {
-            if (opacity === undefined) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "AtmosphereProgram", "loadOpacity",
-                        "missingOpacity"));
-            }
-            gl.uniform1f(this.opacityLocation, opacity);
-        };
-
         return AtmosphereProgram;
     });
 /*
@@ -9126,7 +9105,6 @@ define('shaders/GroundProgram',[
                     'uniform float scaleDepth;\n' + /* The scale depth (i.e. the altitude at which
                      the atmosphere's average density is found) */
                     'uniform float scaleOverScaleDepth;\n' + /* fScale / fScaleDepth */
-                    'uniform float opacity;\n' + /* The opacity of the ground texture */
 
                     'attribute vec4 vertexPoint;\n' +
                     'attribute vec2 vertexTexCoord;\n' +
@@ -9192,7 +9170,7 @@ define('shaders/GroundProgram',[
                     '    }\n' +
 
                     '    primaryColor = frontColor * (invWavelength * KrESun + KmESun);\n' +
-                    '    secondaryColor = mix(vec3(1.0, 1.0, 1.0), attenuate, opacity);\n' + /* Calculate the attenuation factor for the ground with opacity */
+                    '    secondaryColor = attenuate;\n' + /* Calculate the attenuation factor for the ground */
                     '}\n' +
 
                     'void main()\n ' +
@@ -10232,6 +10210,279 @@ define('shaders/SkyProgram',[
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
+ * @version $Id: WWUtil.js 3402 2015-08-14 17:28:09Z tgaskins $
+ */
+define('util/WWUtil',[
+        '../error/ArgumentError',
+        '../geom/Line',
+        '../util/Logger',
+        '../geom/Rectangle',
+        '../geom/Vec3'],
+    function (ArgumentError,
+              Line,
+              Logger,
+              Rectangle,
+              Vec3) {
+        "use strict";
+        /**
+         * Provides math constants and functions.
+         * @exports WWUtil
+         */
+        var WWUtil = {
+            // A regular expression that matches latitude followed by a comma and possible white space followed by
+            // longitude. Latitude and longitude ranges are not considered.
+            latLonRegex: /^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/,
+
+            /**
+             * Returns the suffix for a specified mime type.
+             * @param {String} mimeType The mime type to determine a suffix for.
+             * @returns {String} The suffix for the specified mime type, or null if the mime type is not recognized.
+             */
+            suffixForMimeType: function (mimeType) {
+                if (mimeType === "image/png")
+                    return "png";
+
+                if (mimeType === "image/jpeg")
+                    return "jpg";
+
+                if (mimeType === "application/bil16")
+                    return "bil";
+
+                if (mimeType === "application/bil32")
+                    return "bil";
+
+                return null;
+            },
+
+            /**
+             * Returns the current location URL as obtained from window.location with the last path component
+             * removed.
+             * @returns {String} The current location URL with the last path component removed.
+             */
+            currentUrlSansFilePart: function () {
+                var protocol = window.location.protocol,
+                    host = window.location.host,
+                    path = window.location.pathname,
+                    pathParts = path.split("/"),
+                    newPath = "";
+
+                for (var i = 0, len = pathParts.length; i < len - 1; i++) {
+                    if (pathParts[i].length > 0) {
+                        newPath = newPath + "/" + pathParts[i];
+                    }
+                }
+
+                return protocol + "//" + host + newPath;
+            },
+
+            /**
+             * Returns the URL of the directory containing the World Wind library.
+             * @returns {String} The URL of the directory containing the World Wind library, or null if that directory
+             * cannot be determined.
+             */
+            worldwindlibLocation: function () {
+                var scripts = document.getElementsByTagName("script"),
+                    libraryName = "/worldwind.";
+
+                for (var i = 0; i < scripts.length; i++) {
+                    var index = scripts[i].src.indexOf(libraryName);
+                    if (index >= 0) {
+                        return scripts[i].src.substring(0, index) + "/";
+                    }
+                }
+
+                return null;
+            },
+
+            /**
+             * Returns the path component of a specified URL.
+             * @param {String} url The URL from which to determine the path component.
+             * @returns {String} The path component, or the empty string if the specified URL is null, undefined
+             * or empty.
+             */
+            urlPath: function (url) {
+                if (!url)
+                    return "";
+
+                var urlParts = url.split("/"),
+                    newPath = "";
+
+                for (var i = 0, len = urlParts.length; i < len; i++) {
+                    var part = urlParts[i];
+
+                    if (!part || part.length === 0
+                        || part.indexOf(":") != -1
+                        || part === "."
+                        || part === ".."
+                        || part === "null"
+                        || part === "undefined") {
+                        continue;
+                    }
+
+                    if (newPath.length !== 0) {
+                        newPath = newPath + "/";
+                    }
+
+                    newPath = newPath + part;
+                }
+
+                return newPath;
+            },
+
+            /**
+             * Sets each element of an array to a specified value. This function is intentionally generic, and works
+             * with any data structure with a length property whose elements may be referenced using array index syntax.
+             * @param array The array to fill.
+             * @param {*} value The value to assign to each array element.
+             */
+            fillArray: function (array, value) {
+                if (!array) {
+                    return;
+                }
+
+                for (var i = 0, len = array.length; i < len; i++) {
+                    array[i] = value;
+                }
+            },
+
+            /**
+             * Multiplies each element of an array by a specified value and assigns each element to the result. This
+             * function is intentionally generic, and works with any data structure with a length property whose
+             * elements may be referenced using array index syntax.
+             * @param array The array to fill.
+             * @param {*} value The value to multiply by each array element.
+             */
+            multiplyArray: function (array, value) {
+                if (!array) {
+                    return;
+                }
+
+                for (var i = 0, len = array.length; i < len; i++) {
+                    array[i] *= value;
+                }
+            },
+
+            // Used to form unique function names for JSONP callback functions.
+            jsonpCounter: 0,
+
+            /**
+             * Request a resource using JSONP.
+             * @param {String} url The url to receive the request.
+             * @param {String} parameterName The JSONP callback function key required by the server. Typically
+             * "jsonp" or "callback".
+             * @param {Function} callback The function to invoke when the request succeeds. The function receives
+             * one argument, the JSON payload of the JSONP request.
+             */
+            jsonp: function (url, parameterName, callback) {
+
+                // Generate a unique function name for the JSONP callback.
+                var functionName = "gov_nasa_worldwind_jsonp_" + WWUtil.jsonpCounter++;
+
+                // Define a JSONP callback function. Assign it to global scope the browser can find it.
+                window[functionName] = function (jsonData) {
+                    // Remove the JSONP callback from global scope.
+                    delete window[functionName];
+
+                    // Call the client's callback function.
+                    callback(jsonData);
+                };
+
+                // Append the callback query parameter to the URL.
+                var jsonpUrl = url + (url.indexOf('?') === -1 ? '?' : '&');
+                jsonpUrl += parameterName + "=" + functionName;
+
+                // Create a script element for the browser to invoke.
+                var script = document.createElement('script');
+                script.async = true;
+                script.src = jsonpUrl;
+
+                // Prepare to add the script to the document's head.
+                var head = document.getElementsByTagName('head')[0];
+
+                // Set up to remove the script element once it's invoked.
+                var cleanup = function () {
+                    script.onload = undefined;
+                    script.onerror = undefined;
+                    head.removeChild(script);
+                };
+
+                script.onload = cleanup;
+                script.onerror = cleanup;
+
+                // Add the script element to the document, causing the browser to invoke it.
+                head.appendChild(script);
+            },
+
+            arrayEquals: function (array1, array2) {
+                return (array1.length == array2.length) && array1.every(function (element, index) {
+                        return element === array2[index] || element.equals && element.equals(array2[index]);
+                    });
+            },
+
+            /**
+             * It transforms given item to the boolean. It respects that 0, "0" and "false" are percieved as false
+             * on top of the standard Boolean function.
+             * @param item {String} Item to transform
+             * @returns {boolean} Value transformed to the boolean.
+             */
+            transformToBoolean: function (item) {
+                if (item == 0 || item == "0" || item == "false") {
+                    return false;
+                } else {
+                    return Boolean(item);
+                }
+            },
+
+            /**
+             * It clones original object into the new one. It is necessary to retain the options information valid
+             * for all nodes.
+             * @param original Object to clone
+             * @returns {Object} Cloned object
+             */
+            clone: function (original) {
+                var clone = {};
+                var i, keys = Object.keys(original);
+
+                for (i = 0; i < keys.length; i++) {
+                    // copy each property into the clone
+                    clone[keys[i]] = original[keys[i]];
+                }
+
+                return clone;
+            },
+
+            /**
+             * It returns unique GUID.
+             * @returns {string} String representing unique identifier in the application.
+             */
+            guid: function () {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                    s4() + '-' + s4() + s4() + s4();
+            },
+
+            /**
+             * Transforms item to date. It accepts ISO-8601 format.
+             * @param item {String} To transform.
+             * @returns {Date} Date extracted from the current information.
+             */
+            date: function(item) {
+                return new Date(item);
+            }
+        };
+
+        return WWUtil;
+    });
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
  * @exports AtmosphereLayer
  */
 define('layer/AtmosphereLayer',[
@@ -10243,7 +10494,8 @@ define('layer/AtmosphereLayer',[
         '../geom/Matrix3',
         '../geom/Sector',
         '../shaders/SkyProgram',
-        '../geom/Vec3'
+        '../geom/Vec3',
+        '../util/WWUtil'
     ],
     function (ArgumentError,
               GroundProgram,
@@ -10253,7 +10505,8 @@ define('layer/AtmosphereLayer',[
               Matrix3,
               Sector,
               SkyProgram,
-              Vec3) {
+              Vec3,
+              WWUtil) {
         "use strict";
 
         /**
@@ -10449,8 +10702,6 @@ define('layer/AtmosphereLayer',[
             program.loadEyePoint(gl, dc.navigatorState.eyePoint);
 
             program.loadLightDirection(gl, this._activeLightDirection);
-            
-            program.loadOpacity(gl, this.opacity);
 
             program.setScale(gl);
 
@@ -10510,7 +10761,8 @@ define('layer/AtmosphereLayer',[
         // Internal. Intentionally not documented.
         AtmosphereLayer.prototype.assembleVertexPoints = function (dc, numLat, numLon, altitude) {
             var count = numLat * numLon;
-            var altitudes = new Array(count).fill(altitude);
+            var altitudes = new Array(count);
+            WWUtil.fillArray(altitudes, altitude);
             var result = new Float32Array(count * 3);
 
             return dc.globe.computePointsForGrid(this._fullSphereSector, numLat, numLon, altitudes, Vec3.ZERO, result);
@@ -11318,279 +11570,6 @@ define('error/NotYetImplementedError',['../error/AbstractError'],
         NotYetImplementedError.prototype = Object.create(AbstractError.prototype);
 
         return NotYetImplementedError;
-    });
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @version $Id: WWUtil.js 3402 2015-08-14 17:28:09Z tgaskins $
- */
-define('util/WWUtil',[
-        '../error/ArgumentError',
-        '../geom/Line',
-        '../util/Logger',
-        '../geom/Rectangle',
-        '../geom/Vec3'],
-    function (ArgumentError,
-              Line,
-              Logger,
-              Rectangle,
-              Vec3) {
-        "use strict";
-        /**
-         * Provides math constants and functions.
-         * @exports WWUtil
-         */
-        var WWUtil = {
-            // A regular expression that matches latitude followed by a comma and possible white space followed by
-            // longitude. Latitude and longitude ranges are not considered.
-            latLonRegex: /^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/,
-
-            /**
-             * Returns the suffix for a specified mime type.
-             * @param {String} mimeType The mime type to determine a suffix for.
-             * @returns {String} The suffix for the specified mime type, or null if the mime type is not recognized.
-             */
-            suffixForMimeType: function (mimeType) {
-                if (mimeType === "image/png")
-                    return "png";
-
-                if (mimeType === "image/jpeg")
-                    return "jpg";
-
-                if (mimeType === "application/bil16")
-                    return "bil";
-
-                if (mimeType === "application/bil32")
-                    return "bil";
-
-                return null;
-            },
-
-            /**
-             * Returns the current location URL as obtained from window.location with the last path component
-             * removed.
-             * @returns {String} The current location URL with the last path component removed.
-             */
-            currentUrlSansFilePart: function () {
-                var protocol = window.location.protocol,
-                    host = window.location.host,
-                    path = window.location.pathname,
-                    pathParts = path.split("/"),
-                    newPath = "";
-
-                for (var i = 0, len = pathParts.length; i < len - 1; i++) {
-                    if (pathParts[i].length > 0) {
-                        newPath = newPath + "/" + pathParts[i];
-                    }
-                }
-
-                return protocol + "//" + host + newPath;
-            },
-
-            /**
-             * Returns the URL of the directory containing the World Wind library.
-             * @returns {String} The URL of the directory containing the World Wind library, or null if that directory
-             * cannot be determined.
-             */
-            worldwindlibLocation: function () {
-                var scripts = document.getElementsByTagName("script"),
-                    libraryName = "/worldwindlib.";
-
-                for (var i = 0; i < scripts.length; i++) {
-                    var index = scripts[i].src.indexOf(libraryName);
-                    if (index >= 0) {
-                        return scripts[i].src.substring(0, index) + "/";
-                    }
-                }
-
-                return null;
-            },
-
-            /**
-             * Returns the path component of a specified URL.
-             * @param {String} url The URL from which to determine the path component.
-             * @returns {String} The path component, or the empty string if the specified URL is null, undefined
-             * or empty.
-             */
-            urlPath: function (url) {
-                if (!url)
-                    return "";
-
-                var urlParts = url.split("/"),
-                    newPath = "";
-
-                for (var i = 0, len = urlParts.length; i < len; i++) {
-                    var part = urlParts[i];
-
-                    if (!part || part.length === 0
-                        || part.indexOf(":") != -1
-                        || part === "."
-                        || part === ".."
-                        || part === "null"
-                        || part === "undefined") {
-                        continue;
-                    }
-
-                    if (newPath.length !== 0) {
-                        newPath = newPath + "/";
-                    }
-
-                    newPath = newPath + part;
-                }
-
-                return newPath;
-            },
-
-            /**
-             * Sets each element of an array to a specified value. This function is intentionally generic, and works
-             * with any data structure with a length property whose elements may be referenced using array index syntax.
-             * @param array The array to fill.
-             * @param {*} value The value to assign to each array element.
-             */
-            fillArray: function (array, value) {
-                if (!array) {
-                    return;
-                }
-
-                for (var i = 0, len = array.length; i < len; i++) {
-                    array[i] = value;
-                }
-            },
-
-            /**
-             * Multiplies each element of an array by a specified value and assigns each element to the result. This
-             * function is intentionally generic, and works with any data structure with a length property whose
-             * elements may be referenced using array index syntax.
-             * @param array The array to fill.
-             * @param {*} value The value to multiply by each array element.
-             */
-            multiplyArray: function (array, value) {
-                if (!array) {
-                    return;
-                }
-
-                for (var i = 0, len = array.length; i < len; i++) {
-                    array[i] *= value;
-                }
-            },
-
-            // Used to form unique function names for JSONP callback functions.
-            jsonpCounter: 0,
-
-            /**
-             * Request a resource using JSONP.
-             * @param {String} url The url to receive the request.
-             * @param {String} parameterName The JSONP callback function key required by the server. Typically
-             * "jsonp" or "callback".
-             * @param {Function} callback The function to invoke when the request succeeds. The function receives
-             * one argument, the JSON payload of the JSONP request.
-             */
-            jsonp: function (url, parameterName, callback) {
-
-                // Generate a unique function name for the JSONP callback.
-                var functionName = "gov_nasa_worldwind_jsonp_" + WWUtil.jsonpCounter++;
-
-                // Define a JSONP callback function. Assign it to global scope the browser can find it.
-                window[functionName] = function (jsonData) {
-                    // Remove the JSONP callback from global scope.
-                    delete window[functionName];
-
-                    // Call the client's callback function.
-                    callback(jsonData);
-                };
-
-                // Append the callback query parameter to the URL.
-                var jsonpUrl = url + (url.indexOf('?') === -1 ? '?' : '&');
-                jsonpUrl += parameterName + "=" + functionName;
-
-                // Create a script element for the browser to invoke.
-                var script = document.createElement('script');
-                script.async = true;
-                script.src = jsonpUrl;
-
-                // Prepare to add the script to the document's head.
-                var head = document.getElementsByTagName('head')[0];
-
-                // Set up to remove the script element once it's invoked.
-                var cleanup = function () {
-                    script.onload = undefined;
-                    script.onerror = undefined;
-                    head.removeChild(script);
-                };
-
-                script.onload = cleanup;
-                script.onerror = cleanup;
-
-                // Add the script element to the document, causing the browser to invoke it.
-                head.appendChild(script);
-            },
-
-            arrayEquals: function (array1, array2) {
-                return (array1.length == array2.length) && array1.every(function (element, index) {
-                        return element === array2[index] || element.equals && element.equals(array2[index]);
-                    });
-            },
-
-            /**
-             * It transforms given item to the boolean. It respects that 0, "0" and "false" are percieved as false
-             * on top of the standard Boolean function.
-             * @param item {String} Item to transform
-             * @returns {boolean} Value transformed to the boolean.
-             */
-            transformToBoolean: function (item) {
-                if (item == 0 || item == "0" || item == "false") {
-                    return false;
-                } else {
-                    return Boolean(item);
-                }
-            },
-
-            /**
-             * It clones original object into the new one. It is necessary to retain the options information valid
-             * for all nodes.
-             * @param original Object to clone
-             * @returns {Object} Cloned object
-             */
-            clone: function (original) {
-                var clone = {};
-                var i, keys = Object.keys(original);
-
-                for (i = 0; i < keys.length; i++) {
-                    // copy each property into the clone
-                    clone[keys[i]] = original[keys[i]];
-                }
-
-                return clone;
-            },
-
-            /**
-             * It returns unique GUID.
-             * @returns {string} String representing unique identifier in the application.
-             */
-            guid: function () {
-                function s4() {
-                    return Math.floor((1 + Math.random()) * 0x10000)
-                        .toString(16)
-                        .substring(1);
-                }
-
-                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-                    s4() + '-' + s4() + s4() + s4();
-            },
-
-            /**
-             * Transforms item to date. It accepts ISO-8601 format.
-             * @param item {String} To transform.
-             * @returns {Date} Date extracted from the current information.
-             */
-            date: function(item) {
-                return new Date(item);
-            }
-        };
-
-        return WWUtil;
     });
 /*
  * Copyright (C) 2014 United States Government as represented by the Administrator of the
@@ -14340,7 +14319,7 @@ define('util/BingImageryUrlBuilder',[
             if (!this.metadataRetrievalInProcess) {
                 this.metadataRetrievalInProcess = true;
 
-                var url = "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + this.imagerySet + "/0,0?zl=1&key="
+                var url = "https://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + this.imagerySet + "/0,0?zl=1&key="
                     + this.bingMapsKey;
 
                 // Use JSONP to request the metadata. Can't use XmlHTTPRequest because the virtual earth server doesn't
@@ -14763,7 +14742,7 @@ define('layer/BingWMSLayer',[
             this.pickEnabled = false;
             this.maxActiveAltitude = 10e3;
 
-            this.urlBuilder = new WmsUrlBuilder(location.protocol + "//worldwind27.arc.nasa.gov/wms/virtualearth", "ve", "", "1.3.0");
+            this.urlBuilder = new WmsUrlBuilder("https://worldwind27.arc.nasa.gov/wms/virtualearth", "ve", "", "1.3.0");
         };
 
         BingWMSLayer.prototype = Object.create(TiledImageLayer.prototype);
@@ -15474,7 +15453,7 @@ define('layer/BMNGLandsatLayer',[
             this.displayName = "Blue Marble & Landsat";
             this.pickEnabled = false;
 
-            this.urlBuilder = new WmsUrlBuilder(location.protocol + "//worldwind25.arc.nasa.gov/wms",
+            this.urlBuilder = new WmsUrlBuilder("https://worldwind25.arc.nasa.gov/wms",
                 "BlueMarble-200405,esat", "", "1.3.0");
         };
 
@@ -15519,7 +15498,7 @@ define('layer/BMNGLayer',[
             this.displayName = "Blue Marble";
             this.pickEnabled = false;
 
-            this.urlBuilder = new WmsUrlBuilder(location.protocol + "//worldwind25.arc.nasa.gov/wms",
+            this.urlBuilder = new WmsUrlBuilder("https://worldwind25.arc.nasa.gov/wms",
                 layerName || "BlueMarble-200405", "", "1.3.0");
         };
 
@@ -17635,6 +17614,7 @@ define('formats/collada/ColladaMesh',['./ColladaUtils'], function (ColladaUtils)
         var indexMap = {};
         var indicesArray = [];
         var pos = 0;
+        var indexedRendering = false;
 
         for (var i = 0; i < count; i++) {
 
@@ -17656,6 +17636,7 @@ define('formats/collada/ColladaMesh',['./ColladaUtils'], function (ColladaUtils)
                 prevIndex = currentIndex;
                 if (indexMap.hasOwnProperty(vecId)) {
                     currentIndex = indexMap[vecId];
+                    indexedRendering = true;
                 }
                 else {
 
@@ -17696,6 +17677,7 @@ define('formats/collada/ColladaMesh',['./ColladaUtils'], function (ColladaUtils)
 
         var mesh = {
             vertices: new Float32Array(inputs[0][1]),
+            indexedRendering: indexedRendering,
             material: material
         };
 
@@ -17793,7 +17775,9 @@ define('formats/collada/ColladaMesh',['./ColladaUtils'], function (ColladaUtils)
             }
         }
 
-        mesh.indices = new Uint16Array(indicesArray);
+        if (mesh.indexedRendering) {
+            mesh.indices = new Uint16Array(indicesArray);
+        }
 
         return mesh;
     };
@@ -18583,15 +18567,19 @@ define('formats/collada/ColladaScene',[
             }
 
             var hasLighting = (buffers.normals != null && buffers.normals.length > 0);
-            if (hasLighting) {
+            if (hasLighting && !dc.pickingMode) {
                 this.applyLighting(dc, buffers);
             }
 
             this.applyMatrix(dc, hasLighting, hasTexture , nodeWorldMatrix, nodeNormalMatrix);
 
-            this.applyIndices(dc, buffers);
-
-            gl.drawElements(gl.TRIANGLES, buffers.indices.length, gl.UNSIGNED_SHORT, 0);
+            if (buffers.indexedRendering) {
+                this.applyIndices(dc, buffers);
+                gl.drawElements(gl.TRIANGLES, buffers.indices.length, gl.UNSIGNED_SHORT, 0);
+            }
+            else {
+                gl.drawArrays(gl.TRIANGLES, 0, Math.floor(buffers.vertices.length / 3));
+            }
 
             this.resetDraw(dc, hasLighting, hasTexture);
 
@@ -18754,7 +18742,7 @@ define('formats/collada/ColladaScene',[
                 mvpMatrix.multiplyMatrix(nodeWorldMatrix);
             }
 
-            if (hasLighting) {
+            if (hasLighting && !dc.pickingMode) {
 
                 var normalMatrix = Matrix.fromIdentity();
 
@@ -18810,7 +18798,7 @@ define('formats/collada/ColladaScene',[
             var gl = dc.currentGlContext,
                 program = dc.currentProgram;
 
-            if (hasLighting) {
+            if (hasLighting && !dc.pickingMode) {
                 program.loadApplyLighting(gl, false);
                 gl.disableVertexAttribArray(program.normalVectorLocation);
             }
@@ -19587,7 +19575,7 @@ define('shapes/Compass',[
 
             var t = this.getActiveTexture(dc);
             if (t) {
-                this.imageScale = 0.15 * dc.currentGlContext.drawingBufferWidth / t.imageWidth;
+                this.imageScale = this.size * dc.currentGlContext.drawingBufferWidth / t.imageWidth;
             }
 
             ScreenImage.prototype.render.call(this, dc);
@@ -20565,7 +20553,7 @@ define('layer/CoordinatesDisplayLayer',[
 
             // Round to the nearest integer and place a comma every three digits. See the following Stack Overflow
             // thread for more information:
-            // http://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+            // https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
             return number.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " " + units;
         };
 
@@ -22388,6 +22376,7 @@ define('globe/ElevationModel',[
         ElevationModel.prototype.areaElevationForCoord = function (s, t, levelNumber, result, resultIndex) {
             var level, levelWidth, levelHeight,
                 tMin, tMax,
+                vMin, vMax,
                 u, v,
                 x0, x1, y0, y1,
                 xf, yf,
@@ -22400,21 +22389,23 @@ define('globe/ElevationModel',[
                 levelHeight = Math.round(level.tileHeight * 180 / level.tileDelta.latitude);
                 tMin = 1 / (2 * levelHeight);
                 tMax = 1 - tMin;
+                vMin = 0;
+                vMax = levelHeight - 1;
                 u = levelWidth * WWMath.fract(s); // wrap the horizontal coordinate
                 v = levelHeight * WWMath.clamp(t, tMin, tMax); // clamp the vertical coordinate to the level edge
                 x0 = WWMath.mod(Math.floor(u - 0.5), levelWidth);
                 x1 = WWMath.mod((x0 + 1), levelWidth);
-                y0 = Math.floor(v - 0.5);
-                y1 = y0 + 1;
+                y0 = WWMath.clamp(Math.floor(v - 0.5), vMin, vMax);
+                y1 = WWMath.clamp(y0 + 1, vMin, vMax);
                 xf = WWMath.fract(u - 0.5);
                 yf = WWMath.fract(v - 0.5);
                 retrieveTiles = (i == levelNumber) || (i == 0);
 
                 if (this.lookupPixels(x0, x1, y0, y1, level, retrieveTiles, pixels)) {
                     result[resultIndex] = (1 - xf) * (1 - yf) * pixels[0] +
-                    xf * (1 - yf) * pixels[1] +
-                    (1 - xf) * yf * pixels[2] +
-                    xf * yf * pixels[3];
+                        xf * (1 - yf) * pixels[1] +
+                        (1 - xf) * yf * pixels[2] +
+                        xf * yf * pixels[3];
                     return;
                 }
             }
@@ -28582,7 +28573,7 @@ define('shapes/SurfaceShapeTile',[
             }
 
             // If shapes have been removed since the previous iteration, ...
-            for (idx = 0, len = this.prevSurfaceShapes; idx < len; idx += 1) {
+            for (idx = 0, len = this.prevSurfaceShapes.length; idx < len; idx += 1) {
                 surfaceShape = this.prevSurfaceShapes[idx];
 
                 if (this.surfaceShapes.indexOf(surfaceShape) < 0) {
@@ -28591,7 +28582,7 @@ define('shapes/SurfaceShapeTile',[
             }
 
             // If shapes added since the previous iteration, ...
-            for (idx = 0, len = this.surfaceShapes; idx < len; idx += 1) {
+            for (idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
                 surfaceShape = this.surfaceShapes[idx];
 
                 if (this.prevSurfaceShapes.indexOf(surfaceShape) < 0) {
@@ -31235,7 +31226,7 @@ define('globe/EarthElevationModel',[
             this.maxElevation = 8850; // Height of Mt. Everest
             this.pixelIsPoint = false; // World Wind WMS elevation layers return pixel-as-area images
 
-            this.urlBuilder = new WmsUrlBuilder("http://worldwind26.arc.nasa.gov/elev",
+            this.urlBuilder = new WmsUrlBuilder("https://worldwind26.arc.nasa.gov/elev",
                 "GEBCO,aster_v2,USGS-NED", "", "1.3.0");
         };
 
@@ -33069,6 +33060,630 @@ define('formats/geojson/GeoJSONConstants',[],
 );
 
 
+
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometry
+ */
+define('formats/geojson/GeoJSONGeometry',['./GeoJSONConstants'
+    ],
+    function (GeoJSONConstants) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON Geometry object. Applications typically do not call this constructor. It is called by
+         * {@link GeoJSON} as GeoJSON is read.
+         * @alias GeoJSONGeometry
+         * @constructor
+         * @classdesc A geometry is a GeoJSON object where the type member's value is one of the following strings:
+         * "Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", or "GeometryCollection".
+         * A GeoJSON geometry object of any type other than "GeometryCollection" must have a member with the name
+         * "coordinates". The value of the coordinates member is always an array.
+         * The structure for the elements in this array is determined by the type of geometry.
+         * @param {Number[]} coordinates An array containing geometry coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An array containing information on the coordinate range for geometries.
+         * @throws {ArgumentError} If the specified mandatory coordinates or type are null or undefined.
+         */
+        var GeoJSONGeometry = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometry", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometry", "constructor",
+                        "missingType"));
+            }
+
+            // Documented in defineProperties below.
+            this._coordinates = coordinates;
+
+            // Documented in defineProperties below.
+            this._type =  type;
+
+            // Documented in defineProperties below.
+            this._bbox = bbox ? bbox : null;
+        };
+
+        Object.defineProperties(GeoJSONGeometry.prototype, {
+            /**
+             * The GeoJSON geometry coordinates as specified to this GeoJSONGeometry's constructor.
+             * @memberof GeoJSONGeometry.prototype
+             * @type {Number[]}
+             * @readonly
+             */
+            coordinates: {
+                get: function () {
+                    return this._coordinates;
+                }
+            },
+            /**
+             * The GeoJSON geometry type as specified to this GeoJSONGeometry's constructor.
+             * @memberof GeoJSONGeometry.prototype
+             * @type {String}
+             * @readonly
+             */
+            type: {
+                get: function () {
+                    return this._type;
+                }
+            },
+            /**
+             * The GeoJSON bbox object as specified to this GeoJSONGeometry's constructor.
+             * @memberof GeoJSONGeometry.prototype
+             * @type {Object}
+             * @readonly
+             */
+            bbox: {
+                get: function () {
+                    return this._bbox;
+                }
+            }
+        });
+
+        /**
+         * Indicates whether this GeoJSON geometry is
+         * [GeoJSONConstants.TYPE_POINT]
+         *
+         * @return {Boolean} True if the geometry is a Point type.
+         */
+        GeoJSONGeometry.prototype.isPointType = function () {
+            return (this.type === GeoJSONConstants.TYPE_POINT);
+        };
+
+        /**
+         * Indicates whether this GeoJSON geometry is
+         * [GeoJSONConstants.TYPE_MULTI_POINT]
+         *
+         * @return {Boolean} True if the geometry is a MultiPoint type.
+         */
+        GeoJSONGeometry.prototype.isMultiPointType = function () {
+            return (this.type === GeoJSONConstants.TYPE_MULTI_POINT);
+        };
+
+        /**
+         * Indicates whether this GeoJSON geometry is
+         * [GeoJSONConstants.TYPE_LINE_STRING]
+         *
+         * @return {Boolean} True if the geometry is a LineString type.
+         */
+        GeoJSONGeometry.prototype.isLineStringType = function () {
+            return (this.type === GeoJSONConstants.TYPE_LINE_STRING);
+        };
+
+        /**
+         * Indicates whether this GeoJSON geometry is
+         * [GeoJSONConstants.TYPE_MULTI_LINE_STRING]
+         *
+         * @return {Boolean} True if the geometry is a MultiLineString type.
+         */
+        GeoJSONGeometry.prototype.isMultiLineStringType = function () {
+            return (this.type === GeoJSONConstants.TYPE_MULTI_LINE_STRING);
+        };
+
+        /**
+         * Indicates whether this GeoJSON geometry is
+         * [GeoJSONConstants.TYPE_POLYGON]
+         *
+         * @return {Boolean} True if the geometry is a Polygon type.
+         */
+        GeoJSONGeometry.prototype.isPolygonType = function () {
+            return (this.type === GeoJSONConstants.TYPE_POLYGON);
+        };
+
+        /**
+         * Indicates whether this GeoJSON geometry is
+         * [GeoJSONConstants.TYPE_MULTI_POLYGON]
+         *
+         * @return {Boolean} True if the geometry is a MultiPolygon type.
+         */
+        GeoJSONGeometry.prototype.isMultiPolygonType = function () {
+            return (this.type === GeoJSONConstants.TYPE_MULTI_POLYGON);
+        };
+
+        return GeoJSONGeometry;
+    }
+);
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryCollection
+ */
+define('formats/geojson/GeoJSONGeometryCollection',['../../error/ArgumentError',
+        './GeoJSONConstants',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONConstants,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a GeometryCollection. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryCollection
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON GeometryCollection geometry.
+         * A geometry collection must have a member with the name "geometries".
+         * The value corresponding to "geometries" is an array. Each element in this array is a GeoJSON
+         * geometry object. To include information on the coordinate range for features, a GeoJSON object may have a
+         * member named "bbox".
+         * @param {Object} geometries An array containing GeoJSONGeometry objects.
+         * @param {Object} bbox An object containing the value of GeoJSON GeometryCollection bbox member.
+         * @throws {ArgumentError} If the specified mandatory geometries is null or undefined or if the geometries
+         * parameter is not an array of GeoJSONGeometry.
+         */
+        var GeoJSONGeometryCollection = function (geometries, bbox) {
+            if (!geometries) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryCollection", "constructor",
+                        "missingGeometries"));
+            }
+
+            if (Object.prototype.toString.call(geometries) !== '[object Array]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryCollection", "constructor",
+                        "invalidGeometries"));
+            }
+
+            // Documented in defineProperties below.
+            this._geometries = geometries;
+
+            // Documented in defineProperties below.
+            this._bbox = bbox;
+        };
+
+        Object.defineProperties(GeoJSONGeometryCollection.prototype, {
+            /**
+             * The GeoJSON GeometryCollection geometries as specified to this GeoJSON GeometryCollection's constructor.
+             * @memberof GeoJSONGeometryCollection.prototype
+             * @type {Object}
+             * @readonly
+             */
+            geometries: {
+                get: function () {
+                    return this._geometries;
+                }
+            },
+
+            /**
+             * The GeoJSON GeometryCollection bbox member as specified to this GeoJSONGeometryCollection's constructor.
+             * @memberof GeoJSONGeometryCollection.prototype
+             * @type {Object}
+             * @readonly
+             */
+            bbox: {
+                get: function () {
+                    return this._bbox;
+                }
+            }
+        });
+
+        return GeoJSONGeometryCollection;
+    }
+);
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryLineString
+ */
+define('formats/geojson/GeoJSONGeometryLineString',['../../error/ArgumentError',
+        './GeoJSONGeometry',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONGeometry,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a LineString. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryLineString
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON LineString geometry.
+         * @augments GeoJSONGeometry
+         * @param {Number[]} coordinates The array containing LineString coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An object containing GeoJSON bbox information.
+         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
+         * parameter is not an array of two or more positions.
+         */
+        var GeoJSONGeometryLineString = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (coordinates.length < 2 || coordinates[0].length < 2) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
+                        "invalidNumberOfCoordinates"));
+            }
+
+            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0]) !== '[object Number]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
+                        "invalidCoordinatesType"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
+                        "missingType"));
+            }
+
+            GeoJSONGeometry.call(this, coordinates, type, bbox);
+        };
+
+        GeoJSONGeometryLineString.prototype = Object.create(GeoJSONGeometry.prototype);
+
+        return GeoJSONGeometryLineString;
+    }
+);
+
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryMultiLineString
+ */
+define('formats/geojson/GeoJSONGeometryMultiLineString',['../../error/ArgumentError',
+        './GeoJSONGeometry',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONGeometry,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a MultiLineString. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryMultiLineString
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON MultiLineString geometry.
+         * @augments GeoJSONGeometry
+         * @param {Number[]} coordinates The array containing MultiLineString coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An object containing GeoJSON bbox information.
+         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
+         * parameter is not an array of LineString coordinates array.
+         */
+        var GeoJSONGeometryMultiLineString = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiLineString", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (coordinates[0].length < 2 || coordinates[0][0].length < 2) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiLineString", "constructor",
+                        "invalidNumberOfCoordinates"));
+            }
+
+            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0][0]) !== '[object Number]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiLineString", "constructor",
+                        "invalidCoordinatesType"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
+                        "missingType"));
+            }
+
+            GeoJSONGeometry.call(this, coordinates, type, bbox);
+        };
+
+        GeoJSONGeometryMultiLineString.prototype = Object.create(GeoJSONGeometry.prototype);
+
+        return GeoJSONGeometryMultiLineString;
+    }
+);
+
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryMultiPoint
+ */
+define('formats/geojson/GeoJSONGeometryMultiPoint',['../../error/ArgumentError',
+        './GeoJSONGeometry',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONGeometry,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a MultiPoint. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryMultiPoint
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON MultiPoint geometry.
+         * @augments GeoJSONGeometry
+         * @param {Number[]} coordinates The array containing MultiPoint coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An object containing GeoJSON bbox information.
+         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
+         * parameter is not an array of positions.
+         */
+        var GeoJSONGeometryMultiPoint = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPoint", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (coordinates[0].length < 2) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPoint", "constructor",
+                        "invalidNumberOfCoordinates"));
+            }
+
+            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0]) !== '[object Number]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPoint", "constructor",
+                        "invalidCoordinatesType"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
+                        "missingType"));
+            }
+
+            GeoJSONGeometry.call(this, coordinates, type, bbox);
+        };
+
+        GeoJSONGeometryMultiPoint.prototype = Object.create(GeoJSONGeometry.prototype);
+
+        return GeoJSONGeometryMultiPoint;
+    }
+);
+
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryMultiPolygon
+ */
+define('formats/geojson/GeoJSONGeometryMultiPolygon',['../../error/ArgumentError',
+        './GeoJSONGeometry',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONGeometry,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a MultiPolygon. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryMultiPolygon
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON MultiPolygon geometry.
+         * @augments GeoJSONGeometry
+         * @param {Number[]} coordinates The array containing MultiPolygon coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An object containing GeoJSON bbox information.
+         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
+         * parameter is not an array of Polygon coordinate arrays.
+         */
+        var GeoJSONGeometryMultiPolygon = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPolygon", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0][0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0][0][0]) !== '[object Number]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "invalidCoordinatesType"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "missingType"));
+            }
+
+            GeoJSONGeometry.call(this, coordinates, type, bbox);
+        };
+
+        GeoJSONGeometryMultiPolygon.prototype = Object.create(GeoJSONGeometry.prototype);
+
+        return GeoJSONGeometryMultiPolygon;
+    }
+);
+
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryPoint
+ */
+define('formats/geojson/GeoJSONGeometryPoint',['../../error/ArgumentError',
+        './GeoJSONGeometry',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONGeometry,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a Point. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryPoint
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON Point geometry.
+         * @augments GeoJSONGeometry
+         * @param {Number[]} coordinates The array containing Point coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An object containing GeoJSON bbox information.
+         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
+         * parameter is not a single position.
+         */
+        var GeoJSONGeometryPoint = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (coordinates.length < 2) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
+                        "invalidNumberOfCoordinates"));
+            }
+
+            if (Object.prototype.toString.call(coordinates) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0]) !== '[object Number]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
+                        "invalidCoordinatesType"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
+                        "missingType"));
+            }
+
+            GeoJSONGeometry.call(this, coordinates, type, bbox);
+        };
+
+        GeoJSONGeometryPoint.prototype = Object.create(GeoJSONGeometry.prototype);
+
+        return GeoJSONGeometryPoint;
+    }
+);
+
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports GeoJSONGeometryPolygon
+ */
+define('formats/geojson/GeoJSONGeometryPolygon',['../../error/ArgumentError',
+        './GeoJSONGeometry',
+        '../../util/Logger'
+    ],
+    function (ArgumentError,
+              GeoJSONGeometry,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a GeoJSON geometry for a Polygon. Applications typically do not call this constructor.
+         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
+         * @alias GeoJSONGeometryPolygon
+         * @constructor
+         * @classdesc Contains the data associated with a GeoJSON Polygon geometry.
+         * @augments GeoJSONGeometry
+         * @param {Number[]} coordinates The array containing Polygon coordinates.
+         * @param {String} type A string containing type of geometry.
+         * @param {Object} bbox An object containing GeoJSON bbox information.
+         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the
+         * coordinates parameter is not an array of LinearRing coordinate arrays.
+         */
+        var GeoJSONGeometryPolygon = function (coordinates, type, bbox) {
+
+            if (!coordinates) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "missingCoordinates"));
+            }
+
+            if (coordinates[0].length < 2 || coordinates[0][0].length < 2) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "invalidNumberOfCoordinates"));
+            }
+
+            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0]) !== '[object Array]' ||
+                Object.prototype.toString.call(coordinates[0][0][0]) !== '[object Number]') {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "invalidCoordinatesType"));
+            }
+
+            if (coordinates[0][0] !== coordinates[0][coordinates.length - 1]) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "invalidLinearRing"));
+            }
+
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
+                        "missingType"));
+            }
+
+            GeoJSONGeometry.call(this, coordinates, type, bbox);
+        };
+
+        GeoJSONGeometryPolygon.prototype = Object.create(GeoJSONGeometry.prototype);
+
+        return GeoJSONGeometryPolygon;
+    }
+);
 
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define('util/proj4-src',e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.proj4=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 var mgrs = _dereq_('mgrs');
@@ -38923,630 +39538,6 @@ define('formats/geojson/GeoJSONFeatureCollection',['../../error/ArgumentError',
         });
 
         return GeoJSONFeatureCollection;
-    }
-);
-
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometry
- */
-define('formats/geojson/GeoJSONGeometry',['./GeoJSONConstants'
-    ],
-    function (GeoJSONConstants) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON Geometry object. Applications typically do not call this constructor. It is called by
-         * {@link GeoJSON} as GeoJSON is read.
-         * @alias GeoJSONGeometry
-         * @constructor
-         * @classdesc A geometry is a GeoJSON object where the type member's value is one of the following strings:
-         * "Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", or "GeometryCollection".
-         * A GeoJSON geometry object of any type other than "GeometryCollection" must have a member with the name
-         * "coordinates". The value of the coordinates member is always an array.
-         * The structure for the elements in this array is determined by the type of geometry.
-         * @param {Number[]} coordinates An array containing geometry coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An array containing information on the coordinate range for geometries.
-         * @throws {ArgumentError} If the specified mandatory coordinates or type are null or undefined.
-         */
-        var GeoJSONGeometry = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometry", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometry", "constructor",
-                        "missingType"));
-            }
-
-            // Documented in defineProperties below.
-            this._coordinates = coordinates;
-
-            // Documented in defineProperties below.
-            this._type =  type;
-
-            // Documented in defineProperties below.
-            this._bbox = bbox ? bbox : null;
-        };
-
-        Object.defineProperties(GeoJSONGeometry.prototype, {
-            /**
-             * The GeoJSON geometry coordinates as specified to this GeoJSONGeometry's constructor.
-             * @memberof GeoJSONGeometry.prototype
-             * @type {Number[]}
-             * @readonly
-             */
-            coordinates: {
-                get: function () {
-                    return this._coordinates;
-                }
-            },
-            /**
-             * The GeoJSON geometry type as specified to this GeoJSONGeometry's constructor.
-             * @memberof GeoJSONGeometry.prototype
-             * @type {String}
-             * @readonly
-             */
-            type: {
-                get: function () {
-                    return this._type;
-                }
-            },
-            /**
-             * The GeoJSON bbox object as specified to this GeoJSONGeometry's constructor.
-             * @memberof GeoJSONGeometry.prototype
-             * @type {Object}
-             * @readonly
-             */
-            bbox: {
-                get: function () {
-                    return this._bbox;
-                }
-            }
-        });
-
-        /**
-         * Indicates whether this GeoJSON geometry is
-         * [GeoJSONConstants.TYPE_POINT]
-         *
-         * @return {Boolean} True if the geometry is a Point type.
-         */
-        GeoJSONGeometry.prototype.isPointType = function () {
-            return (this.type === GeoJSONConstants.TYPE_POINT);
-        };
-
-        /**
-         * Indicates whether this GeoJSON geometry is
-         * [GeoJSONConstants.TYPE_MULTI_POINT]
-         *
-         * @return {Boolean} True if the geometry is a MultiPoint type.
-         */
-        GeoJSONGeometry.prototype.isMultiPointType = function () {
-            return (this.type === GeoJSONConstants.TYPE_MULTI_POINT);
-        };
-
-        /**
-         * Indicates whether this GeoJSON geometry is
-         * [GeoJSONConstants.TYPE_LINE_STRING]
-         *
-         * @return {Boolean} True if the geometry is a LineString type.
-         */
-        GeoJSONGeometry.prototype.isLineStringType = function () {
-            return (this.type === GeoJSONConstants.TYPE_LINE_STRING);
-        };
-
-        /**
-         * Indicates whether this GeoJSON geometry is
-         * [GeoJSONConstants.TYPE_MULTI_LINE_STRING]
-         *
-         * @return {Boolean} True if the geometry is a MultiLineString type.
-         */
-        GeoJSONGeometry.prototype.isMultiLineStringType = function () {
-            return (this.type === GeoJSONConstants.TYPE_MULTI_LINE_STRING);
-        };
-
-        /**
-         * Indicates whether this GeoJSON geometry is
-         * [GeoJSONConstants.TYPE_POLYGON]
-         *
-         * @return {Boolean} True if the geometry is a Polygon type.
-         */
-        GeoJSONGeometry.prototype.isPolygonType = function () {
-            return (this.type === GeoJSONConstants.TYPE_POLYGON);
-        };
-
-        /**
-         * Indicates whether this GeoJSON geometry is
-         * [GeoJSONConstants.TYPE_MULTI_POLYGON]
-         *
-         * @return {Boolean} True if the geometry is a MultiPolygon type.
-         */
-        GeoJSONGeometry.prototype.isMultiPolygonType = function () {
-            return (this.type === GeoJSONConstants.TYPE_MULTI_POLYGON);
-        };
-
-        return GeoJSONGeometry;
-    }
-);
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryCollection
- */
-define('formats/geojson/GeoJSONGeometryCollection',['../../error/ArgumentError',
-        './GeoJSONConstants',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONConstants,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a GeometryCollection. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryCollection
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON GeometryCollection geometry.
-         * A geometry collection must have a member with the name "geometries".
-         * The value corresponding to "geometries" is an array. Each element in this array is a GeoJSON
-         * geometry object. To include information on the coordinate range for features, a GeoJSON object may have a
-         * member named "bbox".
-         * @param {Object} geometries An array containing GeoJSONGeometry objects.
-         * @param {Object} bbox An object containing the value of GeoJSON GeometryCollection bbox member.
-         * @throws {ArgumentError} If the specified mandatory geometries is null or undefined or if the geometries
-         * parameter is not an array of GeoJSONGeometry.
-         */
-        var GeoJSONGeometryCollection = function (geometries, bbox) {
-            if (!geometries) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryCollection", "constructor",
-                        "missingGeometries"));
-            }
-
-            if (Object.prototype.toString.call(geometries) !== '[object Array]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryCollection", "constructor",
-                        "invalidGeometries"));
-            }
-
-            // Documented in defineProperties below.
-            this._geometries = geometries;
-
-            // Documented in defineProperties below.
-            this._bbox = bbox;
-        };
-
-        Object.defineProperties(GeoJSONGeometryCollection.prototype, {
-            /**
-             * The GeoJSON GeometryCollection geometries as specified to this GeoJSON GeometryCollection's constructor.
-             * @memberof GeoJSONGeometryCollection.prototype
-             * @type {Object}
-             * @readonly
-             */
-            geometries: {
-                get: function () {
-                    return this._geometries;
-                }
-            },
-
-            /**
-             * The GeoJSON GeometryCollection bbox member as specified to this GeoJSONGeometryCollection's constructor.
-             * @memberof GeoJSONGeometryCollection.prototype
-             * @type {Object}
-             * @readonly
-             */
-            bbox: {
-                get: function () {
-                    return this._bbox;
-                }
-            }
-        });
-
-        return GeoJSONGeometryCollection;
-    }
-);
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryLineString
- */
-define('formats/geojson/GeoJSONGeometryLineString',['../../error/ArgumentError',
-        './GeoJSONGeometry',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONGeometry,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a LineString. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryLineString
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON LineString geometry.
-         * @augments GeoJSONGeometry
-         * @param {Number[]} coordinates The array containing LineString coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An object containing GeoJSON bbox information.
-         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
-         * parameter is not an array of two or more positions.
-         */
-        var GeoJSONGeometryLineString = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (coordinates.length < 2 || coordinates[0].length < 2) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
-                        "invalidNumberOfCoordinates"));
-            }
-
-            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0]) !== '[object Number]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
-                        "invalidCoordinatesType"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
-                        "missingType"));
-            }
-
-            GeoJSONGeometry.call(this, coordinates, type, bbox);
-        };
-
-        GeoJSONGeometryLineString.prototype = Object.create(GeoJSONGeometry.prototype);
-
-        return GeoJSONGeometryLineString;
-    }
-);
-
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryMultiLineString
- */
-define('formats/geojson/GeoJSONGeometryMultiLineString',['../../error/ArgumentError',
-        './GeoJSONGeometry',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONGeometry,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a MultiLineString. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryMultiLineString
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON MultiLineString geometry.
-         * @augments GeoJSONGeometry
-         * @param {Number[]} coordinates The array containing MultiLineString coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An object containing GeoJSON bbox information.
-         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
-         * parameter is not an array of LineString coordinates array.
-         */
-        var GeoJSONGeometryMultiLineString = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiLineString", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (coordinates[0].length < 2 || coordinates[0][0].length < 2) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiLineString", "constructor",
-                        "invalidNumberOfCoordinates"));
-            }
-
-            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0][0]) !== '[object Number]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiLineString", "constructor",
-                        "invalidCoordinatesType"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryLineString", "constructor",
-                        "missingType"));
-            }
-
-            GeoJSONGeometry.call(this, coordinates, type, bbox);
-        };
-
-        GeoJSONGeometryMultiLineString.prototype = Object.create(GeoJSONGeometry.prototype);
-
-        return GeoJSONGeometryMultiLineString;
-    }
-);
-
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryMultiPoint
- */
-define('formats/geojson/GeoJSONGeometryMultiPoint',['../../error/ArgumentError',
-        './GeoJSONGeometry',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONGeometry,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a MultiPoint. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryMultiPoint
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON MultiPoint geometry.
-         * @augments GeoJSONGeometry
-         * @param {Number[]} coordinates The array containing MultiPoint coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An object containing GeoJSON bbox information.
-         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
-         * parameter is not an array of positions.
-         */
-        var GeoJSONGeometryMultiPoint = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPoint", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (coordinates[0].length < 2) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPoint", "constructor",
-                        "invalidNumberOfCoordinates"));
-            }
-
-            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0]) !== '[object Number]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPoint", "constructor",
-                        "invalidCoordinatesType"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
-                        "missingType"));
-            }
-
-            GeoJSONGeometry.call(this, coordinates, type, bbox);
-        };
-
-        GeoJSONGeometryMultiPoint.prototype = Object.create(GeoJSONGeometry.prototype);
-
-        return GeoJSONGeometryMultiPoint;
-    }
-);
-
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryMultiPolygon
- */
-define('formats/geojson/GeoJSONGeometryMultiPolygon',['../../error/ArgumentError',
-        './GeoJSONGeometry',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONGeometry,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a MultiPolygon. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryMultiPolygon
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON MultiPolygon geometry.
-         * @augments GeoJSONGeometry
-         * @param {Number[]} coordinates The array containing MultiPolygon coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An object containing GeoJSON bbox information.
-         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
-         * parameter is not an array of Polygon coordinate arrays.
-         */
-        var GeoJSONGeometryMultiPolygon = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryMultiPolygon", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0][0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0][0][0]) !== '[object Number]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "invalidCoordinatesType"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "missingType"));
-            }
-
-            GeoJSONGeometry.call(this, coordinates, type, bbox);
-        };
-
-        GeoJSONGeometryMultiPolygon.prototype = Object.create(GeoJSONGeometry.prototype);
-
-        return GeoJSONGeometryMultiPolygon;
-    }
-);
-
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryPoint
- */
-define('formats/geojson/GeoJSONGeometryPoint',['../../error/ArgumentError',
-        './GeoJSONGeometry',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONGeometry,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a Point. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryPoint
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON Point geometry.
-         * @augments GeoJSONGeometry
-         * @param {Number[]} coordinates The array containing Point coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An object containing GeoJSON bbox information.
-         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the coordinates
-         * parameter is not a single position.
-         */
-        var GeoJSONGeometryPoint = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (coordinates.length < 2) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
-                        "invalidNumberOfCoordinates"));
-            }
-
-            if (Object.prototype.toString.call(coordinates) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0]) !== '[object Number]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
-                        "invalidCoordinatesType"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPoint", "constructor",
-                        "missingType"));
-            }
-
-            GeoJSONGeometry.call(this, coordinates, type, bbox);
-        };
-
-        GeoJSONGeometryPoint.prototype = Object.create(GeoJSONGeometry.prototype);
-
-        return GeoJSONGeometryPoint;
-    }
-);
-
-/*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports GeoJSONGeometryPolygon
- */
-define('formats/geojson/GeoJSONGeometryPolygon',['../../error/ArgumentError',
-        './GeoJSONGeometry',
-        '../../util/Logger'
-    ],
-    function (ArgumentError,
-              GeoJSONGeometry,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs a GeoJSON geometry for a Polygon. Applications typically do not call this constructor.
-         * It is called by {@link GeoJSON} as GeoJSON geometries are read.
-         * @alias GeoJSONGeometryPolygon
-         * @constructor
-         * @classdesc Contains the data associated with a GeoJSON Polygon geometry.
-         * @augments GeoJSONGeometry
-         * @param {Number[]} coordinates The array containing Polygon coordinates.
-         * @param {String} type A string containing type of geometry.
-         * @param {Object} bbox An object containing GeoJSON bbox information.
-         * @throws {ArgumentError} If the specified coordinates or type are null or undefined or if the
-         * coordinates parameter is not an array of LinearRing coordinate arrays.
-         */
-        var GeoJSONGeometryPolygon = function (coordinates, type, bbox) {
-
-            if (!coordinates) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "missingCoordinates"));
-            }
-
-            if (coordinates[0].length < 2 || coordinates[0][0].length < 2) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "invalidNumberOfCoordinates"));
-            }
-
-            if (Object.prototype.toString.call(coordinates[0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0]) !== '[object Array]' ||
-                Object.prototype.toString.call(coordinates[0][0][0]) !== '[object Number]') {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "invalidCoordinatesType"));
-            }
-
-            if (coordinates[0][0] !== coordinates[0][coordinates.length - 1]) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "invalidLinearRing"));
-            }
-
-            if (!type) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeoJSONGeometryPolygon", "constructor",
-                        "missingType"));
-            }
-
-            GeoJSONGeometry.call(this, coordinates, type, bbox);
-        };
-
-        GeoJSONGeometryPolygon.prototype = Object.create(GeoJSONGeometry.prototype);
-
-        return GeoJSONGeometryPolygon;
     }
 );
 
@@ -48267,6 +48258,9 @@ define('formats/geotiff/GeoTiffMetadata',[
             this._planarConfiguration = null;
 
             // Documented in defineProperties below.
+            this._resolutionUnit = null;
+
+            // Documented in defineProperties below.
             this._rowsPerStrip = null;
 
             // Documented in defineProperties below.
@@ -48295,6 +48289,12 @@ define('formats/geotiff/GeoTiffMetadata',[
 
             // Documented in defineProperties below.
             this._tileWidth = null;
+
+            // Documented in defineProperties below.
+            this._xResolution = null;
+
+            // Documented in defineProperties below.
+            this._yResolution = null;
 
             // Documented in defineProperties below.
             this._geoAsciiParams = null;
@@ -48336,8 +48336,19 @@ define('formats/geotiff/GeoTiffMetadata',[
             this._geogCitationGeoKey = null;
 
             // Documented in defineProperties below.
-            this._projectedCSType = null;
+            this._geogAngularUnitsGeoKey = null;
 
+            // Documented in defineProperties below.
+            this._geogAngularUnitSizeGeoKey = null;
+
+            // Documented in defineProperties below.
+            this._geogSemiMajorAxisGeoKey = null;
+
+            // Documented in defineProperties below.
+            this._geogInvFlatteningGeoKey = null;
+
+            // Documented in defineProperties below.
+            this._projectedCSType = null;
         };
 
         Object.defineProperties(GeoTiffMetadata.prototype, {
@@ -48509,6 +48520,26 @@ define('formats/geotiff/GeoTiffMetadata',[
             },
 
             /**
+             * Contains the unit of measurement for XResolution and YResolution. The specified values are:
+             * <ul>
+             *     <li>1 = No absolute unit of measurement</li>
+             *     <li>2 = Inch</li>
+             *     <li>3 = Centimeter</li>
+             * </ul>
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            resolutionUnit: {
+                get: function () {
+                    return this._resolutionUnit;
+                },
+
+                set: function(value){
+                    this._resolutionUnit = value;
+                }
+            },
+
+            /**
              * Contains the number of rows per strip.
              * @memberof GeoTiffMetadata.prototype
              * @type {Number}
@@ -48670,8 +48701,8 @@ define('formats/geotiff/GeoTiffMetadata',[
                     return this._geoDoubleParams;
                 },
 
-                    set: function(value){
-                        this._geoDoubleParams = value;
+                set: function(value){
+                    this._geoDoubleParams = value;
                 }
             },
 
@@ -48849,6 +48880,66 @@ define('formats/geotiff/GeoTiffMetadata',[
             },
 
             /**
+             * Allows the definition of geocentric CS Linear units for used-defined GCS and for ellipsoids
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            geogAngularUnitsGeoKey: {
+                get: function () {
+                    return this._geogAngularUnitsGeoKey;
+                },
+
+                set: function(value){
+                    this._geogAngularUnitsGeoKey = value;
+                }
+            },
+
+            /**
+             * Allows the definition of user-defined angular geographic units, as measured in radians
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            geogAngularUnitSizeGeoKey: {
+                get: function () {
+                    return this._geogAngularUnitSizeGeoKey;
+                },
+
+                set: function(value){
+                    this._geogAngularUnitSizeGeoKey = value;
+                }
+            },
+
+            /**
+             * Allows the specification of user-defined Ellipsoidal Semi-Major Axis
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            geogSemiMajorAxisGeoKey: {
+                get: function () {
+                    return this._geogSemiMajorAxisGeoKey;
+                },
+
+                set: function(value){
+                    this._geogSemiMajorAxisGeoKey = value;
+                }
+            },
+
+            /**
+             * Allows the specification of the inverse of user-defined Ellipsoid's flattening parameter f.
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            geogInvFlatteningGeoKey: {
+                get: function () {
+                    return this._geogInvFlatteningGeoKey;
+                },
+
+                set: function(value){
+                    this._geogInvFlatteningGeoKey = value;
+                }
+            },
+
+            /**
              * Contains the EPSG code of the geotiff.
              * @memberof GeoTiffMetadata.prototype
              * @type {Number}
@@ -48860,6 +48951,36 @@ define('formats/geotiff/GeoTiffMetadata',[
 
                 set: function(value){
                     this._projectedCSType = value;
+                }
+            },
+
+            /**
+             * Contains the number of pixels per resolution unit in the image width direction.
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            xResolution: {
+                get: function () {
+                    return this._xResolution;
+                },
+
+                set: function(value){
+                    this._xResolution = value;
+                }
+            },
+
+            /**
+             * Contains the number of pixels per resolution unit in the image length direction.
+             * @memberof GeoTiffMetadata.prototype
+             * @type {Number}
+             */
+            yResolution: {
+                get: function () {
+                    return this._yResolution;
+                },
+
+                set: function(value){
+                    this._yResolution = value;
                 }
             }
         });
@@ -49500,7 +49621,8 @@ define('formats/geotiff/GeoTiffReader',[
         '../../util/Logger',
         '../../util/proj4-src',
         './TiffConstants',
-        './TiffIFDEntry'
+        './TiffIFDEntry',
+        '../../util/WWUtil'
     ],
     function (AbstractError,
               ArgumentError,
@@ -49513,7 +49635,8 @@ define('formats/geotiff/GeoTiffReader',[
               Logger,
               Proj4,
               TiffConstants,
-              TiffIFDEntry) {
+              TiffIFDEntry,
+              WWUtil) {
         "use strict";
 
         /**
@@ -49875,39 +49998,76 @@ define('formats/geotiff/GeoTiffReader',[
             return GeoTiffUtil.getRGBAFillValue(red, green, blue, opacity);
         }
 
-        GeoTiffReader.prototype.createTypedElevationArray = function (bitsPerSample, sampleFormat, untypedElevationArray) {
-            var typedElevationArray;
+        GeoTiffReader.prototype.createTypedElevationArray = function () {
+            var elevationArray = [], typedElevationArray;
+            var bitsPerSample = this.metadata.bitsPerSample[0];
+
+            if (this.metadata.stripOffsets) {
+                var strips = this.parseStrips(true);
+
+                for (var i = 0; i < strips.length; i++) {
+                    elevationArray = elevationArray.concat(strips[i]);
+                }
+            }
+            else if (this.metadata.tileOffsets) {
+                var tiles = this.parseTiles(true);
+                var imageWidth = this.metadata.imageWidth;
+                var imageLength = this.metadata.imageLength;
+                var tileWidth = this.metadata.tileWidth;
+                var tileLength = this.metadata.tileLength;
+                var tilesAcross = Math.ceil(imageWidth / tileWidth);
+
+                for (var y = 0; y < imageLength; y++) {
+                    for (var x = 0; x < imageWidth; x++) {
+                        var tileAcross = Math.floor(x / tileWidth);
+                        var tileDown = Math.floor(y / tileLength);
+                        var tileIndex = tileDown * tilesAcross + tileAcross;
+                        var xInTile = x % tileWidth;
+                        var yInTile = y % tileLength;
+                        var sampleIndex = yInTile * tileWidth + xInTile;
+                        var pixelSamples = tiles[tileIndex][sampleIndex];
+                        elevationArray.push(pixelSamples);//todo de 0??? servet
+                    }
+                }
+            }
+
+            if (this.metadata.sampleFormat) {
+                var sampleFormat = this.metadata.sampleFormat[0];
+            }
+            else {
+                var sampleFormat = TiffConstants.SampleFormat.UNSIGNED;
+            }
 
             switch (bitsPerSample) {
                 case 8:
                     if (sampleFormat === TiffConstants.SampleFormat.SIGNED) {
-                        typedElevationArray = new Int8Array(untypedElevationArray);
+                        typedElevationArray = new Int8Array(elevationArray);
                     }
                     else {
-                        typedElevationArray = new Uint8Array(untypedElevationArray);
+                        typedElevationArray = new Uint8Array(elevationArray);
                     }
                     break
                 case 16:
                     if (sampleFormat === TiffConstants.SampleFormat.SIGNED) {
-                        typedElevationArray = new Int16Array(untypedElevationArray);
+                        typedElevationArray = new Int16Array(elevationArray);
                     }
                     else {
-                        typedElevationArray = new Uint16Array(untypedElevationArray);
+                        typedElevationArray = new Uint16Array(elevationArray);
                     }
                     break;
                 case 32:
                     if (sampleFormat === TiffConstants.SampleFormat.SIGNED) {
-                        typedElevationArray = new Int32Array(untypedElevationArray);
+                        typedElevationArray = new Int32Array(elevationArray);
                     }
                     else if (sampleFormat === TiffConstants.SampleFormat.IEEE_FLOAT) {
-                        typedElevationArray = new Float32Array(untypedElevationArray);
+                        typedElevationArray = new Float32Array(elevationArray);
                     }
                     else {
-                        typedElevationArray = new Uint32Array(untypedElevationArray);
+                        typedElevationArray = new Uint32Array(elevationArray);
                     }
                     break;
                 case 64:
-                    typedElevationArray = new Float64Array(untypedElevationArray);
+                    typedElevationArray = new Float64Array(elevationArray);
                     break;
                 default:
                     break;
@@ -49921,53 +50081,12 @@ define('formats/geotiff/GeoTiffReader',[
          * to the callback function as a parameter.
          *
          * @param {Function} callback A function called when GeoTiff parsing is complete.
-         *
          */
         GeoTiffReader.prototype.readAsData = function (callback) {
             this.requestUrl(this.url, (function () {
-                var elevationArray = [];
-
-                if (this.metadata.stripOffsets) {
-                    var strips = this.parseStrips(true);
-
-                    for (var i = 0; i < strips.length; i++) {
-                        elevationArray = elevationArray.concat(strips[i]);
-                    }
-                }
-                else if (this.metadata.tileOffsets) {
-                    var tiles = this.parseTiles(true);
-                    var imageWidth = this.metadata.imageWidth;
-                    var imageLength = this.metadata.imageLength;
-                    var tileWidth = this.metadata.tileWidth;
-                    var tileLength = this.metadata.tileLength;
-                    var tilesAcross = Math.ceil(imageWidth / tileWidth);
-
-                    for (var y = 0; y < imageLength; y++) {
-                        for (var x = 0; x < imageWidth; x++) {
-                            var tileAcross = Math.floor(x / tileWidth);
-                            var tileDown = Math.floor(y / tileLength);
-                            var tileIndex = tileDown * tilesAcross + tileAcross;
-                            var xInTile = x % tileWidth;
-                            var yInTile = y % tileLength;
-                            var sampleIndex = yInTile * tileWidth + xInTile;
-                            var pixelSamples = tiles[tileIndex][sampleIndex];
-                            elevationArray.push(pixelSamples);//todo de 0??? servet
-                        }
-                    }
-                }
-
-                if (this.metadata.sampleFormat) {
-                    var sampleFormat = this.metadata.sampleFormat;
-                }
-                else {
-                    var sampleFormat = TiffConstants.SampleFormat.UNSIGNED;
-                }
-
-                callback(this.createTypedElevationArray(
-                    this.metadata.bitsPerSample[0],
-                    sampleFormat[0],
-                    elevationArray
-                ));
+                callback(
+                    this.createTypedElevationArray()
+                );
             }).bind(this));
         };
 
@@ -50147,7 +50266,8 @@ define('formats/geotiff/GeoTiffReader',[
                 var sampleFormat = this.metadata.sampleFormat;
             }
             else {
-                var sampleFormat = Array(samplesPerPixel).fill(TiffConstants.SampleFormat.UNSIGNED);
+                var sampleFormat = new Array(samplesPerPixel);
+                WWUtil.fillArray(sampleFormat, TiffConstants.SampleFormat.UNSIGNED);
             }
             var bitsPerPixel = samplesPerPixel * bitsPerSample[0];
             var bytesPerPixel = bitsPerPixel / 8;
@@ -50299,6 +50419,9 @@ define('formats/geotiff/GeoTiffReader',[
                     case TiffConstants.Tag.ROWS_PER_STRIP:
                         this.metadata.rowsPerStrip = this.imageFileDirectories[0][i].getIFDEntryValue()[0];
                         break;
+                    case TiffConstants.Tag.RESOLUTION_UNIT:
+                        this.metadata.resolutionUnit = this.imageFileDirectories[0][i].getIFDEntryValue()[0];
+                        break;
                     case TiffConstants.Tag.SAMPLES_PER_PIXEL:
                         this.metadata.samplesPerPixel = this.imageFileDirectories[0][i].getIFDEntryValue()[0];
                         break;
@@ -50324,6 +50447,12 @@ define('formats/geotiff/GeoTiffReader',[
                         this.metadata.tileLength = this.imageFileDirectories[0][i].getIFDEntryValue();
                         break;
                     case TiffConstants.Tag.TILE_WIDTH:
+                        this.metadata.tileWidth = this.imageFileDirectories[0][i].getIFDEntryValue();
+                        break;
+                    case TiffConstants.Tag.X_RESOLUTION:
+                        this.metadata.xResolution = this.imageFileDirectories[0][i].getIFDEntryValue();
+                        break;
+                    case TiffConstants.Tag.Y_RESOLUTION:
                         this.metadata.tileWidth = this.imageFileDirectories[0][i].getIFDEntryValue();
                         break;
 
@@ -50415,6 +50544,30 @@ define('formats/geotiff/GeoTiffReader',[
                             break;
                         case GeoTiffConstants.Key.GeogCitationGeoKey:
                             this.metadata.geogCitationGeoKey =
+                                new GeoTiffKeyEntry(keyId, tiffTagLocation, count, valueOffset).getGeoKeyValue(
+                                    this.metadata.geoDoubleParams,
+                                    this.metadata.geoAsciiParams);
+                            break;
+                        case GeoTiffConstants.Key.GeogAngularUnitsGeoKey:
+                            this.metadata.geogAngularUnitsGeoKey =
+                                new GeoTiffKeyEntry(keyId, tiffTagLocation, count, valueOffset).getGeoKeyValue(
+                                    this.metadata.geoDoubleParams,
+                                    this.metadata.geoAsciiParams);
+                            break;
+                        case GeoTiffConstants.Key.GeogAngularUnitSizeGeoKey:
+                            this.metadata.geogAngularUnitSizeGeoKey =
+                                new GeoTiffKeyEntry(keyId, tiffTagLocation, count, valueOffset).getGeoKeyValue(
+                                    this.metadata.geoDoubleParams,
+                                    this.metadata.geoAsciiParams);
+                            break;
+                        case GeoTiffConstants.Key.GeogSemiMajorAxisGeoKey:
+                            this.metadata.geogSemiMajorAxisGeoKey =
+                                new GeoTiffKeyEntry(keyId, tiffTagLocation, count, valueOffset).getGeoKeyValue(
+                                    this.metadata.geoDoubleParams,
+                                    this.metadata.geoAsciiParams);
+                            break;
+                        case GeoTiffConstants.Key.GeogInvFlatteningGeoKey:
+                            this.metadata.geogInvFlatteningGeoKey =
                                 new GeoTiffKeyEntry(keyId, tiffTagLocation, count, valueOffset).getGeoKeyValue(
                                     this.metadata.geoDoubleParams,
                                     this.metadata.geoAsciiParams);
@@ -51354,7 +51507,7 @@ define('formats/kml/util/NodeTransformers',[
         }
         var linearRingNode = null;
         Array.prototype.forEach.call(node.childNodes, function(pNode){
-            if(pNode.nodeName == "LinearRing") {
+            if(pNode.nodeName.toUpperCase() == "LinearRing".toUpperCase()) {
                 linearRingNode = pNode;
             }
         });
@@ -51402,9 +51555,12 @@ define('formats/kml/util/KmlElementsFactory',[
      * Simple factory, which understands the mapping between the XML and the internal Elements.
      * @constructor
      * @alias KmlElementsFactory
+     * @params options {Object}
+     * @params options.controls {Control[]} Defaults to empty array
      */
     var KmlElementsFactory = function (options) {
-        this.options = options;
+        this.options = options || {};
+        this.options.controls = this.options.controls || [];
     };
 
     /**
@@ -51542,7 +51698,7 @@ define('formats/kml/util/TreeKeyValueCache',[], function () {
                 }
             }
         }
-        return this.map[level][key];
+        return this.map[level][key] || null;
     };
 
 	/**
@@ -64349,7 +64505,7 @@ define('util/XmlDocument',[
             if(DOMParser) {
                 var parser = new DOMParser();
                 var parsedDocument = parser.parseFromString(this._document, "text/xml");
-                if(parsedDocument.getElementsByTagName("parsererror").length) {
+                if(parsedDocument.getElementsByTagName("parsererror").length || !parsedDocument) {
                     throw new ArgumentError(
                         Logger.logMessage(Logger.LEVEL_SEVERE, "XmlDocument", "dom", "Invalid XML document. " +
                             parsedDocument.getElementsByTagName("parsererror")[0].innerHTML)
@@ -69706,7 +69862,7 @@ define('util/NominatimGeocoder',[
              * @type {String}
              * @default http://open.mapquestapi.com/nominatim/v1/search/
              */
-            this.service = "http://open.mapquestapi.com/nominatim/v1/search/";
+            this.service = "https://open.mapquestapi.com/nominatim/v1/search/";
         };
 
         /**
@@ -72104,7 +72260,7 @@ define('formats/shapefile/PrjFile',['../../error/ArgumentError',
         /**
          * Retrieves the coordinate system and its parameters from an OGC coordinate system encoded as well-known text. For
          * details, see to the OGC Coordinate Transform Service (CT) specification at <a
-         * href="http://www.opengeospatial.org/standards/ct">http://www.opengeospatial.org/standards/ct</a>. This recognizes
+         * href="https://www.opengeospatial.org/standards/ct">https://www.opengeospatial.org/standards/ct</a>. This recognizes
          * Geographic and UTM coordinate systems.
          *
          * If an exception occurs while parsing the coordinate system text, the parameter list is left unchanged.
@@ -72567,7 +72723,7 @@ define('formats/shapefile/ShapefileRecord',[
          * is not {@link Shapefile#NULL}. Records of type NULL are always valid, and
          * may appear in any Shapefile.
          * <p/>
-         * For details, see the ESRI Shapefile specification at <a href="http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf"/>,
+         * For details, see the ESRI Shapefile specification at <a href="https://www.esri.com/library/whitepapers/pdfs/shapefile.pdf"/>,
          * pages 4 and 5.
          *
          * @throws Error If the shape types do not match.
@@ -76494,6 +76650,946 @@ define('layer/ViewControlsLayer',[
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
+ * @exports WcsTileUrlBuilder
+ */
+define('util/WcsTileUrlBuilder',[
+        '../error/ArgumentError',
+        '../util/Logger'
+    ],
+    function (ArgumentError,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs a WCS tile URL builder.
+         * @alias WcsTileUrlBuilder
+         * @constructor
+         * @classdesc Provides a factory to create URLs for WCS Get Coverage requests.
+         * @param {String} serviceAddress The address of the WCS server.
+         * @param {String} coverageName The name of the coverage to retrieve.
+         * @param {String} wcsVersion The version of the WCS server. May be null, in which case version 1.0.0 is
+         * assumed.
+         * @constructor
+         */
+        var WcsTileUrlBuilder = function (serviceAddress, coverageName, wcsVersion) {
+            if (!serviceAddress || (serviceAddress.length === 0)) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WcsTileUrlBuilder", "constructor",
+                        "The WCS service address is missing."));
+            }
+
+            if (!coverageName || (coverageName.length === 0)) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WcsTileUrlBuilder", "constructor",
+                        "The WCS coverage name is missing."));
+            }
+
+            /**
+             * The address of the WCS server.
+             * @type {String}
+             */
+            this.serviceAddress = serviceAddress;
+
+            /**
+             * The name of the coverage to retrieve.
+             * @type {String}
+             */
+            this.coverageName = coverageName;
+
+            /**
+             * The WCS version to specify when requesting resources.
+             * @type {String}
+             * @default 1.0.0
+             */
+            this.wcsVersion = (wcsVersion && wcsVersion.length > 0) ? wcsVersion : "1.0.0";
+
+            /**
+             * The coordinate reference system to use when requesting coverages.
+             * @type {String}
+             * @default EPSG:4326
+             */
+            this.crs = "EPSG:4326";
+        };
+
+        /**
+         * Creates the URL string for a WCS Get Coverage request.
+         * @param {Tile} tile The tile for which to create the URL.
+         * @param {String} coverageFormat The coverage format to request.
+         * @throws {ArgumentError} If the specified tile or coverage format are null or undefined.
+         */
+        WcsTileUrlBuilder.prototype.urlForTile = function (tile, coverageFormat) {
+
+            if (!tile) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WcsUrlBuilder", "urlForTile", "missingTile"));
+            }
+
+            if (!coverageFormat) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WcsUrlBuilder", "urlForTile",
+                        "The coverage format is null or undefined."));
+            }
+
+            var sector = tile.sector;
+
+            var sb = WcsTileUrlBuilder.fixGetCoverageString(this.serviceAddress);
+
+            if (sb.search(/service=wcs/i) < 0) {
+                sb = sb + "service=WCS";
+            }
+
+            sb = sb + "&request=GetCoverage";
+            sb = sb + "&version=" + this.wcsVersion;
+            sb = sb + "&coverage=" + this.coverageName;
+            sb = sb + "&format=" + coverageFormat;
+            sb = sb + "&width=" + tile.tileWidth;
+            sb = sb + "&height=" + tile.tileHeight;
+
+            sb = sb + "&crs=" + this.crs;
+            sb = sb + "&bbox=";
+            sb = sb + sector.minLongitude + "," + sector.minLatitude + ",";
+            sb = sb + sector.maxLongitude + "," +sector. maxLatitude;
+
+            sb = sb.replace(" ", "%20");
+
+            return sb;
+        };
+
+        // Intentionally not documented.
+        WcsTileUrlBuilder.fixGetCoverageString = function (serviceAddress) {
+            if (!serviceAddress) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WcsTileUrlBuilder", "fixGetCoverageString",
+                        "The specified service address is null or undefined."));
+            }
+
+            var index = serviceAddress.indexOf("?");
+
+            if (index < 0) { // if string contains no question mark
+                serviceAddress = serviceAddress + "?"; // add one
+            } else if (index !== serviceAddress.length - 1) { // else if question mark not at end of string
+                index = serviceAddress.search(/&$/);
+                if (index < 0) {
+                    serviceAddress = serviceAddress + "&"; // add a parameter separator
+                }
+            }
+
+            return serviceAddress;
+        };
+
+        return WcsTileUrlBuilder;
+    });
+
+/*
+ * Copyright (C) 2015 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports OwsLanguageString
+ */
+define('ogc/OwsLanguageString',[
+        '../error/ArgumentError',
+        '../util/Logger'
+    ],
+    function (ArgumentError,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs an OWS Constraint instance from an XML DOM.
+         * @alias OwsLanguageString
+         * @constructor
+         * @classdesc Represents an OWS LanguageString element of an OGC document.
+         * This object holds as properties all the fields specified in the OWS LanguageString definition.
+         * Fields can be accessed as properties named according to their document names converted to camel case.
+         * For example, "value".
+         * @param {Element} element An XML DOM element representing the OWS LanguageString element.
+         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
+         */
+        var OwsLanguageString = function (element) {
+            if (!element) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "LanguageString", "constructor", "missingDomElement"));
+            }
+
+            this.value = element.textContent;
+
+            var lang = element.getAttribute("lang");
+            if (lang) {
+                this.lang = lang;
+            }
+        };
+
+        return OwsLanguageString;
+    });
+/*
+ * Copyright (C) 2015 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports OwsConstraint
+ */
+define('ogc/OwsConstraint',[
+        '../error/ArgumentError',
+        '../util/Logger'
+    ],
+    function (ArgumentError,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs an OWS Constraint instance from an XML DOM.
+         * @alias OwsConstraint
+         * @constructor
+         * @classdesc Represents an OWS Constraint element of an OGC capabilities document.
+         * This object holds as properties all the fields specified in the OWS Constraint definition.
+         * Fields can be accessed as properties named according to their document names converted to camel case.
+         * For example, "operation".
+         * @param {Element} element An XML DOM element representing the OWS Constraint element.
+         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
+         */
+        var OwsConstraint = function (element) {
+            if (!element) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsConstraint", "constructor", "missingDomElement"));
+            }
+
+            this.name = element.getAttribute("name");
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "AllowedValues") {
+                    this.allowedValues = this.allowedValues || [];
+
+                    for (var cc = 0; cc < child.children.length; cc++) {
+                        if (child.children[cc].localName === "Value") {
+                            this.allowedValues.push(child.children[cc].textContent);
+                        }
+                    }
+                } else if (child.localName === "AnyValue") {
+                    this.anyValue = true;
+                } else if (child.localName === "NoValues") {
+                    this.noValues = true;
+                }
+                // TODO: ValuesReference
+            }
+
+        };
+
+        return OwsConstraint;
+    });
+/*
+ * Copyright (C) 2015 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports OwsOperationsMetadata
+ */
+define('ogc/OwsOperationsMetadata',[
+        '../error/ArgumentError',
+        '../util/Logger',
+        '../ogc/OwsConstraint'
+    ],
+    function (ArgumentError,
+              Logger,
+              OwsConstraint) {
+        "use strict";
+
+        /**
+         * Constructs an OWS Operations Metadata instance from an XML DOM.
+         * @alias OwsOperationsMetadata
+         * @constructor
+         * @classdesc Represents an OWS Operations Metadata section of an OGC capabilities document.
+         * This object holds as properties all the fields specified in the OWS Operations Metadata section.
+         * Most fields can be accessed as properties named according to their document names converted to camel case.
+         * For example, "operations".
+         * @param {Element} element An XML DOM element representing the OWS Service Provider section.
+         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
+         */
+        var OwsOperationsMetadata = function (element) {
+            if (!element) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsOperationsMetadata", "constructor", "missingDomElement"));
+            }
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Operation") {
+                    this.operation = this.operation || [];
+                    this.operation.push(OwsOperationsMetadata.assembleOperation(child));
+                }
+                // TODO: Parameter, Constraint, ExtendedCapabilities
+            }
+        };
+
+        OwsOperationsMetadata.assembleOperation = function (element) {
+            var operation = {};
+
+            operation.name = element.getAttribute("name");
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "DCP") {
+                    operation.dcp = operation.dcp || [];
+                    operation.dcp.push(OwsOperationsMetadata.assembleDcp(child));
+                }
+                // TODO: Parameter, Constraint, Metadata
+            }
+
+            return operation;
+        };
+
+        OwsOperationsMetadata.assembleDcp = function (element) {
+            var dcp = {};
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "HTTP") {
+                    dcp.http = OwsOperationsMetadata.assembleHttp(child);
+                }
+            }
+
+            return dcp;
+        };
+
+        OwsOperationsMetadata.assembleHttp = function (element) {
+            var result = {};
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Get") {
+                    result.get = result.get || [];
+                    result.get.push(OwsOperationsMetadata.assembleGet(child));
+                }
+
+                // TODO: Post
+            }
+
+            return result;
+        };
+
+        OwsOperationsMetadata.assembleGet = function (element) {
+            var result = {};
+
+            result.href = element.getAttribute("xlink:href");
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Constraint") {
+                    result.constraint = result.constraint || [];
+                    result.constraint.push(new OwsConstraint(child));
+                }
+            }
+
+            return result;
+        };
+
+        return OwsOperationsMetadata;
+    });
+/*
+ * Copyright (C) 2015 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports OwsServiceIdentification
+ */
+define('ogc/OwsServiceIdentification',[
+        '../error/ArgumentError',
+        '../util/Logger'
+    ],
+    function (ArgumentError,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs an OWS Service Identification instance from an XML DOM.
+         * @alias OwsServiceIdentification
+         * @constructor
+         * @classdesc Represents an OWS Service Identification section of an OGC capabilities document.
+         * This object holds as properties all the fields specified in the OWS Service Identification.
+         * Fields can be accessed as properties named according to their document names converted to camel case.
+         * For example, "serviceType" and "title".
+         * Note that fields with multiple possible values are returned as arrays, such as "titles" and "abstracts".
+         * @param {Element} element An XML DOM element representing the OWS Service Identification section.
+         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
+         */
+        var OwsServiceIdentification = function (element) {
+            if (!element) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsServiceIdentification", "constructor", "missingDomElement"));
+            }
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "ServiceType") {
+                    this.serviceType = child.textContent;
+                } else if (child.localName === "ServiceTypeVersion") {
+                    this.serviceTypeVersion = child.textContent;
+                } else if (child.localName === "Profile") {
+                    this.profile = this.profiles || [];
+                    this.profile.push(child.textContent);
+                } else if (child.localName === "Title") {
+                    this.title = this.title|| [];
+                    this.title.push(child.textContent);
+                } else if (child.localName === "Abstract") {
+                    this.abstract = this.title|| [];
+                    this.abstract.push(child.textContent);
+                } else if (child.localName === "Fees") {
+                    this.fees = child.textContent;
+                } else if (child.localName === "AccessConstraints") {
+                    this.accessConstraints = this.accessConstraints || [];
+                    this.accessConstraints.push(child.textContent);
+                }
+                // TODO: Keywords
+            }
+        };
+
+        return OwsServiceIdentification;
+    });
+/*
+ * Copyright (C) 2015 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports OwsServiceProvider
+ */
+define('ogc/OwsServiceProvider',[
+        '../error/ArgumentError',
+        '../util/Logger'
+    ],
+    function (ArgumentError,
+              Logger) {
+        "use strict";
+
+        /**
+         * Constructs an OWS Service Provider instance from an XML DOM.
+         * @alias OwsServiceProvider
+         * @constructor
+         * @classdesc Represents an OWS Service Provider section of an OGC capabilities document.
+         * This object holds as properties all the fields specified in the OWS Service Provider section.
+         * Fields can be accessed as properties named according to their document names converted to camel case.
+         * For example, "providerName".
+         * @param {Element} element An XML DOM element representing the OWS Service Provider section.
+         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
+         */
+        var OwsServiceProvider = function (element) {
+            if (!element) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsServiceProvider", "constructor", "missingDomElement"));
+            }
+
+            var children = element.children;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "ProviderName") {
+                    this.providerName = child.textContent;
+                } else if (child.localName === "ProviderSite") {
+                    this.providerSite = child.getAttribute("xlink:href");
+                }
+                // TODO: Service Contact
+            }
+        };
+
+        return OwsServiceProvider;
+    });
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
+ * @exports WfsCapabilities
+ */
+define('ogc/WfsCapabilities',[
+        '../error/ArgumentError',
+        '../util/Logger',
+        '../ogc/OwsLanguageString',
+        '../ogc/OwsOperationsMetadata',
+        '../ogc/OwsServiceIdentification',
+        '../ogc/OwsServiceProvider'
+    ],
+    function (ArgumentError,
+              Logger,
+              OwsLanguageString,
+              OwsOperationsMetadata,
+              OwsServiceIdentification,
+              OwsServiceProvider) {
+        "use strict";
+
+        /**
+         * Constructs an WFS Capabilities instance from an XML DOM.
+         * @alias WFSCapabilities
+         * @constructor
+         * @classdesc Represents a WFS Capabilities document. This object holds as properties all the fields
+         * specified in the given WFS Capabilities document. Most fields can be accessed as properties named
+         * according to their document names converted to camel case. For example, "version", "service.title",
+         * "service.contactInformation.contactPersonPrimary".
+         * @param {{}} xmlDom An XML DOM representing the WFS Capabilities document.
+         * @throws {ArgumentError} If the specified XML DOM is null or undefined.
+         */
+        var WfsCapabilities = function (xmlDom) {
+            if (!xmlDom) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WfsCapabilities", "constructor", "No XML DOM specified."));
+            }
+
+            this.assembleDocument(xmlDom);
+        };
+
+        WfsCapabilities.prototype.assembleDocument = function (dom) {
+            var root = dom.documentElement;
+
+            this.version = root.getAttribute("version");
+            this.updateSequence = root.getAttribute("updateSequence");
+
+            var children = root.children || root.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "ServiceIdentification") {
+                    this.serviceIdentification = new OwsServiceIdentification(child);
+                } else if (child.localName === "ServiceProvider") {
+                    this.serviceProvider = new OwsServiceProvider(child);
+                } else if (child.localName === "OperationsMetadata") {
+                    this.operationsMetadata = new OwsOperationsMetadata(child);
+                } else if (child.localName === "FeatureTypeList") {
+                    this.featureTypeList = this.assembleFeatureTypeList(child);
+                } else if (child.localName === "Filter_Capabilities") {
+                    this.filterCapabilities = this.assembleFilterCapabilities(child);
+                }
+            }
+        };
+
+        WfsCapabilities.prototype.assembleFeatureTypeList = function (element) {
+            var featureTypeList = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName == "Operations") {
+                    featureTypeList.operations = featureTypeList.operations || [];
+                    try {
+                        featureTypeList.operations = WfsCapabilities.assembleOperations(child);
+                    } catch (e) {
+                        Logger.logMessage(Logger.LEVEL_SEVERE, "WfsCapabilities", "constructor",
+                            "Exception reading WFS operations description: " + e.message);
+                    }
+                } else if (child.localName == "FeatureType") {
+                    featureTypeList.featureType = featureTypeList.featureType || [];
+                    try {
+                        featureTypeList.featureType.push(WfsCapabilities.assembleFeatureType(child));
+                    } catch (e) {
+                        Logger.logMessage(Logger.LEVEL_SEVERE, "WfsCapabilities", "constructor",
+                            "Exception reading WFS operations description: " + e.message);
+                    }
+                }
+            }
+
+            return featureTypeList;
+        };
+
+        WfsCapabilities.prototype.assembleFilterCapabilities = function (element) {
+            var filterCapabilities = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Conformance") {
+                    filterCapabilities.conformance = WfsCapabilities.assembleConformance(child);
+                } else if (child.localName === "Id_Capabilities") {
+                    filterCapabilities.idCapabilities = WfsCapabilities.assembleIdCapabilities(child);
+                } else if (child.localName === "Scalar_Capabilities") {
+                    filterCapabilities.scalarCapabilities = WfsCapabilities.assembleScalarCapabilities(child);
+                } else if (child.localName === "Spatial_Capabilities") {
+                    filterCapabilities.spatialCapabilities = WfsCapabilities.assembleSpatialCapabilities(child);
+                } else if (child.localName === "Functions") {
+                    filterCapabilities.functions = WfsCapabilities.assembleFunctions(child);
+                }
+            }
+
+            return filterCapabilities;
+        };
+
+        WfsCapabilities.assembleOperations = function (element) {
+            var operations = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName == "Operation") {
+                    operations.push(child.textContent);
+                }
+            }
+
+            return operations;
+        };
+
+        WfsCapabilities.assembleFeatureType = function (element) {
+            var featureType = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName == "Name") {
+                    featureType.name = child.textContent;
+                } else if (child.localName == "Title") {
+                    featureType.title = child.textContent;
+                } else if (child.localName == "Abstract") {
+                    featureType.abstract = child.textContent;
+                } else if (child.localName == "Keywords") {
+                    featureType.keywords = featureType.keywords || [];
+                    featureType.keywords = WfsCapabilities.assembleKeywords(child);
+                } else if (child.localName == "DefaultSRS") {
+                    featureType.defaultSRS = child.textContent;
+                } else if (child.localName == "OtherSRS") {
+                    featureType.otherSRS = featureType.otherSRS || [];
+                    featureType.otherSRS.push(child.textContent);
+                } else if (child.localName == "WGS84BoundingBox") {
+                    featureType.wgs84BoundingBox = WfsCapabilities.assembleBoundingBox(child);
+                } else if (child.localName == "DefaultCRS") {
+                    featureType.defaultCRS = child.textContent;
+                } else if (child.localName == "OtherCRS") {
+                    featureType.otherCRS = featureType.otherCRS || [];
+                    featureType.otherCRS.push(child.textContent);
+                } else if (child.localName == "OutputFormats") {
+                    featureType.outputFormats = WfsCapabilities.assembleOutputFormats(child);
+                } else if (child.localName == "MetadataURL") {
+                    featureType.metadataUrl = WfsCapabilities.assembleMetadataUrl(child);
+                }
+            }
+
+            return featureType;
+        };
+
+        WfsCapabilities.assembleBoundingBox = function (element) {
+            var result = {};
+
+            var crs = element.getAttribute("crs");
+            if (crs) {
+                result.crs = crs;
+            }
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "LowerCorner") {
+                    var lc = child.textContent.split(" ");
+                    result.lowerCorner = [parseFloat(lc[0]), parseFloat(lc[1])];
+                } else if (child.localName === "UpperCorner") {
+                    var uc = child.textContent.split(" ");
+                    result.upperCorner = [parseFloat(uc[0]), parseFloat(uc[1])];
+                }
+            }
+
+            return result;
+        };
+
+        WfsCapabilities.assembleOutputFormats = function (element) {
+            var outputFormats = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Format") {
+                    outputFormats.push(child.textContent);
+                }
+            }
+
+            return outputFormats;
+        };
+
+        WfsCapabilities.assembleMetadataUrl = function (element) {
+            var metadataUrl = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                metadataUrl.format = child.getAttribute("format");
+                metadataUrl.type = child.getAttribute("type");
+            }
+
+            return outputFormats;
+        };
+
+        WfsCapabilities.assembleKeywords = function (element) {
+            var keywords = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Keyword") {
+                    keywords.push(child.textContent);
+                }
+            }
+
+            return keywords;
+        };
+
+        WfsCapabilities.assembleConformance = function (element) {
+            var conformance = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Constraint") {
+                    var constraint;
+                    constraint = WfsCapabilities.assembleConstraint(child);
+                    constraint.name = child.getAttribute("name");
+                    conformance.push(constraint);
+                }
+            }
+
+            return conformance;
+        };
+
+        WfsCapabilities.assembleConstraint = function (element) {
+            var constraint = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+                if (child.localName === "DefaultValue") {
+                    constraint.defaultValue = child.textContent;
+                }
+            }
+
+            return constraint;
+        };
+
+        WfsCapabilities.assembleIdCapabilities = function (element) {
+            var idCapabilities = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "ResourceIdentifier") {
+                    idCapabilities.resourceIdentifier = child.getAttribute("name");
+                }
+            }
+
+            return idCapabilities;
+        };
+
+        WfsCapabilities.assembleScalarCapabilities = function (element) {
+            var scalarCapabilities = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "ComparisonOperators") {
+                    scalarCapabilities.comparisonOperators = WfsCapabilities.assembleComparisonOperators(child);
+                } else if (child.localName === "ArithmeticOperators") {
+                    scalarCapabilities.arithmeticOperators = WfsCapabilities.assembleArithmeticOperators(child);
+                }
+            }
+
+            return scalarCapabilities;
+        };
+
+        WfsCapabilities.assembleComparisonOperators = function (element) {
+            var comparisonOperators = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "ComparisonOperator") {
+                    comparisonOperators.push(child.textContent);
+                }
+            }
+
+            return comparisonOperators;
+        };
+
+        WfsCapabilities.assembleArithmeticOperators = function (element) {
+            var arithmeticOperators = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Functions") {
+                    arithmeticOperators.functions = WfsCapabilities.assembleArithmeticFunctions(child);
+                }
+            }
+
+            return arithmeticOperators;
+        };
+
+        WfsCapabilities.assembleArithmeticFunctions = function (element) {
+            var functionNames = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "FunctionNames") {
+                    functionNames = WfsCapabilities.assembleFunctionNames(child);
+                }
+            }
+
+            return functionNames;
+        };
+
+        WfsCapabilities.assembleFunctionNames = function (element) {
+            var functionNames = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "FunctionName") {
+                    var functionName = {name: child.textContent, nArgs: child.getAttribute("nArgs")};
+                    functionNames.push(functionName);
+                }
+            }
+
+            return functionNames;
+        };
+
+        WfsCapabilities.assembleSpatialCapabilities = function (element) {
+            var spatialCapabilities = {};
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "GeometryOperands") {
+                    spatialCapabilities.geometryOperands = WfsCapabilities.assembleGeometryOperands(child);
+                } else if (child.localName === "SpatialOperators") {
+                    spatialCapabilities.spatialOperators = WfsCapabilities.assembleSpatialOperators(child);
+                }
+            }
+
+            return spatialCapabilities;
+        };
+
+        WfsCapabilities.assembleGeometryOperands = function (element) {
+            var geometryOperands = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "GeometryOperand") {
+                    geometryOperands.push(child.getAttribute("name"));
+                }
+            }
+
+            return geometryOperands;
+        };
+
+        WfsCapabilities.assembleSpatialOperators = function (element) {
+            var spatialOperators = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "SpatialOperator") {
+                    spatialOperators.push(child.getAttribute("name"));
+                }
+            }
+
+            return spatialOperators;
+        };
+
+        WfsCapabilities.assembleFunctions = function (element) {
+            var functions = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Function") {
+                    functions.push(WfsCapabilities.assembleFunction(child));
+                }
+            }
+
+            return functions;
+        };
+
+        WfsCapabilities.assembleFunction = function (element) {
+            var _function = {};
+
+            _function.name = element.getAttribute("name");
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Returns") {
+                    _function.returns = child.textContent;
+                } else if (child.localName === "Arguments") {
+                    _function.arguments = WfsCapabilities.assembleArguments(child);
+                }
+            }
+
+            return _function;
+        };
+
+        WfsCapabilities.assembleArguments = function (element) {
+            var _arguments = [];
+
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Argument") {
+                    _arguments.push(WfsCapabilities.assembleArgument(child));
+                }
+            }
+
+            return _arguments;
+        };
+
+        WfsCapabilities.assembleArgument = function (element) {
+            var argument = {};
+
+            argument.name = element.getAttribute("name");
+            var children = element.children || element.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var child = children[c];
+
+                if (child.localName === "Type") {
+                    argument.type = child.textContent;
+                }
+            }
+
+            return argument;
+        };
+
+        return WfsCapabilities;
+    });
+/*
+ * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ */
+/**
  * @exports WmsLayerCapabilities
  * @version $Id: WmsLayerCapabilities.js 3055 2015-04-29 21:39:51Z tgaskins $
  */
@@ -77898,333 +78994,6 @@ define('layer/WmsTimeDimensionedLayer',[
         };
 
         return WmsTimeDimensionedLayer;
-    });
-/*
- * Copyright (C) 2015 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports OwsLanguageString
- */
-define('ogc/OwsLanguageString',[
-        '../error/ArgumentError',
-        '../util/Logger'
-    ],
-    function (ArgumentError,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs an OWS Constraint instance from an XML DOM.
-         * @alias OwsLanguageString
-         * @constructor
-         * @classdesc Represents an OWS LanguageString element of an OGC document.
-         * This object holds as properties all the fields specified in the OWS LanguageString definition.
-         * Fields can be accessed as properties named according to their document names converted to camel case.
-         * For example, "value".
-         * @param {Element} element An XML DOM element representing the OWS LanguageString element.
-         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
-         */
-        var OwsLanguageString = function (element) {
-            if (!element) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "LanguageString", "constructor", "missingDomElement"));
-            }
-
-            this.value = element.textContent;
-
-            var lang = element.getAttribute("lang");
-            if (lang) {
-                this.lang = lang;
-            }
-        };
-
-        return OwsLanguageString;
-    });
-/*
- * Copyright (C) 2015 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports OwsConstraint
- */
-define('ogc/OwsConstraint',[
-        '../error/ArgumentError',
-        '../util/Logger'
-    ],
-    function (ArgumentError,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs an OWS Constraint instance from an XML DOM.
-         * @alias OwsConstraint
-         * @constructor
-         * @classdesc Represents an OWS Constraint element of an OGC capabilities document.
-         * This object holds as properties all the fields specified in the OWS Constraint definition.
-         * Fields can be accessed as properties named according to their document names converted to camel case.
-         * For example, "operation".
-         * @param {Element} element An XML DOM element representing the OWS Constraint element.
-         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
-         */
-        var OwsConstraint = function (element) {
-            if (!element) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsConstraint", "constructor", "missingDomElement"));
-            }
-
-            this.name = element.getAttribute("name");
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "AllowedValues") {
-                    this.allowedValues = this.allowedValues || [];
-
-                    for (var cc = 0; cc < child.children.length; cc++) {
-                        if (child.children[cc].localName === "Value") {
-                            this.allowedValues.push(child.children[cc].textContent);
-                        }
-                    }
-                } else if (child.localName === "AnyValue") {
-                    this.anyValue = true;
-                } else if (child.localName === "NoValues") {
-                    this.noValues = true;
-                }
-                // TODO: ValuesReference
-            }
-
-        };
-
-        return OwsConstraint;
-    });
-/*
- * Copyright (C) 2015 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports OwsOperationsMetadata
- */
-define('ogc/OwsOperationsMetadata',[
-        '../error/ArgumentError',
-        '../util/Logger',
-        '../ogc/OwsConstraint'
-    ],
-    function (ArgumentError,
-              Logger,
-              OwsConstraint) {
-        "use strict";
-
-        /**
-         * Constructs an OWS Operations Metadata instance from an XML DOM.
-         * @alias OwsOperationsMetadata
-         * @constructor
-         * @classdesc Represents an OWS Operations Metadata section of an OGC capabilities document.
-         * This object holds as properties all the fields specified in the OWS Operations Metadata section.
-         * Most fields can be accessed as properties named according to their document names converted to camel case.
-         * For example, "operations".
-         * @param {Element} element An XML DOM element representing the OWS Service Provider section.
-         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
-         */
-        var OwsOperationsMetadata = function (element) {
-            if (!element) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsOperationsMetadata", "constructor", "missingDomElement"));
-            }
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "Operation") {
-                    this.operation = this.operation || [];
-                    this.operation.push(OwsOperationsMetadata.assembleOperation(child));
-                }
-                // TODO: Parameter, Constraint, ExtendedCapabilities
-            }
-        };
-
-        OwsOperationsMetadata.assembleOperation = function (element) {
-            var operation = {};
-
-            operation.name = element.getAttribute("name");
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "DCP") {
-                    operation.dcp = operation.dcp || [];
-                    operation.dcp.push(OwsOperationsMetadata.assembleDcp(child));
-                }
-                // TODO: Parameter, Constraint, Metadata
-            }
-
-            return operation;
-        };
-
-        OwsOperationsMetadata.assembleDcp = function (element) {
-            var dcp = {};
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "HTTP") {
-                    dcp.http = OwsOperationsMetadata.assembleHttp(child);
-                }
-            }
-
-            return dcp;
-        };
-
-        OwsOperationsMetadata.assembleHttp = function (element) {
-            var result = {};
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "Get") {
-                    result.get = result.get || [];
-                    result.get.push(OwsOperationsMetadata.assembleGet(child));
-                }
-
-                // TODO: Post
-            }
-
-            return result;
-        };
-
-        OwsOperationsMetadata.assembleGet = function (element) {
-            var result = {};
-
-            result.href = element.getAttribute("xlink:href");
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "Constraint") {
-                    result.constraint = result.constraint || [];
-                    result.constraint.push(new OwsConstraint(child));
-                }
-            }
-
-            return result;
-        };
-
-        return OwsOperationsMetadata;
-    });
-/*
- * Copyright (C) 2015 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports OwsServiceIdentification
- */
-define('ogc/OwsServiceIdentification',[
-        '../error/ArgumentError',
-        '../util/Logger'
-    ],
-    function (ArgumentError,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs an OWS Service Identification instance from an XML DOM.
-         * @alias OwsServiceIdentification
-         * @constructor
-         * @classdesc Represents an OWS Service Identification section of an OGC capabilities document.
-         * This object holds as properties all the fields specified in the OWS Service Identification.
-         * Fields can be accessed as properties named according to their document names converted to camel case.
-         * For example, "serviceType" and "title".
-         * Note that fields with multiple possible values are returned as arrays, such as "titles" and "abstracts".
-         * @param {Element} element An XML DOM element representing the OWS Service Identification section.
-         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
-         */
-        var OwsServiceIdentification = function (element) {
-            if (!element) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsServiceIdentification", "constructor", "missingDomElement"));
-            }
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "ServiceType") {
-                    this.serviceType = child.textContent;
-                } else if (child.localName === "ServiceTypeVersion") {
-                    this.serviceTypeVersion = child.textContent;
-                } else if (child.localName === "Profile") {
-                    this.profile = this.profiles || [];
-                    this.profile.push(child.textContent);
-                } else if (child.localName === "Title") {
-                    this.title = this.title|| [];
-                    this.title.push(child.textContent);
-                } else if (child.localName === "Abstract") {
-                    this.abstract = this.title|| [];
-                    this.abstract.push(child.textContent);
-                } else if (child.localName === "Fees") {
-                    this.fees = child.textContent;
-                } else if (child.localName === "AccessConstraints") {
-                    this.accessConstraints = this.accessConstraints || [];
-                    this.accessConstraints.push(child.textContent);
-                }
-                // TODO: Keywords
-            }
-        };
-
-        return OwsServiceIdentification;
-    });
-/*
- * Copyright (C) 2015 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration. All Rights Reserved.
- */
-/**
- * @exports OwsServiceProvider
- */
-define('ogc/OwsServiceProvider',[
-        '../error/ArgumentError',
-        '../util/Logger'
-    ],
-    function (ArgumentError,
-              Logger) {
-        "use strict";
-
-        /**
-         * Constructs an OWS Service Provider instance from an XML DOM.
-         * @alias OwsServiceProvider
-         * @constructor
-         * @classdesc Represents an OWS Service Provider section of an OGC capabilities document.
-         * This object holds as properties all the fields specified in the OWS Service Provider section.
-         * Fields can be accessed as properties named according to their document names converted to camel case.
-         * For example, "providerName".
-         * @param {Element} element An XML DOM element representing the OWS Service Provider section.
-         * @throws {ArgumentError} If the specified XML DOM element is null or undefined.
-         */
-        var OwsServiceProvider = function (element) {
-            if (!element) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "OwsServiceProvider", "constructor", "missingDomElement"));
-            }
-
-            var children = element.children;
-            for (var c = 0; c < children.length; c++) {
-                var child = children[c];
-
-                if (child.localName === "ProviderName") {
-                    this.providerName = child.textContent;
-                } else if (child.localName === "ProviderSite") {
-                    this.providerSite = child.getAttribute("xlink:href");
-                }
-                // TODO: Service Contact
-            }
-        };
-
-        return OwsServiceProvider;
     });
 /*
  * Copyright (C) 2015 United States Government as represented by the Administrator of the
@@ -79895,11 +80664,11 @@ define('WorldWindow',[
         /**
          * Registers an event listener for the specified event type on this World Window's canvas. This function
          * delegates the processing of events to the World Window's canvas. For details on this function and its
-         * arguments, see the W3C [EventTarget]{@link http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventTarget}
+         * arguments, see the W3C [EventTarget]{@link https://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventTarget}
          * documentation.
          *
          * Registering event listeners using this function enables applications to prevent the World Window's default
-         * navigation behavior. To prevent default navigation behavior, call the [Event]{@link http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Event}'s
+         * navigation behavior. To prevent default navigation behavior, call the [Event]{@link https://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Event}'s
          * preventDefault method from within an event listener for any events the navigator should not respond to.
          *
          * When an event occurs, this calls the registered event listeners in order of reverse registration. Since the
@@ -80963,6 +81732,14 @@ define('WorldWind',[ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAM
         './shapes/GeographicMesh',
         './projections/GeographicProjection',
         './shapes/GeographicText',
+        './formats/geojson/GeoJSONGeometry',
+        './formats/geojson/GeoJSONGeometryCollection',
+        './formats/geojson/GeoJSONGeometryLineString',
+        './formats/geojson/GeoJSONGeometryMultiLineString',
+        './formats/geojson/GeoJSONGeometryMultiPoint',
+        './formats/geojson/GeoJSONGeometryMultiPolygon',
+        './formats/geojson/GeoJSONGeometryPoint',
+        './formats/geojson/GeoJSONGeometryPolygon',
         './formats/geojson/GeoJSONParser',
         './formats/geotiff/GeoTiffReader',
         './gesture/GestureRecognizer',
@@ -81113,6 +81890,8 @@ define('WorldWind',[ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAM
         './geom/Vec3',
         './layer/ViewControlsLayer',
         './formats/kml/util/ViewVolume',
+        './util/WcsTileUrlBuilder',
+        './ogc/WfsCapabilities',
         './ogc/WmsCapabilities',
         './layer/WmsLayer',
         './ogc/WmsLayerCapabilities',
@@ -81169,6 +81948,14 @@ define('WorldWind',[ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAM
               GeographicMesh,
               GeographicProjection,
               GeographicText,
+              GeoJSONGeometry,
+              GeoJSONGeometryCollection,
+              GeoJSONGeometryLineString,
+              GeoJSONGeometryMultiLineString,
+              GeoJSONGeometryMultiPoint,
+              GeoJSONGeometryMultiPolygon,
+              GeoJSONGeometryPoint,
+              GeoJSONGeometryPolygon,
               GeoJSONParser,
               GeoTiffReader,
               GestureRecognizer,
@@ -81319,6 +82106,8 @@ define('WorldWind',[ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAM
               Vec3,
               ViewControlsLayer,
               ViewVolume,
+              WcsTileUrlBuilder,
+              WfsCapabilities,
               WmsCapabilities,
               WmsLayer,
               WmsLayerCapabilities,
@@ -81584,6 +82373,14 @@ define('WorldWind',[ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAM
         WorldWind['GeographicMesh'] = GeographicMesh;
         WorldWind['GeographicProjection'] = GeographicProjection;
         WorldWind['GeographicText'] = GeographicText;
+        WorldWind['GeoJSONGeometry'] = GeoJSONGeometry;
+        WorldWind['GeoJSONGeometryCollection'] = GeoJSONGeometryCollection;
+        WorldWind['GeoJSONGeometryLineString'] = GeoJSONGeometryLineString;
+        WorldWind['GeoJSONGeometryMultiLineString'] = GeoJSONGeometryMultiLineString;
+        WorldWind['GeoJSONGeometryMultiPoint'] = GeoJSONGeometryMultiPoint;
+        WorldWind['GeoJSONGeometryMultiPolygon'] = GeoJSONGeometryMultiPolygon;
+        WorldWind['GeoJSONGeometryPoint'] = GeoJSONGeometryPoint;
+        WorldWind['GeoJSONGeometryPolygon'] = GeoJSONGeometryPolygon;
         WorldWind['GeoJSONParser'] = GeoJSONParser;
         WorldWind['GeoTiffReader'] = GeoTiffReader;
         WorldWind['GestureRecognizer'] = GestureRecognizer;
@@ -81682,6 +82479,8 @@ define('WorldWind',[ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAM
         WorldWind['Vec2'] = Vec2;
         WorldWind['Vec3'] = Vec3;
         WorldWind['ViewControlsLayer'] = ViewControlsLayer;
+        WorldWind['WcsTileUrlBuilder'] = WcsTileUrlBuilder;
+        WorldWind['WfsCapabilities'] = WfsCapabilities;
         WorldWind['WmsCapabilities'] = WmsCapabilities;
         WorldWind['WmsLayer'] = WmsLayer;
         WorldWind['WmsLayerCapabilities'] = WmsLayerCapabilities;
