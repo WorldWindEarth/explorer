@@ -82,7 +82,7 @@ define([
             // Make deletable via menu: adds the isRemovable member and the "remove" method
             removable.makeRemovable(this, function () {     // define the callback that "removes" this symbol
                 // TODO: Could ask for confirmation; return false if veto'd
-                manager.removeMarker(self);     // Removes the symbol from the manager's observableArray
+                manager.removeSymbol(self);     // Removes the symbol from the manager's observableArray
                 return true;    // return true to fire a EVENT_OBJECT_REMOVED
             });
 
