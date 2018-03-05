@@ -1,19 +1,19 @@
 <div id="info">
     <!-- Info View (bound to the InfoViewModel) -->
     <ui id="info-tabs" class="nav nav-tabs" role="tablist">
-        <li class="active"><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">
+        <li><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">
                 <span class="glyphicon glyphicon-info-sign" aria-hidden="true"
                       style="padding-top:4px; padding-bottom:4px"></span> About</a></li>
         <li><a data-toggle="tab" href="#info-location" aria-controls="info-location" role="tab">
                 <span class="glyphicon glyphicon-globe" aria-hidden="true"
                       style="padding-top:4px; padding-bottom:4px"></span> Location</a></li>
-        <li><a data-toggle="tab" href="#info-selected" aria-controls="info-selected" role="tab">
+        <li class="active"><a data-toggle="tab" href="#info-selected" aria-controls="info-selected" role="tab">
                 <span class="glyphicon glyphicon-map-marker" aria-hidden="true"
                       style="padding-top:4px; padding-bottom:4px"></span> Item</a></li>
     </ui>
 
     <div class="tab-content">
-        <div id="info-about" class="tab-pane fade in active">
+        <div id="info-about" class="tab-pane fade">
             <div id="info-about-panel" class="panel panel-default" style="height: 100%;">
                 <div class="row">
                     <div class="col-md-4 panel panel-default">
@@ -141,12 +141,17 @@
                 </div>
             </div>
         </div>
-        <div id="info-selected" class="tab-pane fade">
-            <div class="panel panel-default" style="height: 100%; overflow-y: hidden;" data-bind="template: {
-                                        if: viewTemplateName()!==null,
-                                        name: viewTemplateName,
-                                        data: selectedItem
-                                        }">
+        <div id="info-selected" class="tab-pane fade in active">
+            <div id ="info-selected-panel" class="panel panel-default">
+                <div class="row">
+                    <div style="height: 100%; overflow-y: hidden;" 
+                        data-bind="template: {
+                            if: viewTemplateName()!==null,
+                            name: viewTemplateName,
+                            data: selectedItem
+                        }">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
