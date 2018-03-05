@@ -52,7 +52,7 @@ body {
     /*border:1px solid #000000;*/
 }
 
- /*Override the default navbar-form padding of 15px*/
+/*Override the default navbar-form padding of 15px*/
 .navbar-form {
     padding-left: 5px;
     padding-right: 5px;
@@ -157,7 +157,7 @@ body {
 
 /*vis.js library*/
 .vis-time-axis .vis-text {
-  color: #AAA;
+    color: #AAA;
 }
 
 .wrap-panel-heading {
@@ -224,8 +224,8 @@ body {
         padding-left: 20px;
         padding-right: 20px;
     }
-    
-    
+
+
     .dl-horizontal dt { 
         /*text-align: left;*/ 
         width: 100px;
@@ -233,7 +233,7 @@ body {
     .dl-horizontal dd { 
         margin-left: 110px;
     }
-    
+
 }
 
 /*Mobile phone or table*/
@@ -243,15 +243,15 @@ body {
     }
     /* symbol for opening sections */
     /*.section-heading .section-toggle:after {*/
-        /*font-family: 'Glyphicons Halflings';*/
-        /*content: "\e114";*/
-        /*float: none;*/
-        /*color: lightgrey;*/
+    /*font-family: 'Glyphicons Halflings';*/
+    /*content: "\e114";*/
+    /*float: none;*/
+    /*color: lightgrey;*/
     /*}*/
 
     /* symbol for closing sections */
     /*.section-heading .section-toggle.collapsed:after {*/
-        /*content: "\e080";*/
+    /*content: "\e080";*/
     /*}*/
 
     a.section-toggle {
@@ -260,4 +260,61 @@ body {
 }
 
 
+/*
+VisJS library overrides
+*/
+
+.vis-data-axis .vis-y-axis.vis-major {
+  /*in the 'slate' color scheme we need a bright color for the major*/
+  color: #dedede;
+}
+
+.vis-data-axis .vis-y-axis.vis-minor {
+  color: #bebebe;
+}
+
+.vis-data-axis .vis-y-axis.vis-minor.vis-measure {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  visibility: hidden;
+  width: auto;
+}
+
+/*
+Custom style for VisJS graphs
+*/
+
+.air-temp-style1 {
+    fill: #f2ea00;
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: #b3ab00;
+}
+
+.rel-humidity-style1 {
+    fill: #00ced1;
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: #1E90FF;
+}
+
+.wind-speed-style1 {
+    fill: #00f201;
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: #029200;
+}
+
+.sky-cover-style1 {
+    fill: #eeeeee;
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: #cccccc;
+}
+
+path.custom-style3.vis-fill {
+    fill-opacity:0.5 !important;
+    stroke: none;
+}
 
