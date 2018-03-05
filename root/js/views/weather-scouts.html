@@ -42,24 +42,39 @@
     This script renders the selected weather scout object the info panel.
     -->
     <!-- ko if: $data -->
-    <div id="weather-scout-output" class="panel panel-default" style="height: 100%;">
-        <div class="panel-heading">
-            <h1 class="panel-title">
-                <span class="glyphicon glyphicon-cloud" aria-hidden="true"
-                      style="padding-top:4px; padding-bottom:4px"></span>
-                <span data-bind="text: $data.name()"></span>
-            </h1>
-        </div>
-        <div class="panel-body" style="height: calc(100% - 45px); overflow-y: scroll;">
-            <div>
-                <h5>Air Temperature</h5>
-                <!--Custom knockout binding-->
-                <div data-bind="visualizeTemperature: $data" style="padding-right: 15px"></div>
+    <div id="weather-scout-info" style="height: 100%;">
+        <div class="col-lg-3 col-md-4 col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Air Temperature (F)</h4>
             </div>
-            <div>
-                <h5>Relative Humidity</h5>
+            <div class="panel-body" style="padding: 0;" > 
                 <!--Custom knockout binding-->
-                <div data-bind="visualizeHumidity: $data" style="padding-right: 15px"></div>
+                <div id="air-temperature-graph" data-bind="visualizeTemperature: $data"></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Relative Humidity (%)</h4>
+            </div>
+            <div class="panel-body"style="padding: 0;" >
+                <!--Custom knockout binding-->
+                <div id="rel-humidity-graph" data-bind="visualizeHumidity: $data"></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4  col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Wind Speed (Kts)</h4>
+            </div>
+            <div class="panel-body" style="padding: 0;" >
+                <div id="wind-speed-graph" data-bind="visualizeWinds: $data"></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4  col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Sky Cover (%)</h4>
+            </div>
+            <div class="panel-body" style="padding: 0;" >
+                <div id="sky-cover-graph" data-bind="visualizeSkyCover: $data"></div>
             </div>
         </div>
     </div>
