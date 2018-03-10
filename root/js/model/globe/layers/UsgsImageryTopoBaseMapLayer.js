@@ -14,7 +14,10 @@
  * @returns {UsgsImageryTopoBaseMapLayer}
  */
 
-define(['worldwind'], function () {
+define([
+    'model/globe/layers/EnhancedWmsLayer',
+    'worldwind'],
+    function (EnhancedWmsLayer) {
     "use strict";
 
     /**
@@ -37,7 +40,7 @@ define(['worldwind'], function () {
             styleNames: "" // (optional): {String} A comma separated list of the styles to include in this layer.</li>
         };
 
-        WorldWind.WmsLayer.call(this, cfg);
+        EnhancedWmsLayer.call(this, cfg);
 
         // Make this layer opaque
         this.opacity = 1.0;
@@ -47,7 +50,7 @@ define(['worldwind'], function () {
         this.urlBuilder.transparent = false;
     };
 
-    UsgsImageryTopoBaseMapLayer.prototype = Object.create(WorldWind.WmsLayer.prototype);
+    UsgsImageryTopoBaseMapLayer.prototype = Object.create(EnhancedWmsLayer.prototype);
 
     return UsgsImageryTopoBaseMapLayer;
 }

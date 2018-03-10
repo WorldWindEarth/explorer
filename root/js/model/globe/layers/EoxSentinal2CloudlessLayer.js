@@ -15,7 +15,10 @@
  * 
  * @returns {EoxSentinal2CloudlessLayer}
  */
-define(['worldwind'], function () {
+define([
+    'model/globe/layers/EnhancedWmsLayer',
+    'worldwind'],
+    function (EnhancedWmsLayer) {
     "use strict";
     /**
      * Constructs an imagery layer from Copernicus Sentinel data.
@@ -29,7 +32,7 @@ define(['worldwind'], function () {
             service: "https://tiles.maps.eox.at/wms",
             layerNames: "s2cloudless",
             sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
-            levelZeroDelta: new WorldWind.Location(36, 36),
+            levelZeroDelta: new WorldWind.Location(180, 180),
             numLevels: 16,
             format: "image/png",
             size: 256,
@@ -37,7 +40,7 @@ define(['worldwind'], function () {
             styleNames: "" // (optional): {String} A comma separated list of the styles to include in this layer.</li>
         };
 
-        WorldWind.WmsLayer.call(this, cfg);
+        EnhancedWmsLayer.call(this, cfg);
 
         // Make this layer opaque
         this.opacity = 1.0;
@@ -45,12 +48,12 @@ define(['worldwind'], function () {
         this.urlBuilder.transparent = false;
     };
 
-    EoxSentinal2CloudlessLayer.prototype = Object.create(WorldWind.WmsLayer.prototype);
+    EoxSentinal2CloudlessLayer.prototype = Object.create(EnhancedWmsLayer.prototype);
 
     EoxSentinal2CloudlessLayer.prototype.doRender = function (dc) {
         WorldWind.WmsLayer.prototype.doRender.call(this, dc);
         if (this.inCurrentFrame) {
-            dc.screenCreditController.addStringCredit("Sentinel-2 cloudless by EOX IT Services GmbH", WorldWind.Color.DARK_GRAY);
+            dc.screenCreditController.addStringCredit("Sentinel-2 cloudless by EOX IT Services GmbH", WorldWind.Color.LIGHT_GRAY);
         }
     };
 
