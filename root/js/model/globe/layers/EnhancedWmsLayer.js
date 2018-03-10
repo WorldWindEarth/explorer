@@ -13,8 +13,8 @@
  * @exports EnhancedWmsLayer
  * @author Bruce Schubert
  */
-define(['worldwind'],
-    function () {
+define(['WorldWindFixes', 'worldwind'],
+    function (WorldWindFixes) {
         "use strict";
 
         var EnhancedWmsLayer = function (config, timeString) {
@@ -37,7 +37,9 @@ define(['worldwind'],
             // The WW tileCache is too small to accomodate large screen 
             // full of tiles at an oblique view from the surface.
             // Increase the size to prevent trashing of the tileCache.
-            this.tileCache = new WorldWind.MemoryCache(4.0e6, 3.2e6);
+            this.tileCache = new WorldWind.MemoryCache(
+                WorldWindFixes.TILE_CACHE_CAPACITY,
+                WorldWindFixes.TILE_CACHE_LOW_WATER);
 
         };
 
