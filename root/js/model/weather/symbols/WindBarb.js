@@ -6,13 +6,13 @@
 /*global define, WorldWind*/
 
 define(['model/globe/EnhancedPlacemark',
-        'model/util/WmtUtil',
-        'model/Constants',
-        'worldwind'],
+    'model/util/WmtUtil',
+    'model/Constants',
+    'worldwind'],
     function (EnhancedPlacemark,
-              util,
-              constants,
-              ww) {
+        util,
+        constants,
+        ww) {
         "use strict";
 
         /**
@@ -33,7 +33,7 @@ define(['model/globe/EnhancedPlacemark',
             this.eyeDistanceScalingThreshold = eyeDistanceScalingThreshold;
 
             this.attributes = new WorldWind.PlacemarkAttributes(null);
-            this.attributes.depthTest = true;
+            this.attributes.depthTest = false;
             this.attributes.imageScale = 0.3;
             this.attributes.imageOffset = new WorldWind.Offset(
                 WorldWind.OFFSET_FRACTION, 0.5, // Width centered
@@ -43,11 +43,13 @@ define(['model/globe/EnhancedPlacemark',
             this.imageRotation = 0;
             this.imageTilt = 0;
 
+            this.lastWindSpdKts = null;
+            this.lastWindDirDeg = null;
             this.updateWindBarbImage(windSpdKts, windDirDeg);
         };
         // Inherit the Placemark methods (Note: calls the Placemark constructor a 2nd time).
-        WindBarbPlacemark.prototype = Object.create(EnhancedPlacemark.prototype);
-        //WindBarbPlacemark.prototype = Object.create(WorldWind.Placemark.prototype);
+        //WindBarbPlacemark.prototype = Object.create(EnhancedPlacemark.prototype);
+        WindBarbPlacemark.prototype = Object.create(WorldWind.Placemark.prototype);
 
         /**
          *
@@ -60,6 +62,12 @@ define(['model/globe/EnhancedPlacemark',
                 imgName,
                 knots,
                 self = this;
+
+            if (this.lastWindSpdKts === windSpdKts && this.lastWindDirDeg === windDirDeg) {
+                return;
+            }
+            this.lastWindSpdKts = windSpdKts;
+            this.lastWindDirDeg = windDirDeg;
 
             // Draw the image in the canvas after loading
             img.onload = function () {
