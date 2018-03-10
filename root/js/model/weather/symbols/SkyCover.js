@@ -36,6 +36,7 @@ define(['model/Constants',
             //this.highlightAttributes.imageScale = placemarkAttr.imageScale * 1.2;
             this.eyeDistanceScalingThreshold = eyeDistanceScalingThreshold;
 
+            this.lastSkyCoverPct = null;
             this.updateSkyCoverImage(skyCoverPct);
 
         };
@@ -48,6 +49,11 @@ define(['model/Constants',
                 imgName,
                 self = this;
 
+            if (this.lastSkyCoverPct===skyCoverPct) {
+                return;
+            }
+            this.lastSkyCoverPct = skyCoverPct;
+            
             // Draw the image in the canvas after loading
             img.onload = function () {
                 var canvas = document.createElement("canvas"),
