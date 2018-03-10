@@ -10,19 +10,24 @@
 define(['worldwind'], function () {
     "use strict";
 
-    var WorldWindFixes = function () {
-    };
+    var WorldWindFixes = {};
+
+    WorldWindFixes.TILE_CACHE_CAPACITY = 4e6;
+    WorldWindFixes.TILE_CACHE_LOW_WATER = 3.5e6;
+    WorldWindFixes.NETWORK_RETRIEVAL_QUEUE_SIZE = 8;
+    WorldWindFixes.MEMORY_CACHE_VOLATILE_BIAS = 60e3;   // in milliseconds
 
     /**
-     * 
+     * Apply fixes to the WorldWind library's class prototypes.
      */
     WorldWindFixes.applyLibraryFixes = function () {
         // Augment the 0.9.0 version WorldWind with bug fixes and customizations
         if (WorldWind.VERSION === "0.9.0") {
 
             /**
-             * Adds the 'volatile' param to dc.gpuResourceCache.putResource
+             * Text.makeOrderedRenderable.
              * 
+             * Adds the 'volatile' param to dc.gpuResourceCache.putResource
              */
             WorldWind.Text.prototype.makeOrderedRenderable = function (dc) {
                 var w, h, s, offset;
@@ -35,7 +40,7 @@ define(['worldwind'], function () {
                     return null;
                 }
                 var labelFont = this.activeAttributes.font,
-                        textureKey = this.text + labelFont.toString();
+                    textureKey = this.text + labelFont.toString();
                 this.activeTexture = dc.gpuResourceCache.resourceForKey(textureKey);
                 if (!this.activeTexture) {
                     this.activeTexture = dc.textSupport.createTexture(dc, this.text, labelFont, true);
@@ -46,59 +51,63 @@ define(['worldwind'], function () {
                 s = this.activeAttributes.scale;
                 offset = this.activeAttributes.offset.offsetForSize(w, h);
                 this.imageTransform.setTranslation(
-                        this.screenPoint[0] - offset[0] * s,
-                        this.screenPoint[1] - offset[1] * s,
-                        this.screenPoint[2]);
+                    this.screenPoint[0] - offset[0] * s,
+                    this.screenPoint[1] - offset[1] * s,
+                    this.screenPoint[2]);
                 this.imageTransform.setScale(w * s, h * s, 1);
                 this.imageBounds = WorldWind.WWMath.boundingRectForUnitQuad(this.imageTransform);
                 return this;
             };
 
             /**
-             * Adds the optional 'isVolatile' param to putResource and passes the truthy variable to putEntry.
+             * GpuResourceCache.putResource
              * 
+             * Adds the optional 'isVolatile' param to putResource and passes the truthy variable to putEntry.
              */
             WorldWind.GpuResourceCache.prototype.putResource = function (key, resource, size, isVolatile) {
                 if (!key) {
                     throw new ArgumentError(
-                            WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource", "missingKey."));
+                        WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource", "missingKey."));
                 }
                 if (!resource) {
                     throw new ArgumentError(
-                            WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource", "missingResource."));
+                        WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource", "missingResource."));
                 }
                 if (!size || size < 1) {
                     throw new ArgumentError(
-                            WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource",
-                                    "The specified resource size is undefined or less than 1."));
+                        WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource",
+                            "The specified resource size is undefined or less than 1."));
                 }
                 var entry = {
                     resource: resource
                 };
                 this.entries.putEntry(key instanceof WorldWind.ImageSource ? key.key : key, entry, size, isVolatile);
             };
+            
 
 
             /**
-             * Adds the optional 'isVolatile' param to applies the truthy variable to the cacheEntry.
+             * MemoryCache.putEntry.
              * 
+             * Adds the optional isVolatile param Adds the 'isVolatile' field to
+             * the cacheEntry. Applies the volatile bias to the lastUsed field.
              */
             WorldWind.MemoryCache.prototype.putEntry = function (key, entry, size, isVolatile) {
                 if (!key) {
                     throw new ArgumentError(
-                            WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "MemoryCache", "putEntry", "missingKey."));
+                        WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "MemoryCache", "putEntry", "missingKey."));
                 }
                 if (!entry) {
                     throw new ArgumentError(
-                            WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "MemoryCache", "putEntry", "missingEntry."));
+                        WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "MemoryCache", "putEntry", "missingEntry."));
                 }
                 if (size < 1) {
                     throw new ArgumentError(
-                            WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "MemoryCache", "putEntry",
-                                    "The specified entry size is less than 1."));
+                        WorldWind.Logger.logMessage(WorldWind.Logger.LEVEL_SEVERE, "MemoryCache", "putEntry",
+                            "The specified entry size is less than 1."));
                 }
                 var existing = this.entries[key],
-                        cacheEntry;
+                    cacheEntry;
                 if (existing) {
 //                    console.log('putEntry > update: ' + key)
                     this.removeEntry(key);
@@ -114,7 +123,7 @@ define(['worldwind'], function () {
                     key: key,
                     entry: entry,
                     size: size,
-                    lastUsed: isVolatile ? Date.now() - 10e3 : Date.now(), // milliseconds
+                    lastUsed: isVolatile ? Date.now() - WorldWindFixes.MEMORY_CACHE_VOLATILE_BIAS : Date.now(), // milliseconds
                     isVolatile: isVolatile ? true : false,
                     retrievedCount: 0
                 };
@@ -123,7 +132,9 @@ define(['worldwind'], function () {
             };
 
             /**
+             * MemoryCache.entryForKey
              * 
+             * Applies bias to volatile entries
              */
             WorldWind.MemoryCache.prototype.entryForKey = function (key) {
                 if (!key)
@@ -131,14 +142,15 @@ define(['worldwind'], function () {
                 var cacheEntry = this.entries[key];
                 if (!cacheEntry)
                     return null;
-                cacheEntry.lastUsed = cacheEntry.isVolatile ? Date.now() - 10e3 : Date.now();   // milliseconds
+                cacheEntry.lastUsed = cacheEntry.isVolatile ? Date.now() - WorldWindFixes.MEMORY_CACHE_VOLATILE_BIAS : Date.now();   // milliseconds
                 cacheEntry.retrievedCount++;
                 return cacheEntry.entry;
             };
 
             /**
-             * Dump the cache to the console
+             * MemoryCache.makeSpace
              * 
+             * Dumps entries to log.
              */
             WorldWind.MemoryCache.prototype.makeSpace = function (spaceRequired) {
                 var sortedEntries = [];
@@ -154,19 +166,8 @@ define(['worldwind'], function () {
                 sortedEntries.sort(function (a, b) {
                     return a.lastUsed - b.lastUsed;
                 });
-//                sortedEntries.sort(function (a, b) {
-//                    if (a.isVolatile === b.isVolatile) {
-//                        return a.lastUsed - b.lastUsed;
-//                    }
-//                    return a.isVolatile ? -1 : 1;
-//                });
                 // BDS: dump the sorted cache
-                console.log("MemoryCache.makespace(" + spaceRequired + ") >>> [capacity: " + this._capacity + ", lowWater: " + this._lowWater + ")");
-                console.log("MemoryCache before >>> [freeCapacity: " + this.freeCapacity + ", count: " + sortedEntries.length + ")");
-
-//                for (var i = 0, len = sortedEntries.length; i < len; i++) {
-//                    console.log(i + ': [' + sortedEntries[i].lastUsed + '] ' + sortedEntries[i].key);
-//                }
+                console.log("MemoryCache.makespace(" + spaceRequired + ") >>> [capacity: " + this._capacity + ", lowWater: " + this._lowWater + ")" );
 
                 for (var i = 0, len = sortedEntries.length; i < len; i++) {
                     if (this.usedCapacity > this._lowWater || this.freeCapacity < spaceRequired) {
@@ -175,33 +176,31 @@ define(['worldwind'], function () {
                         break;
                     }
                 }
-                console.log("MemoryCache after <<<< [freeCapacity: " + this.freeCapacity + ", count: " + (sortedEntries.length - i) + ")");
 
             };
 
 
             /**
-             * Adds test for this.currentRetrievals.length > threshold
+             * TiledImageLayer.retrieveTileImage
              * 
+             * Adds test for this.currentRetrievals.length > threshold
              */
             WorldWind.TiledImageLayer.prototype.retrieveTileImage = function (dc, tile, suppressRedraw) {
                 if (this.currentRetrievals.indexOf(tile.imagePath) < 0) {
-                    if (this.currentRetrievals.length > 16) {
-//                        console.log("TiledImageLayer: >>> deferring " + tile.imagePath);
+                    if (this.currentRetrievals.length > WorldWindFixes.NETWORK_RETRIEVAL_QUEUE_SIZE) {
                         return;
                     }
-//                    console.log("TiledImageLayer: <<<< retrieving " + tile.imagePath);
 
                     if (this.absentResourceList.isResourceAbsent(tile.imagePath)) {
                         return;
                     }
 
                     var url = this.resourceUrlForTile(tile, this.retrievalImageFormat),
-                            image = new Image(),
-                            imagePath = tile.imagePath,
-                            cache = dc.gpuResourceCache,
-                            canvas = dc.currentGlContext.canvas,
-                            layer = this;
+                        image = new Image(),
+                        imagePath = tile.imagePath,
+                        cache = dc.gpuResourceCache,
+                        canvas = dc.currentGlContext.canvas,
+                        layer = this;
                     if (!url) {
                         this.currentTilesInvalid = true;
                         return;
@@ -230,33 +229,31 @@ define(['worldwind'], function () {
                     };
                     this.currentRetrievals.push(imagePath);
                     image.crossOrigin = this.crossOrigin;
-                    //image.validate = "never";
                     image.src = url;
                 }
             };
 
             /**
-             * Adds test for this.currentRetrievals.length > threshold
+             * WmtsLayer.retrieveTileImage
              * 
+             * Adds test for this.currentRetrievals.length > threshold
              */
             WorldWind.WmtsLayer.prototype.retrieveTileImage = function (dc, tile) {
                 if (this.currentRetrievals.indexOf(tile.imagePath) < 0) {
-                    if (this.currentRetrievals.length > 16) {
-//                        console.log("WmtsLayer: deferring " + tile.imagePath);
+                    if (this.currentRetrievals.length > WorldWindFixes.NETWORK_RETRIEVAL_QUEUE_SIZE) {
                         return;
                     }
-//                    console.log("WmtsLayer: retrieving " + tile.imagePath);
 
                     if (this.absentResourceList.isResourceAbsent(tile.imagePath)) {
                         return;
                     }
 
                     var url = this.resourceUrlForTile(tile, this.imageFormat),
-                            image = new Image(),
-                            imagePath = tile.imagePath,
-                            cache = dc.gpuResourceCache,
-                            canvas = dc.currentGlContext.canvas,
-                            layer = this;
+                        image = new Image(),
+                        imagePath = tile.imagePath,
+                        cache = dc.gpuResourceCache,
+                        canvas = dc.currentGlContext.canvas,
+                        layer = this;
                     if (!url) {
                         this.currentTilesInvalid = true;
                         return;
@@ -288,8 +285,9 @@ define(['worldwind'], function () {
             };
 
             /**
-             * Use containsResource insteadof resourceForKey
+             * SurfaceShapeTile.hasTexture
              * 
+             * Uses containsResource insteadof resourceForKey.
              */
             WorldWind.SurfaceShapeTile.prototype.hasTexture = function (dc) {
                 if (dc.pickingMode) {
@@ -303,13 +301,14 @@ define(['worldwind'], function () {
             };
 
             /**
-             * Uses isVolatile argument in putResource
+             * SurfaceShapeTile.updateTexture
              * 
+             * Uses isVolatile argument (true) in putResource.
              */
             WorldWind.SurfaceShapeTile.prototype.updateTexture = function (dc) {
                 var gl = dc.currentGlContext,
-                        canvas = WorldWind.SurfaceShapeTile.canvas,
-                        ctx2D = WorldWind.SurfaceShapeTile.ctx2D;
+                    canvas = WorldWind.SurfaceShapeTile.canvas,
+                    ctx2D = WorldWind.SurfaceShapeTile.ctx2D;
 
                 canvas.width = this.tileWidth;
                 canvas.height = this.tileHeight;
@@ -324,9 +323,9 @@ define(['worldwind'], function () {
                 //  x = 256 / sector.dlon * (lon - minLon)
                 //  y = -256 / sector.dlat * (lat - maxLat)
                 var xScale = this.tileWidth / this.sector.deltaLongitude(),
-                        yScale = -this.tileHeight / this.sector.deltaLatitude(),
-                        xOffset = -this.sector.minLongitude * xScale,
-                        yOffset = -this.sector.maxLatitude * yScale;
+                    yScale = -this.tileHeight / this.sector.deltaLatitude(),
+                    xOffset = -this.sector.minLongitude * xScale,
+                    yOffset = -this.sector.maxLatitude * yScale;
 
                 // Reset the surface shape state keys
                 this.asRenderedSurfaceShapeStateKeys = [];
@@ -347,90 +346,19 @@ define(['worldwind'], function () {
                 return texture;
             };
 
-            /**
-             * ElevationModel retrieveTileImage.
-             *  Cache-Control
-             */
-            WorldWind.ElevationModel.prototype.retrieveTileImage = function (tile) {
-                if (this.currentRetrievals.indexOf(tile.imagePath) < 0) {
-                    var url = this.resourceUrlForTile(tile, this.retrievalImageFormat),
-                            xhr = new XMLHttpRequest(),
-                            elevationModel = this;
 
-                    if (!url)
-                        return;
-
-                    xhr.open("GET", url, true);
-                    xhr.setRequestHeader('Cache-Control', 'max-age=84000');
-                    xhr.responseType = 'arraybuffer';
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === 4) {
-                            elevationModel.removeFromCurrentRetrievals(tile.imagePath);
-
-                            var contentType = xhr.getResponseHeader("content-type");
-
-                            if (xhr.status === 200) {
-                                if (contentType === elevationModel.retrievalImageFormat
-                                        || contentType === "text/plain"
-                                        || contentType === "application/octet-stream") {
-                                    WorldWind.Logger.log(WorldWind.Logger.LEVEL_INFO, "Elevations retrieval succeeded: " + url);
-                                    elevationModel.loadElevationImage(tile, xhr);
-                                    elevationModel.absentResourceList.unmarkResourceAbsent(tile.imagePath);
-
-                                    // Send an event to request a redraw.
-                                    var e = document.createEvent('Event');
-                                    e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
-                                    window.dispatchEvent(e);
-                                } else if (contentType === "text/xml") {
-                                    elevationModel.absentResourceList.markResourceAbsent(tile.imagePath);
-                                    WorldWind.Logger.log(WorldWind.Logger.LEVEL_WARNING,
-                                            "Elevations retrieval failed (" + xhr.statusText + "): " + url + ".\n "
-                                            + String.fromCharCode.apply(null, new Uint8Array(xhr.response)));
-                                } else {
-                                    elevationModel.absentResourceLWorldWind.ist.markResourceAbsent(tile.imagePath);
-                                    WorldWind.Logger.log(WorldWind.Logger.LEVEL_WARNING,
-                                            "Elevations retrieval failed: " + url + ". " + "Unexpected content type "
-                                            + contentType);
-                                }
-                            } else {
-                                elevationModel.absentResourceList.markResourceAbsent(tile.imagePath);
-                                WorldWind.Logger.log(WorldWind.Logger.LEVEL_WARNING,
-                                        "Elevations retrieval failed (" + xhr.statusText + "): " + url);
-                            }
-                        }
-                    };
-
-                    xhr.onerror = function () {
-                        elevationModel.removeFromCurrentRetrievals(tile.imagePath);
-                        elevationModel.absentResourceList.markResourceAbsent(tile.imagePath);
-                        WorldWind.Logger.log(WorldWind.Logger.LEVEL_WARNING, "Elevations retrieval failed: " + url);
-                    };
-
-                    xhr.ontimeout = function () {
-                        elevationModel.removeFromCurrentRetrievals(tile.imagePath);
-                        elevationModel.absentResourceList.markResourceAbsent(tile.imagePath);
-                        WorldWind.Logger.log(WorldWind.Logger.LEVEL_WARNING, "Elevations retrieval timed out: " + url);
-                    };
-
-                    xhr.send(null);
-
-                    this.currentRetrievals.push(tile.imagePath);
-                }
-            };
-
-        }
-
+        } // end if 0.9.0
     };
 
     /**
+     * Applies fixes to the WorldWindow instance.
      * 
-     * @param {type} wwd
-     * @returns {undefined}
+     * @param {WorldWind.WorldWindow} wwd
      */
     WorldWindFixes.applyWorldWindowFixes = function (wwd) {
         // Increase size to prevent thrashing tile cache at oblique view from the surface
-        wwd.drawContext.surfaceShapeTileBuilder.tileCache.capacity = 4.1e6;
-        wwd.drawContext.surfaceShapeTileBuilder.tileCache.lowWater = 3.2e6;
+        wwd.drawContext.surfaceShapeTileBuilder.tileCache.capacity = WorldWindFixes.TILE_CACHE_CAPACITY;
+        wwd.drawContext.surfaceShapeTileBuilder.tileCache.lowWater = WorldWindFixes.TILE_CACHE_LOW_WATER;
     };
 
     return WorldWindFixes;
