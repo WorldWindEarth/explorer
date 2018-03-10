@@ -27,7 +27,7 @@ define(['worldwind'],
             // matches the GeoServer EPSG:4326 Gridset
             this.levels = new WorldWind.LevelSet(WorldWind.Sector.FULL_SPHERE,
                 new WorldWind.Location(180, 180),
-                22,
+                config.numLevels || 22,
                 256,
                 256);
 
