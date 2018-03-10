@@ -37,7 +37,7 @@ define(['worldwind'],
             // The WW tileCache is too small to accomodate large screen 
             // full of tiles at an oblique view from the surface.
             // Increase the size to prevent trashing of the tileCache.
-            this.tileCache = new WorldWind.MemoryCache(4.2e6, 3.2e6);
+            this.tileCache = new WorldWind.MemoryCache(4.0e6, 3.2e6);
 
         };
 
