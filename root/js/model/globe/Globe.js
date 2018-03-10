@@ -36,20 +36,14 @@
  * @author Bruce Schubert
  */
 define([
-    'knockout',
-    'model/Config',
-    'model/Constants',
-    'model/Events',
-    'model/globe/layers/EnhancedAtmosphereLayer',
-    'model/globe/layers/EnhancedStarFieldLayer',
     'model/globe/EnhancedTextSupport',
-    'model/globe/layers/EnhancedViewControlsLayer',
     'model/globe/KeyboardControls',
     'model/globe/LayerManager',
+    'model/globe/layers/EnhancedAtmosphereLayer',
+    'model/globe/layers/EnhancedStarFieldLayer',
+    'model/globe/layers/EnhancedViewControlsLayer',
     'model/globe/widgets/LocationWidget',
-    'model/util/Log',
     'model/globe/PickController',
-    'model/util/Publisher',
     'model/globe/layers/ReticuleLayer',
     'model/globe/layers/SkyBackgroundLayer',
     'model/globe/Sunlight',
@@ -58,22 +52,22 @@ define([
     'model/globe/widgets/TimeWidget',
     'model/globe/layers/TimeZoneLayer',
     'model/globe/Viewpoint',
+    'model/util/Publisher',
+    'model/util/Log',
     'model/util/WmtUtil',
+    'model/Config',
+    'model/Constants',
+    'model/Events',
+    'knockout',
     'worldwind'], function (
-        ko,
-        config,
-        constants,
-        events,
-        EnhancedAtmosphereLayer,
-        EnhancedStarFieldLayer,
         EnhancedTextSupport,
-        EnhancedViewControlsLayer,
         KeyboardControls,
         LayerManager,
+        EnhancedAtmosphereLayer,
+        EnhancedStarFieldLayer,
+        EnhancedViewControlsLayer,
         LocationWidget,
-        log,
         PickController,
-        publisher,
         ReticuleLayer,
         SkyBackgroundLayer,
         Sunlight,
@@ -82,8 +76,13 @@ define([
         TimeWidget,
         TimeZoneLayer,
         Viewpoint,
+        publisher,
+        log,
         util,
-        ww) {
+        config,
+        constants,
+        events,
+        ko) {
     "use strict";
     /**
      * Creates a Globe object which manages a WorldWindow object created for the given canvas.
@@ -126,7 +125,7 @@ define([
                 this.viewpoint().target.longitude)).extend({rateLimit: 100});   // 10hz
 
         // Override the default TextSupport with our custom verion that draws outline text
-        this.wwd.drawContext.textSupport = new EnhancedTextSupport();
+        //this.wwd.drawContext.textSupport = new EnhancedTextSupport();
         // Add support for animating the globe to a position.
         this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
         this.isAnimating = false;
