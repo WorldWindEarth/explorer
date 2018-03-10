@@ -148,39 +148,6 @@ define(['worldwind'], function () {
             };
 
             /**
-             * MemoryCache.makeSpace
-             * 
-             * Dumps entries to log.
-             */
-            WorldWind.MemoryCache.prototype.makeSpace = function (spaceRequired) {
-                var sortedEntries = [];
-                // Sort the entries from least recently used to most recently used, then remove the least recently used entries
-                // until the cache capacity reaches the low water and the cache has enough free capacity for the required
-                // space.
-                var sizeAtStart = this.usedCapacity;
-                for (var key in this.entries) {
-                    if (this.entries.hasOwnProperty(key)) {
-                        sortedEntries.push(this.entries[key]);
-                    }
-                }
-                sortedEntries.sort(function (a, b) {
-                    return a.lastUsed - b.lastUsed;
-                });
-                // BDS: dump the sorted cache
-                console.log("MemoryCache.makespace(" + spaceRequired + ") >>> [capacity: " + this._capacity + ", lowWater: " + this._lowWater + ")" );
-
-                for (var i = 0, len = sortedEntries.length; i < len; i++) {
-                    if (this.usedCapacity > this._lowWater || this.freeCapacity < spaceRequired) {
-                        this.removeCacheEntry(sortedEntries[i]);
-                    } else {
-                        break;
-                    }
-                }
-
-            };
-
-
-            /**
              * TiledImageLayer.retrieveTileImage
              * 
              * Adds test for this.currentRetrievals.length > threshold
