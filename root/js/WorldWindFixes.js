@@ -452,6 +452,32 @@ define(['worldwind'], function () {
                 sb = sb.replace(/\s/g, "%20");
                 return sb;
             };
+            
+            
+            /**
+             * NominatimGeocoder.lookup
+             * 
+             * Fixes replace " " with %20 via a global replace.
+             */
+            WorldWind.NominatimGeocoder.prototype.lookup = function (queryString, callback, accessKey) {
+                var url = this.service + queryString.replace(/\s/g, "%20") + "?format=json",
+                    xhr = new XMLHttpRequest(),
+                    thisGeocoder = this;
+
+                url += "&key=" + (accessKey || "lUvVRchXGGDh5Xwk3oidrXeIDAAevOUS");
+
+                xhr.open("GET", url, true);
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var results = JSON.parse(xhr.responseText);
+
+                        callback(thisGeocoder, results);
+                    }
+                };
+
+                xhr.send(null);
+            };
 
         } // end if 0.9.0
     };
