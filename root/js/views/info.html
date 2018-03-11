@@ -22,8 +22,7 @@
                         </div>
                         <div class="panel-body">
                             <!--<div class="panel-body" style="height: calc(100% - 45px); overflow-y: scroll;">-->
-                            <p>Welcome to the <b><i>WorldWind Explorer</i></b>. 
-                                The Explorer was created by <a href="https://github.com/emxsys" target="_blank">Bruce Schubert</a> and is 
+                            <p>The WorldWind Explorer was created by <a href="https://github.com/emxsys" target="_blank">Bruce Schubert</a> and is 
                                 <i><a href="https://worldwind.arc.nasa.gov/web/" target="_blank">powered by ESA-NASA Web WorldWind</a></i> 
                                 which provides the 3D Earth visualization with WMS maps, imagery and terrain. 
                                 You are encouraged to use the Explorer as an online resource or use its 
@@ -143,7 +142,7 @@
             </div>
         </div>
         <div id="info-selected" class="tab-pane fade">
-            <div style="height: 100%; overflow-y: hidden;" data-bind="template: {
+            <div class="panel panel-default" style="height: 100%; overflow-y: hidden;" data-bind="template: {
                                         if: viewTemplateName()!==null,
                                         name: viewTemplateName,
                                         data: selectedItem

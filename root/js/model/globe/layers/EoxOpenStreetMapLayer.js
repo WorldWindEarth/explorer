@@ -14,7 +14,10 @@
  * 
  * @returns {EoxOpenStreetMapLayer}
  */
-define(['worldwind'], function () {
+define([
+    'model/globe/layers/EnhancedWmsLayer',
+    'worldwind'],
+    function (EnhancedWmsLayer) {
     "use strict";
     /**
      * Constructs a OpenStreetMap layer by EOX.
@@ -28,7 +31,7 @@ define(['worldwind'], function () {
             service: "https://tiles.maps.eox.at/wms",
             layerNames: "osm",
             sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
-            levelZeroDelta: new WorldWind.Location(36, 36),
+            levelZeroDelta: new WorldWind.Location(180, 180),
             numLevels: 16,
             format: "image/png",
             size: 256,
@@ -36,7 +39,7 @@ define(['worldwind'], function () {
             styleNames: "" // (optional): {String} A comma separated list of the styles to include in this layer.</li>
         };
 
-        WorldWind.WmsLayer.call(this, cfg);
+        EnhancedWmsLayer.call(this, cfg);
 
         // Make this slightly translucent
         this.opacity = 0.8;
@@ -46,7 +49,7 @@ define(['worldwind'], function () {
         this.urlBuilder.transparent = false;
     };
 
-    EoxOpenStreetMapLayer.prototype = Object.create(WorldWind.WmsLayer.prototype);
+    EoxOpenStreetMapLayer.prototype = Object.create(EnhancedWmsLayer.prototype);
 
     EoxOpenStreetMapLayer.prototype.doRender = function (dc) {
         WorldWind.WmsLayer.prototype.doRender.call(this, dc);

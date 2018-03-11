@@ -74,6 +74,10 @@ define([
 //                {name: "NOAA nowCOAST Surface Analysis", url: "https://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_rtma_time/MapServer/WMSServer"},
 //                {name: "GEOMac Wildfire Support", url: "https://wildfire.cr.usgs.gov/arcgis/services/geomac_dyn/MapServer/WMSServer"}
             ]);
+            this.serverAddressSelection = ko.observable();
+            this.serverAddressSelection.subscribe(function(newServer){
+                self.serverAddress(newServer);
+            });
             this.baseLayersCount = ko.observable(this.baseLayers().length);
             this.baseLayers.subscribe(function (changes) {
                 this.baseLayersCount(this.baseLayers().length);
