@@ -24,12 +24,12 @@ define(['WorldWindFixes', 'worldwind'],
             this.bbox = config.sector;
 
             // Override the default WmsLayer 36x36 level set with one that
-            // matches the GeoServer EPSG:4326 Gridset
+            // matches the GeoServer EPSG:4326 Gridset            
             this.levels = new WorldWind.LevelSet(WorldWind.Sector.FULL_SPHERE,
-                new WorldWind.Location(180, 180),
+                config.levelZeroDelta || new WorldWind.Location(180, 180),
                 config.numLevels || 22,
-                256,
-                256);
+                config.size || 256,
+                config.size || 256);
 
             // "tiled=true" is a hint for the GeoServer WMS to use the GeoWebCache
             this.vendorParms = '&tiled=true&tilesorigin=-180,-90';
