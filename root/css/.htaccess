@@ -1,8 +1,0 @@
-<IfModule mod_headers.c>
-    <Files override.css>
-        Header set Cache-Control: no-cache,max-age=0;
-    </Files>
-    # 1 Year
-    Header set Cache-Control "max-age=29030400"
-</IfModule>
-
