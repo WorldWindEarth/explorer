@@ -54,7 +54,7 @@ define([
     EoxOpenStreetMapLayer.prototype.doRender = function (dc) {
         WorldWind.WmsLayer.prototype.doRender.call(this, dc);
         if (this.inCurrentFrame) {
-            dc.screenCreditController.addStringCredit("OpenStreetMap { Data © OpenStreetMap contributers, Rendering © MapServer and EOX }", WorldWind.Color.DARK_GRAY);
+            dc.screenCreditController.addStringCredit("OpenStreetMap { Data © OpenStreetMap contributors, Rendering © MapServer and EOX }", WorldWind.Color.DARK_GRAY);
         }
     };
 
