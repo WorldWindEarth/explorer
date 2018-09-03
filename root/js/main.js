@@ -32,9 +32,9 @@ requirejs.config({
         // RequireJS plugin to load 'i18n!' prefixed modules
         'i18n': 'libs/require/i18n',
         // The ubuiqutious JQuery library
-        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'http://code.jquery.com/jquery-2.2.4.min',
+        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'https://code.jquery.com/jquery-2.2.4.min',
         // JQuery UI elements
-        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'http://code.jquery.com/ui/1.12.1/jquery-ui.min',
+        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'https://code.jquery.com/ui/1.12.1/jquery-ui.min',
         // JQuery UI based 'growl' messaging
         'jquery-growl': 'libs/jquery-plugins/growl/jquery.growl',
         // JQuery UI touch event support
