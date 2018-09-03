@@ -1,0 +1,14 @@
+{
+  "name": "worldwind-earth-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": "https://worldwindearth.github.io/explorer",
+  "dependencies": {},
+  "devDependencies": {
+    "gh-pages": "^1.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "gh-pages -d root"
+  }
+}
