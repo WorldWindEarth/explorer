@@ -75,7 +75,7 @@ define([
 
                 program.loadGlobeRadius(gl, dc.globe.equatorialRadius);
 
-                program.loadEyePoint(gl, dc.navigatorState.eyePoint);
+                program.loadEyePoint(gl, dc.eyePoint);
 
                 program.loadLightDirection(gl, this._activeLightDirection);
 
