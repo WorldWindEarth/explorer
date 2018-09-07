@@ -1,6 +1,6 @@
 {
   "name": "worldwind-earth-explorer",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "private": true,
   "homepage": "https://worldwind.earth/explorer",
   "dependencies": {},
