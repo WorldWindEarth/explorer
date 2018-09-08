@@ -6,6 +6,8 @@ The WorldWind Explorer is a geospatial web application for visualizing the earth
 It uses the NASA WebWorldWind SDK to display a 3D globe with terrain and imagery 
 as well as 2D maps. 
 
+![alt text](images/HighLevelUseCases.png "High Level Use Case Diagram")
+
 ### Features
 
 - Preconfigured imagery and map layers
