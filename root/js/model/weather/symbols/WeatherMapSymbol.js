@@ -151,8 +151,7 @@ define(['model/weather/symbols/AirTemperature',
         WeatherMapSymbol.prototype.render = function (dc) {
 
             // Rotate the wind barb to match the view
-//            this.windBarb.imageRotation = dc.navigatorState.heading;
-            this.windBarb.imageRotation = dc.navigator.heading;
+            this.windBarb.imageRotation = -dc.navigator.heading;
             // Tilt the wind barb to match the view
             //this.windBarb.imageTilt = dc.navigator.tilt; -- Disabled: visbility diminished when tilted
 
