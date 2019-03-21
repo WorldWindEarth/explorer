@@ -36,6 +36,7 @@
  * @author Bruce Schubert
  */
 define([
+    'model/globe/elevations/EnhancedEarthElevationModel',
     'model/globe/EnhancedTextSupport',
     'model/globe/KeyboardControls',
     'model/globe/LayerManager',
@@ -60,6 +61,7 @@ define([
     'model/Events',
     'knockout',
     'worldwind'], function (
+        EnhancedEarthElevationModel,
         EnhancedTextSupport,
         KeyboardControls,
         LayerManager,
@@ -107,6 +109,9 @@ define([
         publisher.makePublisher(this);
 
         this.wwd = wwd;
+        
+        // Replace the default globe with our custom version that uses cached terrain data
+        this.wwd.globe = new WorldWind.Globe(new EnhancedEarthElevationModel());
 
         // Enhance the behavior of the navigator: prevent it from going below the terrain
         this.enhanceLookAtNavigator(wwd.navigator);
