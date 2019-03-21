@@ -77,12 +77,13 @@ body {
 }
 
 .non-interactive {
-    -webkit-touch-callout: none;
+    -webkit-touch-callout: none; 
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     -o-user-select: none;
+    user-select: none;
     pointer-events: none;
 }
 
@@ -265,20 +266,20 @@ VisJS library overrides
 */
 
 .vis-data-axis .vis-y-axis.vis-major {
-  /*in the 'slate' color scheme we need a bright color for the major*/
-  color: #dedede;
+    /*in the 'slate' color scheme we need a bright color for the major*/
+    color: #dedede;
 }
 
 .vis-data-axis .vis-y-axis.vis-minor {
-  color: #bebebe;
+    color: #bebebe;
 }
 
 .vis-data-axis .vis-y-axis.vis-minor.vis-measure {
-  padding: 0;
-  margin: 0;
-  border: 0;
-  visibility: hidden;
-  width: auto;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    visibility: hidden;
+    width: auto;
 }
 
 /*
