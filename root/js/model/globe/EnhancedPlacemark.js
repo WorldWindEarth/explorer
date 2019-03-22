@@ -112,7 +112,8 @@ define(['worldwind'],
                 program.loadColor(gl, dc.pickingMode ? this.pickColor :
                     this.activeAttributes.leaderLineAttributes.outlineColor);
 
-                WorldWind.Placemark.matrix.copy(dc.navigatorState.modelviewProjection);
+//                WorldWind.Placemark.matrix.copy(dc.navigatorState.modelviewProjection);
+                WorldWind.Placemark.matrix.copy(dc.modelviewProjection);
                 program.loadModelviewProjection(gl, WorldWind.Placemark.matrix);
 
                 if (!this.activeAttributes.leaderLineAttributes.depthTest) {

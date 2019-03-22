@@ -1,19 +1,19 @@
 <div id="info">
     <!-- Info View (bound to the InfoViewModel) -->
     <ui id="info-tabs" class="nav nav-tabs" role="tablist">
-        <li class="active"><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">
+        <li><a data-toggle="tab" href="#info-about" aria-controls="info-about" role="tab">
                 <span class="glyphicon glyphicon-info-sign" aria-hidden="true"
                       style="padding-top:4px; padding-bottom:4px"></span> About</a></li>
         <li><a data-toggle="tab" href="#info-location" aria-controls="info-location" role="tab">
                 <span class="glyphicon glyphicon-globe" aria-hidden="true"
                       style="padding-top:4px; padding-bottom:4px"></span> Location</a></li>
-        <li><a data-toggle="tab" href="#info-selected" aria-controls="info-selected" role="tab">
+        <li class="active"><a data-toggle="tab" href="#info-selected" aria-controls="info-selected" role="tab">
                 <span class="glyphicon glyphicon-map-marker" aria-hidden="true"
                       style="padding-top:4px; padding-bottom:4px"></span> Item</a></li>
     </ui>
 
     <div class="tab-content">
-        <div id="info-about" class="tab-pane fade in active">
+        <div id="info-about" class="tab-pane fade">
             <div id="info-about-panel" class="panel panel-default" style="height: 100%;">
                 <div class="row">
                     <div class="col-md-4 panel panel-default">
@@ -23,10 +23,10 @@
                         <div class="panel-body">
                             <!--<div class="panel-body" style="height: calc(100% - 45px); overflow-y: scroll;">-->
                             <p>The WorldWind Explorer was created by <a href="https://github.com/emxsys" target="_blank">Bruce Schubert</a> and is 
-                                <i><a href="https://worldwind.arc.nasa.gov/web/" target="_blank">powered by ESA-NASA Web WorldWind</a></i> 
+                                <i><a href="https://emxsys.github.io/worldwindjs/" target="_blank">powered by WorldWindJS</a></i> 
                                 which provides the 3D Earth visualization with WMS maps, imagery and terrain. 
                                 You are encouraged to use the Explorer as an online resource or use its 
-                                <a href="https://github.com/NASAWorldWindResearch/WorldWindExplorer" target="_blank">source code</a> 
+                                <a href="https://github.com/WorldWindLabs/WorldWindExplorer" target="_blank">source code</a> 
                                 to build your own 3D globe application. 
                                 The <a href="http://worldwind.earth" target="_blank">User Guide and developer documentation</a> 
                                 are available online.</p>
@@ -42,10 +42,11 @@
                             <ul class="small">
                                 <li><a href="https://s2maps.eu" target="_blank">Sentinel-2 cloudless - https://s2maps.eu</a> by <a href="https://eox.at" target="_blank">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016 & 2017)</li>
                                 <li>OpenStreetMap { Data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors and <a href="https://maps.eox.at/#data" target="_blank">others</a>, Rendering © <a href="https://eox.at" target="_blank">EOX</a>}</li>
+                                <li><a href="https://opentopomap.org" target="_blank">OpenTopoMap</a> by <a href="https://opentopomap.org/credits" target="_blank">opentopomap.org</a> is a project aiming at rendering topographic maps from OSM and SRTM data.</li>
                             </ul>
                             <h5>Open Source Libraries</h5>
                             <ul class="small">
-                                <li><a href="https://worldwind.arc.nasa.gov/web">ESA-NASA WorldWind</a> provides the 3D virtual globe</li>
+                                <li><a href="https://emxsys.github.io/worldwindjs/">WorldWindJS</a> provides the 3D virtual globe</li>
                                 <li><a href="http://knockoutjs.com">KnockoutJS</a> provides the Model-View-View Model (MVVM) architecture</li>
                                 <li><a href="https://getbootstrap.com/docs/3.3/">Bootstrap</a> provides the responsive styling</li>
                                 <li><a href="https://jquery.com/">JQuery</a> is used to dynamically load DOM view fragments</li>
@@ -141,12 +142,17 @@
                 </div>
             </div>
         </div>
-        <div id="info-selected" class="tab-pane fade">
-            <div class="panel panel-default" style="height: 100%; overflow-y: hidden;" data-bind="template: {
-                                        if: viewTemplateName()!==null,
-                                        name: viewTemplateName,
-                                        data: selectedItem
-                                        }">
+        <div id="info-selected" class="tab-pane fade in active">
+            <div id ="info-selected-panel" class="panel panel-default">
+                <div class="row">
+                    <div style="height: 100%; overflow-y: hidden;" 
+                        data-bind="template: {
+                            if: viewTemplateName()!==null,
+                            name: viewTemplateName,
+                            data: selectedItem
+                        }">
+                    </div>
+                </div>
             </div>
         </div>
     </div>

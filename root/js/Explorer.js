@@ -14,6 +14,7 @@ define([
     'model/util/Settings',
     'model/markers/MarkerManager',
     'model/military/SymbolManager',
+    'model/weather/WeatherScoutManager',
     'viewmodels/BookmarkViewModel',
     'viewmodels/GlobeViewModel',
     'viewmodels/InfoViewModel',
@@ -25,6 +26,8 @@ define([
     'viewmodels/SearchViewModel',
     'viewmodels/SettingsViewModel',
     'viewmodels/TacticalSymbolEditor',
+    'viewmodels/WeatherScoutEditor',
+    'viewmodels/WeatherScoutView',
     'text!views/basic-markers.html',
     'text!views/bookmark.html',
     'text!views/globe.html',
@@ -37,6 +40,8 @@ define([
     'text!views/settings.html',
     'text!views/symbols.html',
     'text!views/symbol-editor.html',
+    'text!views/weather-scouts.html',
+    'text!views/weather-scout-editor.html',
     'url-search-params',
     'knockout',
     'jquery',
@@ -51,6 +56,7 @@ define([
         settings,
         MarkerManager,
         SymbolManager,
+        WeatherScoutManager,
         BookmarkViewModel,
         GlobeViewModel,
         InfoViewModel,
@@ -62,6 +68,8 @@ define([
         SearchViewModel,
         SettingsViewModel,
         TacticalSymbolEditor,
+        WeatherScoutEditor,
+        WeatherScoutView,
         basicMarkersHtml,
         bookmarkHtml,
         globeHtml,
@@ -74,6 +82,8 @@ define([
         settingsHtml,
         tacticalSymbolsHtml,
         tacticalSymbolEditorHtml,
+        weatherScoutsHtml,
+        weatherScoutEditorHtml, 
         URLSearchParams,
         ko,
         $) {
@@ -112,6 +122,7 @@ define([
             // Configure the manager of objects on the globe
             this.markerManager = new MarkerManager(this.globe);
             this.symbolManager = new SymbolManager(this.globe);
+            this.weatherManager = new WeatherScoutManager(this.globe);
 
             // Configure the objects used to animate the globe when performing "go to" operations
             this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
@@ -151,7 +162,8 @@ define([
 
             new GlobeViewModel(this, { 
                 markerManager: this.markerManager, 
-                symbolManager: this.symbolManager}, 
+                symbolManager: this.symbolManager,                
+                weatherManager: this.weatherManager},
             globeHtml, "globe");
 
             new SearchViewModel(this.globe, "search");
@@ -164,14 +176,18 @@ define([
             new SettingsViewModel(this.globe, settingsHtml, "left-sidebar");
             new InfoViewModel(this.globe, infoHtml, "info-panel");
 
-            // Dialogs
+            // Dialogs/displays
             new LayerSettings(this.globe, layerSettingsHtml);
             new MarkerEditor(markerEditorHtml);
             new TacticalSymbolEditor(tacticalSymbolEditorHtml);
+            new WeatherScoutEditor(weatherScoutEditorHtml);            
+            new WeatherScoutView(this.globe);            
             
             // Marker content
             markersViewModel.addMarkers(this.markerManager, basicMarkersHtml, "markers-body");
             markersViewModel.addMarkers(this.symbolManager, tacticalSymbolsHtml, "markers-body");
+            markersViewModel.addMarkers(this.weatherManager, weatherScoutsHtml, "markers-body");
+
 
         };
 
@@ -270,6 +286,7 @@ define([
             log.info('Explorer', 'restoreSession', 'Restoring the model and view.');
             this.markerManager.restoreMarkers();
             this.symbolManager.restoreSymbols();
+            this.weatherManager.restoreScouts();
             this.restoreSessionView();
             // Update all time sensitive objects
             this.globe.updateDateTime(new Date());
@@ -331,6 +348,7 @@ define([
             this.saveSessionView();
             this.markerManager.saveMarkers();
             this.symbolManager.saveSymbols();
+            this.weatherManager.saveScouts();
             this.globe.layerManager.saveLayers();
         };
 

@@ -64,6 +64,22 @@
                     </li>
                 </ul>          
             </span>                           
+            <!--Add Weather Scout button-->
+            <span class="btn-group" style="float: left">
+                <button type="button"
+                        class="btn btn-primary btn-sm globe-button"
+                        style="float: left; padding-top: 0; padding-bottom: 0; height: 30px;"
+                        data-bind="click: armDropScout">
+                    <span class="glyphicon glyphicon-plus" style="padding-right: 5px;" aria-hidden="true"> </span>
+                    <span class="glyphicon glyphicon-cloud" aria-hidden="true"></span>
+                </button>  
+                <button type="button"
+                        class="btn btn-primary btn-sm globe-button"
+                        style="width: 26px; height: 30px;  padding-left: 0px; padding-right: 0px;"
+                        data-bind="click: refreshScouts">
+                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                </button>                
+            </span>
         </div>
     </div>
     <!--
