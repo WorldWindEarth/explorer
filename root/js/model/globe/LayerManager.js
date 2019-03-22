@@ -21,32 +21,44 @@ define([
     'knockout',
     'model/Config',
     'model/Constants',
+    'model/globe/layers/EmxsysBMNGLayer',
+    'model/globe/layers/EmxsysBMNGLandsatLayer',
     'model/globe/layers/EnhancedWmsLayer',
     'model/globe/LayerManagerHelper',
     'model/globe/LayerProxy',
     'model/util/Log',
     'worldwind',
+    'model/globe/layers/EnhancedBMNGLayer',
+    'model/globe/layers/EnhancedLandsatLayer',
     'model/globe/layers/EoxOpenStreetMapLayer',
     'model/globe/layers/EoxSentinal2CloudlessLayer',
     'model/globe/layers/EoxSentinal2WithLabelsLayer',
+    'model/globe/layers/OpenTopoMapLayer',
     'model/globe/layers/UsgsContoursLayer',
     'model/globe/layers/UsgsImageryTopoBaseMapLayer',
+    'model/globe/layers/UsgsNaipMapLayer',
     'model/globe/layers/UsgsTopoBaseMapLayer',
     'url-search-params'],
         function (
                 ko,
                 config,
                 constants,
+                EmxsysBMNGLayer,
+                EmxsysBMNGLandsatLayer,
                 EnhancedWmsLayer,
                 LayerManagerHelper,
                 LayerProxy,
                 log,
                 ww,
+                EnhancedBMNGLayer,
+                EnhancedLandsatLayer,
                 EoxOpenStreetMapLayer,
                 EoxSentinal2CloudlessLayer,
                 EoxSentinal2WithLabelsLayer,
+                OpenTopoMapLayer,
                 UsgsContoursLayer,
                 UsgsImageryTopoBaseMapLayer,
+                UsgsNaipMapLayer,
                 UsgsTopoBaseMapLayer,
                 URLSearchParams) {
             "use strict";
@@ -139,16 +151,21 @@ define([
              */
             LayerManager.prototype.loadDefaultLayers = function () {
                 // Define the Globe's default layers
-                this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl});
-                this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new EmxsysBMNGLayer(),{enabled: false, detailControl: config.imagerydetailControl});
+//                this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new EmxsysBMNGLandsatLayer(),{enabled: false, detailControl: config.imagerydetailControl});
+//                this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new WorldWind.BingAerialWithLabelsLayer(null), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new EoxSentinal2CloudlessLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new EoxSentinal2WithLabelsLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new UsgsImageryTopoBaseMapLayer(), {enabled: false, detailControl: 1.75});
                 this.addBaseLayer(new UsgsTopoBaseMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new UsgsNaipMapLayer(), {enabled: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new WorldWind.BingRoadsLayer(null), {enabled: false, opacity: 0.7, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new EoxOpenStreetMapLayer(), {enabled: false, opacity: 0.8, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new OpenTopoMapLayer(), {enabled: false});
 
+                this.addDataLayer(new WorldWind.RenderableLayer(constants.LAYER_NAME_WEATHER), {enabled: true, pickEnabled: true});
 
 //            // Asynchronysly load the WMS layers found in the WWSK GeoServer WMS
 //            this.addAvailableWmsLayers();

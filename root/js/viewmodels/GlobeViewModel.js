@@ -9,6 +9,7 @@
  * 
  * @param {BasicMarker} BasicMarker module
  * @param {TacticalSymbol} TacticalSymbol module 
+ * @param {WeatherScout} WeatherScout module
  * @param {WmtUtil} util object
  * @param {Knockout} ko
  * @param {JQuery} $ 
@@ -17,6 +18,7 @@
 define([
     'model/markers/BasicMarker',
     'model/military/TacticalSymbol',
+    'model/weather/WeatherScout',
     'model/util/WmtUtil',
     'knockout',
     'jquery',
@@ -25,6 +27,7 @@ define([
     function (
         BasicMarker,
         TacticalSymbol,
+        WeatherScout,
         util,
         ko,
         $) {
@@ -53,6 +56,7 @@ define([
             // TODO: This is fragile; find a better way to inject managers
             this.markerManager = params.markerManager;
             this.symbolManager = params.symbolManager;
+            this.weatherManager = params.weatherManager;
 
             // Save a reference to the auto-update time observable for the view view
             this.autoUpdateTime = explorer.autoUpdateTimeEnabled;
@@ -144,7 +148,7 @@ define([
             });
             // Invoke armDropMarker when a template is selected from the palette
             this.selectedMarkerTemplate.subscribe(this.armDropMarker, this);
-            // Invoke armDropMarker when a template is selected from the palette
+            // Invoke armDropSymbol when a template is selected from the Tactical Symbols palette
             this.selectedSymbolTemplate.subscribe(this.armDropSymbol, this);
 
 
@@ -168,6 +172,16 @@ define([
             this.dropObject = this.selectedSymbolTemplate();
         };
 
+        /**
+         * Arms the click-drop handler to add a weather scout to the globe. See: handleClick below.
+         */
+        GlobeViewModel.prototype.armDropScout = function () {
+            this.dropIsArmed(true);
+            this.dropCallback = this.dropScoutCallback;
+            this.dropObject = null;
+        };
+
+
         // This "Drop" action callback creates and adds a marker to the globe
         // when the globe is clicked while dropIsArmed is true.
         GlobeViewModel.prototype.dropMarkerCallback = function (position, markerTemplate) {
@@ -182,6 +196,12 @@ define([
             // Add the placemark to the layer and to the observable array
             this.symbolManager.addSymbol(new TacticalSymbol(
                 this.symbolManager, position, {symbolCode: symbolTemplate.symbolCode}));
+        };
+
+        // This "Drop" action callback creates and adds a weather scout to the globe
+        // when the globe is clicked while dropIsArmed is true.
+        GlobeViewModel.prototype.dropScoutCallback = function (position) {
+            this.weatherManager.addScout(new WeatherScout(this.weatherManager, position));
         };
 
         /**
@@ -223,6 +243,10 @@ define([
             event.stopImmediatePropagation();
         };
 
+        GlobeViewModel.prototype.refreshScouts = function () {
+            this.weatherManager.refreshScouts();
+        };
+        
         GlobeViewModel.prototype.onTimeReset = function () {
             this.explorer.autoUpdateTimeEnabled(true);   // reset enables the auto time adjustment
             this.globe.updateDateTime(new Date());

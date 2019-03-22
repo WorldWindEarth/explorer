@@ -183,7 +183,8 @@ define([
                 localHour = WorldWind.Angle.normalizedDegrees(this.sunlight.localHourAngle),
                 riseHourAngle = -this.sunlight.sunriseHourAngle,
                 setsHourAngle = -this.sunlight.sunsetHourAngle,
-                heading = dc.navigatorState.heading || 0.001,
+//                heading = dc.navigatorState.heading || 0.001,
+                heading = dc.navigator.heading || 0.001,
                 slope = this.viewpoint.target.slope || 0.001,
                 aspect = this.viewpoint.target.aspect || 0.001,
                 aspectPt = LocationWidget.rotatePoint(0, -RADIUS, 0, 0, heading - aspect), // rotate from 6 o'clock

@@ -76,7 +76,8 @@ define(['model/Constants',
          * @returns {undefined}
          */
         TimeZoneLayer.prototype.render = function(dc) {
-            if (dc.navigatorState.tilt > 75) {
+//            if (dc.navigatorState.tilt > 75) {
+            if (dc.navigator.tilt > 75) {
                 return;
             }
             ShapefileLayer.prototype.render.call(this, dc);

@@ -21,6 +21,8 @@ requirejs.config({
     paths: {
         // Bootstrap responsive layout
         'bootstrap': window.DEBUG ? 'libs/bootstrap/v3.3.6/bootstrap.min' : 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min',
+        // d3 graphics library
+        'd3': window.DEBUG ? 'libs/d3/d3' : 'https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min',
         // RequireJS plugin to wait for DOM ready
         'domReady': 'libs/require/domReady',
         // Dragula drag-n-drop library
@@ -30,9 +32,9 @@ requirejs.config({
         // RequireJS plugin to load 'i18n!' prefixed modules
         'i18n': 'libs/require/i18n',
         // The ubuiqutious JQuery library
-        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'http://code.jquery.com/jquery-2.2.4.min',
+        'jquery': window.DEBUG ? 'libs/jquery/jquery-2.1.3' : 'https://code.jquery.com/jquery-2.2.4.min',
         // JQuery UI elements
-        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'http://code.jquery.com/ui/1.12.1/jquery-ui.min',
+        'jqueryui': window.DEBUG ? 'libs/jquery-ui/jquery-ui-1.11.4' : 'https://code.jquery.com/ui/1.12.1/jquery-ui.min',
         // JQuery UI based 'growl' messaging
         'jquery-growl': 'libs/jquery-plugins/growl/jquery.growl',
         // JQuery UI touch event support
@@ -47,8 +49,12 @@ requirejs.config({
         'url-search-params': 'libs/url-search-params/url-search-params.max.amd',
         // RequireJS plugin to load text/html files using the 'text!' prefixed modules
         'text': 'libs/require/text',
+        // VisJS charting library
+        'vis': window.DEBUG ? 'libs/vis/v4.16.1/vis' : 'https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min',
+        // Emxsys WorldWindJS
+        'worldwind': window.DEBUG ? 'https://unpkg.com/worldwindjs@1.7.0/build/dist/worldwind' : 'https://unpkg.com/worldwindjs@1.7.0/build/dist/worldwind.min'
         // NASA WorldWind
-        'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : 'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min'
+        // 'worldwind': window.DEBUG ? 'libs/webworldwind/v0.9.0/worldwind' : 'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min'
     },
     // Increase the time to wait before giving up on loading a script to avoid timeout erros on slow 3G connections (default 7s)
     waitSeconds: 15,
@@ -132,9 +138,11 @@ require([
             // Use local resources
             WorldWind.configuration.baseUrl = WorldWind.WWUtil.currentUrlSansFilePart() + "/" + constants.WORLD_WIND_PATH;
         }
+        WorldWind.configuration.baseUrl = "https://unpkg.com/worldwindjs@1.7.0/build/dist/";
+        
         // Enter your Bing Bing Maps key to use when requesting Bing Maps resources.
         // See: https://www.bingmapsportal.com/ to register for your own key and then enter it below
-        //WorldWind.BingMapsKey = "";
+        WorldWind.BingMapsKey = "Ap6BL_3VPzCeoojebk2R9y_mYoMYKyPEPOzz9ZTmSzXBcEzdxFsfgJtAaeH9jOlJ";
         
         // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
         var wwd = new WorldWind.WorldWindow("globe-canvas");
