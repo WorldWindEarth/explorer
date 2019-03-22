@@ -36,20 +36,15 @@
  * @author Bruce Schubert
  */
 define([
-    'knockout',
-    'model/Config',
-    'model/Constants',
-    'model/Events',
-    'model/globe/layers/EnhancedAtmosphereLayer',
-    'model/globe/layers/EnhancedStarFieldLayer',
+    'model/globe/elevations/EnhancedEarthElevationModel',
     'model/globe/EnhancedTextSupport',
-    'model/globe/layers/EnhancedViewControlsLayer',
     'model/globe/KeyboardControls',
     'model/globe/LayerManager',
+    'model/globe/layers/EnhancedAtmosphereLayer',
+    'model/globe/layers/EnhancedStarFieldLayer',
+    'model/globe/layers/EnhancedViewControlsLayer',
     'model/globe/widgets/LocationWidget',
-    'model/util/Log',
     'model/globe/PickController',
-    'model/util/Publisher',
     'model/globe/layers/ReticuleLayer',
     'model/globe/layers/SkyBackgroundLayer',
     'model/globe/Sunlight',
@@ -58,22 +53,23 @@ define([
     'model/globe/widgets/TimeWidget',
     'model/globe/layers/TimeZoneLayer',
     'model/globe/Viewpoint',
+    'model/util/Publisher',
+    'model/util/Log',
     'model/util/WmtUtil',
+    'model/Config',
+    'model/Constants',
+    'model/Events',
+    'knockout',
     'worldwind'], function (
-        ko,
-        config,
-        constants,
-        events,
-        EnhancedAtmosphereLayer,
-        EnhancedStarFieldLayer,
+        EnhancedEarthElevationModel,
         EnhancedTextSupport,
-        EnhancedViewControlsLayer,
         KeyboardControls,
         LayerManager,
+        EnhancedAtmosphereLayer,
+        EnhancedStarFieldLayer,
+        EnhancedViewControlsLayer,
         LocationWidget,
-        log,
         PickController,
-        publisher,
         ReticuleLayer,
         SkyBackgroundLayer,
         Sunlight,
@@ -82,8 +78,13 @@ define([
         TimeWidget,
         TimeZoneLayer,
         Viewpoint,
+        publisher,
+        log,
         util,
-        ww) {
+        config,
+        constants,
+        events,
+        ko) {
     "use strict";
     /**
      * Creates a Globe object which manages a WorldWindow object created for the given canvas.
@@ -108,6 +109,9 @@ define([
         publisher.makePublisher(this);
 
         this.wwd = wwd;
+        
+        // Replace the default globe with our custom version that uses cached terrain data
+        this.wwd.globe = new WorldWind.Globe(new EnhancedEarthElevationModel());
 
         // Enhance the behavior of the navigator: prevent it from going below the terrain
         this.enhanceLookAtNavigator(wwd.navigator);
@@ -126,7 +130,7 @@ define([
                 this.viewpoint().target.longitude)).extend({rateLimit: 100});   // 10hz
 
         // Override the default TextSupport with our custom verion that draws outline text
-        this.wwd.drawContext.textSupport = new EnhancedTextSupport();
+        //this.wwd.drawContext.textSupport = new EnhancedTextSupport();
         // Add support for animating the globe to a position.
         this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
         this.isAnimating = false;
@@ -293,154 +297,154 @@ define([
      * @param {LookAtNavigator} navigator
      */
     Globe.prototype.enhanceLookAtNavigator = function (navigator) {
-        var self = this;
-        // Use the navigator's current settings for the initial 'last' settings
-        navigator.lastEyePosition = new WorldWind.Position();
-        navigator.lastLookAtLocation = new WorldWind.Location(navigator.lookAtLocation.latitude, navigator.lookAtLocation.longitude);
-        navigator.lastRange = navigator.range;
-        navigator.lastHeading = navigator.heading;
-        navigator.lastTilt = navigator.tilt;
-        navigator.lastRoll = navigator.roll;
-
-        /**
-         * Returns the intercept position of a ray from the eye to the lookAtLocation.
-         * @returns {Position) The current terrain intercept position
-         */
-        navigator.terrainInterceptPosition = function () {
-            var wwd = navigator.worldWindow,
-                    centerPoint = new WorldWind.Vec2(wwd.canvas.width / 2, wwd.canvas.height / 2),
-                    terrainObject = wwd.pickTerrain(centerPoint).terrainObject();
-
-            if (terrainObject) {
-                return terrainObject.position;
-            }
-        };
-        /**
-         * Limit the navigator's position and orientation appropriately for the current scene.
-         * Overrides the LookAtNavigator's applyLimits function.
-         */
-        navigator.applyLimits = function () {
-            if (isNaN(navigator.lookAtLocation.latitude) || isNaN(navigator.lookAtLocation.longitude)) {
-                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid lat/lon: NaN");
-                navigator.lookAtLocation.latitude = navigator.lastLookAtLocation.latitude;
-                navigator.lookAtLocation.longitude = navigator.lastLookAtLocation.longitude;
-            }
-            if (isNaN(navigator.range)) {
-                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: NaN");
-                navigator.range = isNaN(navigator.lastRange) ? 1000 : navigator.lastRange;
-            }
-            if (navigator.range < 0) {
-                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: < 0");
-                navigator.range = 1;
-            }
-            if (isNaN(navigator.heading)) {
-                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid heading: NaN");
-                navigator.heading = navigator.lastHeading;
-            }
-            if (isNaN(navigator.tilt)) {
-                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid tilt: NaN");
-                navigator.tilt = navigator.lastTilt;
-            }
-
-            if (self.wwd.globe.is2D()) {
-                // Don't allow rotation for Mercator and Equirectangular projections
-                // to improve the user experience.
-                if (self.wwd.globe.projection instanceof WorldWind.ProjectionEquirectangular ||
-                        self.wwd.globe.projection instanceof WorldWind.ProjectionMercator) {
-                    navigator.heading = 0;
-                }
-            }
-
-            if (!navigator.validateEyePosition()) {
-                // Eye position is invalid, so restore the last navigator settings
-                navigator.lookAtLocation.latitude = navigator.lastLookAtLocation.latitude;
-                navigator.lookAtLocation.longitude = navigator.lastLookAtLocation.longitude;
-                navigator.range = navigator.lastRange;
-                navigator.heading = navigator.lastHeading;
-                navigator.tilt = navigator.lastTilt;
-                navigator.roll = navigator.lastRoll;
-            }
-            // Clamp latitude to between -90 and +90, and normalize longitude to between -180 and +180.
-            // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
-            navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -89.9, 89.9);
-            navigator.lookAtLocation.longitude = WorldWind.Angle.normalizedDegreesLongitude(navigator.lookAtLocation.longitude);
-            // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
-            // range is zero.
-            navigator.range = WorldWind.WWMath.clamp(navigator.range, 1, constants.NAVIGATOR_MAX_RANGE);
-            // Normalize heading to between -180 and +180.
-            navigator.heading = WorldWind.Angle.normalizedDegrees(navigator.heading);
-            // Clamp tilt to between 0 and +90 to prevent the viewer from going upside down.
-            navigator.tilt = WorldWind.WWMath.clamp(navigator.tilt, 0, 90);
-            // Normalize heading to between -180 and +180.
-            navigator.roll = WorldWind.Angle.normalizedDegrees(navigator.roll);
-            // Apply 2D limits when the globe is 2D.
-            if (navigator.worldWindow.globe.is2D() && navigator.enable2DLimits) {
-                // Clamp range to prevent more than 360 degrees of visible longitude.
-                var nearDist = navigator.nearDistance,
-                        nearWidth = WorldWind.WWMath.perspectiveFrustumRectangle(navigator.worldWindow.viewport, nearDist).width,
-                        maxRange = 2 * Math.PI * navigator.worldWindow.globe.equatorialRadius * (nearDist / nearWidth);
-                navigator.range = WorldWind.WWMath.clamp(navigator.range, 1, maxRange);
-
-                // Force tilt to 0 when in 2D mode to keep the viewer looking straight down.
-                navigator.tilt = 0;
-            }
-            // Cache the nav settings
-            navigator.lastLookAtLocation.latitude = navigator.lookAtLocation.latitude;
-            navigator.lastLookAtLocation.longitude = navigator.lookAtLocation.longitude;
-            navigator.lastRange = navigator.range;
-            navigator.lastHeading = navigator.heading;
-            navigator.lastTilt = navigator.tilt;
-            navigator.lastRoll = navigator.roll;
-        };
-        /**
-         * Validate the eye position is not below the terrain.
-         * @returns {Boolean}
-         */
-        navigator.validateEyePosition = function () {
-            if (isNaN(navigator.lookAtLocation.latitude)) {
-                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");
-            }
-            if (isNaN(navigator.lookAtLocation.longitude)) {
-                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");
-                return false;
-            }
-            var wwd = navigator.worldWindow,
-                    navigatorState = navigator.intermediateState(),
-                    eyePoint = navigatorState.eyePoint,
-                    eyePos = new WorldWind.Position(),
-                    terrainElev;
-
-            // Get the eye position in geographic coords
-            wwd.globe.computePositionFromPoint(eyePoint[0], eyePoint[1], eyePoint[2], eyePos);
-            if (!eyePos.equals(navigator.lastEyePosition)) {
-                // Validate the new eye position to ensure it doesn't go below the terrain surface
-                terrainElev = wwd.globe.elevationAtLocation(eyePos.latitude, eyePos.longitude);
-                if (eyePos.altitude < terrainElev) {
-                    //Log.error("EnhancedLookAtNavigator", "validateEyePosition", "eyePos (" + eyePos.altitude + ") is below ground level (" + terrainElev + ").");
-                    return false;
-                }
-            }
-            navigator.lastEyePosition.copy(eyePos);
-            return true;
-        };
-        /**
-         * Returns a new NavigatorState without calling applyLimits().
-         * See also LookAtNavigator.currentState().
-         * @returns {NavigatorState}
-         */
-        navigator.intermediateState = function () {
-            // navigator.applyLimits(); -- Don't do this!!
-            var globe = navigator.worldWindow.globe,
-                    lookAtPosition = new WorldWind.Position(
-                            navigator.lookAtLocation.latitude,
-                            navigator.lookAtLocation.longitude,
-                            0),
-                    modelview = WorldWind.Matrix.fromIdentity();
-
-            modelview.multiplyByLookAtModelview(lookAtPosition, navigator.range, navigator.heading, navigator.tilt, navigator.roll, globe);
-
-            return navigator.currentStateForModelview(modelview);
-        };
+//        var self = this;
+//        // Use the navigator's current settings for the initial 'last' settings
+//        navigator.lastEyePosition = new WorldWind.Position();
+//        navigator.lastLookAtLocation = new WorldWind.Location(navigator.lookAtLocation.latitude, navigator.lookAtLocation.longitude);
+//        navigator.lastRange = navigator.range;
+//        navigator.lastHeading = navigator.heading;
+//        navigator.lastTilt = navigator.tilt;
+//        navigator.lastRoll = navigator.roll;
+//
+//        /**
+//         * Returns the intercept position of a ray from the eye to the lookAtLocation.
+//         * @returns {Position) The current terrain intercept position
+//         */
+//        navigator.terrainInterceptPosition = function () {
+//            var wwd = navigator.worldWindow,
+//                    centerPoint = new WorldWind.Vec2(wwd.canvas.width / 2, wwd.canvas.height / 2),
+//                    terrainObject = wwd.pickTerrain(centerPoint).terrainObject();
+//
+//            if (terrainObject) {
+//                return terrainObject.position;
+//            }
+//        };
+//        /**
+//         * Limit the navigator's position and orientation appropriately for the current scene.
+//         * Overrides the LookAtNavigator's applyLimits function.
+//         */
+//        navigator.applyLimits = function () {
+//            if (isNaN(navigator.lookAtLocation.latitude) || isNaN(navigator.lookAtLocation.longitude)) {
+//                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid lat/lon: NaN");
+//                navigator.lookAtLocation.latitude = navigator.lastLookAtLocation.latitude;
+//                navigator.lookAtLocation.longitude = navigator.lastLookAtLocation.longitude;
+//            }
+//            if (isNaN(navigator.range)) {
+//                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: NaN");
+//                navigator.range = isNaN(navigator.lastRange) ? 1000 : navigator.lastRange;
+//            }
+//            if (navigator.range < 0) {
+//                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid range: < 0");
+//                navigator.range = 1;
+//            }
+//            if (isNaN(navigator.heading)) {
+//                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid heading: NaN");
+//                navigator.heading = navigator.lastHeading;
+//            }
+//            if (isNaN(navigator.tilt)) {
+//                log.error("EnhancedLookAtNavigator", "applyLimits", "Invalid tilt: NaN");
+//                navigator.tilt = navigator.lastTilt;
+//            }
+//
+//            if (self.wwd.globe.is2D()) {
+//                // Don't allow rotation for Mercator and Equirectangular projections
+//                // to improve the user experience.
+//                if (self.wwd.globe.projection instanceof WorldWind.ProjectionEquirectangular ||
+//                        self.wwd.globe.projection instanceof WorldWind.ProjectionMercator) {
+//                    navigator.heading = 0;
+//                }
+//            }
+//
+//            if (!navigator.validateEyePosition()) {
+//                // Eye position is invalid, so restore the last navigator settings
+//                navigator.lookAtLocation.latitude = navigator.lastLookAtLocation.latitude;
+//                navigator.lookAtLocation.longitude = navigator.lastLookAtLocation.longitude;
+//                navigator.range = navigator.lastRange;
+//                navigator.heading = navigator.lastHeading;
+//                navigator.tilt = navigator.lastTilt;
+//                navigator.roll = navigator.lastRoll;
+//            }
+//            // Clamp latitude to between -90 and +90, and normalize longitude to between -180 and +180.
+//            // HACK: Clamping to +/-89.9 to avoid bug that locks up app when looking at the poles.
+//            navigator.lookAtLocation.latitude = WorldWind.WWMath.clamp(navigator.lookAtLocation.latitude, -89.9, 89.9);
+//            navigator.lookAtLocation.longitude = WorldWind.Angle.normalizedDegreesLongitude(navigator.lookAtLocation.longitude);
+//            // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
+//            // range is zero.
+//            navigator.range = WorldWind.WWMath.clamp(navigator.range, 1, constants.NAVIGATOR_MAX_RANGE);
+//            // Normalize heading to between -180 and +180.
+//            navigator.heading = WorldWind.Angle.normalizedDegrees(navigator.heading);
+//            // Clamp tilt to between 0 and +90 to prevent the viewer from going upside down.
+//            navigator.tilt = WorldWind.WWMath.clamp(navigator.tilt, 0, 90);
+//            // Normalize heading to between -180 and +180.
+//            navigator.roll = WorldWind.Angle.normalizedDegrees(navigator.roll);
+//            // Apply 2D limits when the globe is 2D.
+//            if (navigator.worldWindow.globe.is2D() && navigator.enable2DLimits) {
+//                // Clamp range to prevent more than 360 degrees of visible longitude.
+//                var nearDist = navigator.nearDistance,
+//                        nearWidth = WorldWind.WWMath.perspectiveFrustumRectangle(navigator.worldWindow.viewport, nearDist).width,
+//                        maxRange = 2 * Math.PI * navigator.worldWindow.globe.equatorialRadius * (nearDist / nearWidth);
+//                navigator.range = WorldWind.WWMath.clamp(navigator.range, 1, maxRange);
+//
+//                // Force tilt to 0 when in 2D mode to keep the viewer looking straight down.
+//                navigator.tilt = 0;
+//            }
+//            // Cache the nav settings
+//            navigator.lastLookAtLocation.latitude = navigator.lookAtLocation.latitude;
+//            navigator.lastLookAtLocation.longitude = navigator.lookAtLocation.longitude;
+//            navigator.lastRange = navigator.range;
+//            navigator.lastHeading = navigator.heading;
+//            navigator.lastTilt = navigator.tilt;
+//            navigator.lastRoll = navigator.roll;
+//        };
+//        /**
+//         * Validate the eye position is not below the terrain.
+//         * @returns {Boolean}
+//         */
+//        navigator.validateEyePosition = function () {
+//            if (isNaN(navigator.lookAtLocation.latitude)) {
+//                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.latitude is NaN.");
+//            }
+//            if (isNaN(navigator.lookAtLocation.longitude)) {
+//                log.error("EnhancedLookAtNavigator", "validateEyePosition", "lookAtLocation.longitude is NaN.");
+//                return false;
+//            }
+//            var wwd = navigator.worldWindow,
+//                    navigatorState = navigator.intermediateState(),
+//                    eyePoint = navigatorState.eyePoint,
+//                    eyePos = new WorldWind.Position(),
+//                    terrainElev;
+//
+//            // Get the eye position in geographic coords
+//            wwd.globe.computePositionFromPoint(eyePoint[0], eyePoint[1], eyePoint[2], eyePos);
+//            if (!eyePos.equals(navigator.lastEyePosition)) {
+//                // Validate the new eye position to ensure it doesn't go below the terrain surface
+//                terrainElev = wwd.globe.elevationAtLocation(eyePos.latitude, eyePos.longitude);
+//                if (eyePos.altitude < terrainElev) {
+//                    //Log.error("EnhancedLookAtNavigator", "validateEyePosition", "eyePos (" + eyePos.altitude + ") is below ground level (" + terrainElev + ").");
+//                    return false;
+//                }
+//            }
+//            navigator.lastEyePosition.copy(eyePos);
+//            return true;
+//        };
+//        /**
+//         * Returns a new NavigatorState without calling applyLimits().
+//         * See also LookAtNavigator.currentState().
+//         * @returns {NavigatorState}
+//         */
+//        navigator.intermediateState = function () {
+//            // navigator.applyLimits(); -- Don't do this!!
+//            var globe = navigator.worldWindow.globe,
+//                    lookAtPosition = new WorldWind.Position(
+//                            navigator.lookAtLocation.latitude,
+//                            navigator.lookAtLocation.longitude,
+//                            0),
+//                    modelview = WorldWind.Matrix.fromIdentity();
+//
+//            modelview.multiplyByLookAtModelview(lookAtPosition, navigator.range, navigator.heading, navigator.tilt, navigator.roll, globe);
+//
+//            return navigator.currentStateForModelview(modelview);
+//        };
 
     };
 
@@ -450,7 +454,7 @@ define([
      */
     Globe.prototype.updateDateTime = function (time) {
         if (this.dateTime().valueOf() === time.valueOf()) {
-            return;
+              return;
         }
         // Update the sunlight angles when the elapsed time has gone past the threshold (15 min)
         if (util.minutesBetween(this.lastSolarTime, time) > this.SUNLIGHT_TIME_THRESHOLD) {
@@ -673,8 +677,9 @@ define([
         try {
             var wwd = this.wwd,
                     centerPoint = new WorldWind.Vec2(wwd.canvas.width / 2, wwd.canvas.height / 2),
-                    navigatorState = wwd.navigator.currentState(),
-                    eyePoint = navigatorState.eyePoint,
+//                    navigatorState = wwd.navigator.currentState(),
+//                    eyePoint = navigatorState.eyePoint,
+                    eyePoint = wwd.drawContext.eyePoint,
                     eyePos = new WorldWind.Position(),
                     target, viewpoint;
             // Avoid costly computations if nothing changed

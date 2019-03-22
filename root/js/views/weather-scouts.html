@@ -1,0 +1,82 @@
+<div id="weather-scouts" class="panel panel-default">
+    <!--This panel is to be appended to markers.html > markers-body element-->
+    <div class="panel-heading">
+        <h5 class="panel-title">
+            <a data-toggle="collapse" href="#weather-scouts-panel" aria-expanded="false"
+               aria-controls="weather-scouts-panel">
+                Weather Forecasts<span class="badge pull-right" data-bind="text: scoutCount"></span>
+            </a>
+        </h5>
+    </div>
+    <div class="panel-collapse collapse in" id="weather-scouts-panel">
+        <!-- Bind the list to the 'weatherScouts' observableArray -->
+        <div data-bind="template: { name: 'weather-scout-template', foreach: scouts}"></div>
+    </div>
+</div>
+
+<script type="text/html" id="weather-scout-template">
+    <!--
+    Weather Scout Template
+    This script renders the individual weather scout view model items in the Weather panel.
+    -->
+    <div class="btn-group btn-block">
+        <button type="button" class="btn btn-default"
+                style="display: block; width: 70%"
+                data-bind="click: $root.gotoScout">
+            <span data-bind="text: $data.name"></span>
+            <br/>
+            <span data-bind="text: $data.location"></span>
+        </button>
+        <!-- Edit Button -->
+        <button type="button" class="btn btn-default glyphicon glyphicon-pencil"
+                data-bind="click: $data.open"></button>
+        <!-- Delete Button -->
+        <button type="button" class="btn btn-default glyphicon glyphicon-trash"
+                data-bind="click: $data.remove"></button>
+    </div>
+</script>
+
+<script type="text/html" id="weather-scout-view-template">
+    <!--
+    Weather Scout View Template
+    This script renders the selected weather scout object the info panel.
+    -->
+    <!-- ko if: $data -->
+    <div id="weather-scout-info" style="height: 100%;">
+        <div class="col-lg-3 col-md-4 col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Air Temperature (F)</h4>
+            </div>
+            <div class="panel-body" style="padding: 0;" > 
+                <!--Custom knockout binding-->
+                <div id="air-temperature-graph" data-bind="visualizeTemperature: $data"></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Relative Humidity (%)</h4>
+            </div>
+            <div class="panel-body"style="padding: 0;" >
+                <!--Custom knockout binding-->
+                <div id="rel-humidity-graph" data-bind="visualizeHumidity: $data"></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4  col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Wind Speed (Kts)</h4>
+            </div>
+            <div class="panel-body" style="padding: 0;" >
+                <div id="wind-speed-graph" data-bind="visualizeWinds: $data"></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4  col-sm-6 panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Sky Cover (%)</h4>
+            </div>
+            <div class="panel-body" style="padding: 0;" >
+                <div id="sky-cover-graph" data-bind="visualizeSkyCover: $data"></div>
+            </div>
+        </div>
+    </div>
+    <!-- /ko -->
+</script>  

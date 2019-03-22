@@ -14,7 +14,10 @@
  * @returns {UsgsContoursLayer}
  */
 
-define(['worldwind'], function () {
+define([
+    'model/globe/layers/EnhancedWmsLayer',
+    'worldwind'],
+    function (EnhancedWmsLayer) {
         "use strict";
 
         /**
@@ -29,7 +32,7 @@ define(['worldwind'], function () {
                 service: "https://services.nationalmap.gov/arcgis/services/Contours/MapServer/WMSServer?",
                 layerNames: "1,2,4,5,7,8", // lines and labels: large scale, 50' and 100' respectively
                 sector: new WorldWind.Sector(18.915561901, 64.8750000000001, -160.544024274, -66.9502505149999),
-                levelZeroDelta: new WorldWind.Location(90, 90),
+                levelZeroDelta: new WorldWind.Location(180, 180),
                 numLevels: 19,
                 format: "image/png",
                 size: 256,
@@ -37,12 +40,12 @@ define(['worldwind'], function () {
                 styleNames: "" // (optional): {String} A comma separated list of the styles to include in this layer.</li>
             };
 
-            WorldWind.WmsLayer.call(this, cfg);
+            EnhancedWmsLayer.call(this, cfg);
 
             this.urlBuilder.transparent = true;
         };
 
-        UsgsContoursLayer.prototype = Object.create(WorldWind.WmsLayer.prototype);
+        UsgsContoursLayer.prototype = Object.create(EnhancedWmsLayer.prototype);
 
         return UsgsContoursLayer;
     }
