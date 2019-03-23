@@ -18,13 +18,13 @@
  * @exports EarthElevationModel
  */
 define([
-        'model/globe/elevations/EnhancedAsterV2ElevationCoverage',
-        'model/globe/elevations/EnhancedGebcoElevationCoverage',
+        'model/globe/elevations/EmxsysGebcoElevationCoverage',
+        'model/globe/elevations/EmxsysSrtmElevationCoverage',
         'model/globe/elevations/EnhancedUsgsNedElevationCoverage',
         'model/globe/elevations/EnhancedUsgsNedHiElevationCoverage'
     ],
-    function (AsterV2ElevationCoverage,
-              GebcoElevationCoverage,
+    function (EmxsysGebcoElevationCoverage,
+              EmxsysSrtmElevationCoverage,
               UsgsNedElevationCoverage,
               UsgsNedHiElevationCoverage) {
         "use strict";
@@ -37,8 +37,8 @@ define([
         var EarthElevationModel = function () {
             WorldWind.ElevationModel.call(this);
 
-            this.addCoverage(new GebcoElevationCoverage());
-            this.addCoverage(new AsterV2ElevationCoverage());
+            this.addCoverage(new EmxsysGebcoElevationCoverage());
+            this.addCoverage(new EmxsysSrtmElevationCoverage());
             this.addCoverage(new UsgsNedElevationCoverage());
             this.addCoverage(new UsgsNedHiElevationCoverage());
         };
