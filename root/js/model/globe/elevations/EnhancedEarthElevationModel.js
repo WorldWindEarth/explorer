@@ -14,19 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
  * @exports EarthElevationModel
  */
 define([
         'model/globe/elevations/EmxsysGebcoElevationCoverage',
         'model/globe/elevations/EmxsysSrtmElevationCoverage',
+        'model/globe/elevations/EnhancedAsterV2ElevationCoverage',
+        'model/globe/elevations/EnhancedGebcoElevationCoverage',
         'model/globe/elevations/EnhancedUsgsNedElevationCoverage',
-        'model/globe/elevations/EnhancedUsgsNedHiElevationCoverage'
+        'model/globe/elevations/EnhancedUsgsNedHiElevationCoverage',
+        'worldwind'
     ],
     function (EmxsysGebcoElevationCoverage,
               EmxsysSrtmElevationCoverage,
+              EnhancedAsterV2ElevationCoverage,
+              EnhancedGebcoElevationCoverage,
               UsgsNedElevationCoverage,
-              UsgsNedHiElevationCoverage) {
+              UsgsNedHiElevationCoverage,
+              WorldWind) {
         "use strict";
 
         /**
@@ -37,8 +44,10 @@ define([
         var EarthElevationModel = function () {
             WorldWind.ElevationModel.call(this);
 
-            this.addCoverage(new EmxsysGebcoElevationCoverage());
-            this.addCoverage(new EmxsysSrtmElevationCoverage());
+//            this.addCoverage(new EmxsysGebcoElevationCoverage());
+//            this.addCoverage(new EmxsysSrtmElevationCoverage());
+            this.addCoverage(new EnhancedGebcoElevationCoverage());
+            this.addCoverage(new EnhancedAsterV2ElevationCoverage());
             this.addCoverage(new UsgsNedElevationCoverage());
             this.addCoverage(new UsgsNedHiElevationCoverage());
         };
