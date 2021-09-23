@@ -149,7 +149,7 @@ define([
              */
             LayerManager.prototype.loadDefaultLayers = function () {
                 // Define the Globe's default layers
-                this.addBaseLayer(new EmxsysBMNGLayer(),{enabled: false, detailControl: config.imagerydetailControl});
+                this.addBaseLayer(new EmxsysBMNGLayer(),{enabled: true, detailControl: config.imagerydetailControl});
 //                this.addBaseLayer(new WorldWind.BMNGLayer(), {enabled: true, hideInMenu: false, detailControl: config.imagerydetailControl});
                 this.addBaseLayer(new EmxsysBMNGLandsatLayer(),{enabled: false, detailControl: config.imagerydetailControl});
 //                this.addBaseLayer(new WorldWind.BMNGLandsatLayer(), {enabled: false, detailControl: config.imagerydetailControl});
