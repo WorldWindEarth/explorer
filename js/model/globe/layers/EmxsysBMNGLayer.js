@@ -26,7 +26,7 @@ define([
         WorldWind.Layer.call(this, "Blue Marble");
         
         // Web Map Tiling Service information from
-        var serviceAddress = "https://mapserver.emxsys.net/mapcache/wmts/1.0.0/WMTSCapabilities.xml";
+        var serviceAddress = "https://mapserver.northernhorizon.org/mapcache/wmts/1.0.0/WMTSCapabilities.xml";
         var layerIdentifier = "BlueMarble-200405";
         var self = this;
 

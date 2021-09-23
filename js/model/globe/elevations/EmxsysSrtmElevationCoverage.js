@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 /**
- * @exports AsterV2ElevationCoverage
+ * @exports EmxsysSrtmElevationCoverage
  */
-define([],
-    function () {
+define(['worldwind'],
+    function (WorldWind) {
         "use strict";
 
         /**
-         * Constructs an Earth elevation coverage using ASTER V2 data.
-         * @alias AsterV2ElevationCoverage
+         * Constructs an Earth elevation coverage using CGIAR SRTM data.
+         * @alias EmxsysSrtmElevationCoverage
          * @constructor
          * @augments TiledElevationCoverage
-         * @classdesc Provides elevations for Earth. Elevations are drawn from the NASA WorldWind elevation service.
+         * @classdesc Provides elevations for Earth. Elevations are drawn from the Emxsys elevation service.
          */
         var EmxsysSrtmElevationCoverage = function () {
             WorldWind.TiledElevationCoverage.call(this, {
@@ -35,7 +35,7 @@ define([],
                 retrievalImageFormat: "application/bil16",
                 minElevation: -11000,
                 maxElevation: 8850,
-                urlBuilder: new WorldWind.WmsUrlBuilder("https://mapserver.emxsys.net/elev", "srtm-cgiar", "", "1.3.0")
+                urlBuilder: new WorldWind.WmsUrlBuilder("https://mapserver.northernhorizon.org/elev", "srtm-cgiar", "", "1.3.0")
             });
 
             this.displayName = "SRTM-CGIAR Earth Elevation Coverage";

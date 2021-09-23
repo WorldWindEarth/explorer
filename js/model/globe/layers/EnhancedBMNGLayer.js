@@ -39,7 +39,7 @@ define([],
             this.displayName = "Blue Marble";
             this.pickEnabled = false;
 
-            this.urlBuilder = new WorldWind.WmsUrlBuilder("https://emxsys.net/worldwind25/wms",
+            this.urlBuilder = new WorldWind.WmsUrlBuilder("https://mapserver.northernhorizon.org/worldwind25/wms",
                 layerName || "BlueMarble-200405", "", "1.3.0");
         };
 

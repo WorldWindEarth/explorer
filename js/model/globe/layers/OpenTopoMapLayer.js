@@ -69,7 +69,7 @@ define([],
                       server = servers[index]
 //                    return "https://" + server + ".tile.opentopomap.org/" +
 //                        (tile.level.levelNumber + 1) + "/" + tile.column + "/" + tile.row + ".png";
-                    return "https://emxsys.net/opentopomap/" +
+                    return "https://mapserver.northernhorizon.org/opentopomap/" +
                         (tile.level.levelNumber + 1) + "/" + tile.column + "/" + tile.row + ".png";                }
             };
         };
