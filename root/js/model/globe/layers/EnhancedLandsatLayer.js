@@ -27,7 +27,7 @@ define([
             this.displayName = "Blue Marble & Landsat";
             this.pickEnabled = false;
 
-            this.urlBuilder = new WorldWind.WmsUrlBuilder("https://emxsys.net/worldwind25/wms",
+            this.urlBuilder = new WorldWind.WmsUrlBuilder("https://mapserver.northernhorizon.org/worldwind25/wms",
                 "BlueMarble-200405,esat", "", "1.3.0");
         };
 

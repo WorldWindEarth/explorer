@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 /**
- * @exports GebcoElevationCoverage
+ * @exports EmxsysGebcoElevationCoverage
  */
-define([],
-    function () {
+define(['worldwind'],
+    function (WorldWind) {
         "use strict";
 
         /**
          * Constructs an Earth elevation coverage using GEBCO data.
-         * @alias GebcoElevationCoverage
+         * @alias EmxsysGebcoElevationCoverage
          * @constructor
          * @augments TiledElevationCoverage
-         * @classdesc Provides elevations for Earth. Elevations are drawn from the NASA WorldWind elevation service.
+         * @classdesc Provides elevations for Earth. Elevations are drawn from the Emxsys elevation service.
          */
         var EmxsysGebcoElevationCoverage = function () {
             WorldWind.TiledElevationCoverage.call(this, {
@@ -35,7 +35,7 @@ define([],
                 retrievalImageFormat: "application/bil16",
                 minElevation: -11000,
                 maxElevation: 8850,
-                urlBuilder: new WorldWind.WmsUrlBuilder("https://mapserver.emxsys.net/elev", "gebco", "", "1.3.0")
+                urlBuilder: new WorldWind.WmsUrlBuilder("https://mapserver.northernhorizon.org/elev", "gebco", "", "1.3.0")
             });
 
             this.displayName = "GEBCO Earth Elevation Coverage";

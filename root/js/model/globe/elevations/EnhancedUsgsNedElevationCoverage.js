@@ -17,8 +17,8 @@
 /**
  * @exports UsgsNedElevationCoverage
  */
-define([],
-    function () {
+define(['worldwind'],
+    function (WorldWind) {
         "use strict";
 
         /**
@@ -37,7 +37,7 @@ define([],
                 retrievalImageFormat: "application/bil16",
                 minElevation: -11000,
                 maxElevation: 8850,
-                urlBuilder: new WorldWind.WmsUrlBuilder("https://emxsys.net/worldwind26/elev", "USGS-NED", "", "1.3.0")
+                urlBuilder: new WorldWind.WmsUrlBuilder("https://mapserver.northernhorizon.org/worldwind26/elev", "USGS-NED", "", "1.3.0")
             });
 
             this.displayName = "USGS NED Earth Elevation Coverage";

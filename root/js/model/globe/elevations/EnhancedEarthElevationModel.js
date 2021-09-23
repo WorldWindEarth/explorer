@@ -19,20 +19,21 @@
  * @exports EarthElevationModel
  */
 define([
-        'model/globe/elevations/EmxsysGebcoElevationCoverage',
-        'model/globe/elevations/EmxsysSrtmElevationCoverage',
+//        'model/globe/elevations/EmxsysGebcoElevationCoverage',
+//        'model/globe/elevations/EmxsysSrtmElevationCoverage',
         'model/globe/elevations/EnhancedAsterV2ElevationCoverage',
         'model/globe/elevations/EnhancedGebcoElevationCoverage',
         'model/globe/elevations/EnhancedUsgsNedElevationCoverage',
         'model/globe/elevations/EnhancedUsgsNedHiElevationCoverage',
         'worldwind'
     ],
-    function (EmxsysGebcoElevationCoverage,
-              EmxsysSrtmElevationCoverage,
+    function (
+//              EmxsysGebcoElevationCoverage,
+//              EmxsysSrtmElevationCoverage,
               EnhancedAsterV2ElevationCoverage,
               EnhancedGebcoElevationCoverage,
-              UsgsNedElevationCoverage,
-              UsgsNedHiElevationCoverage,
+              EnhancedUsgsNedElevationCoverage,
+              EnhancedUsgsNedHiElevationCoverage,
               WorldWind) {
         "use strict";
 
@@ -48,8 +49,8 @@ define([
 //            this.addCoverage(new EmxsysSrtmElevationCoverage());
             this.addCoverage(new EnhancedGebcoElevationCoverage());
             this.addCoverage(new EnhancedAsterV2ElevationCoverage());
-            this.addCoverage(new UsgsNedElevationCoverage());
-            this.addCoverage(new UsgsNedHiElevationCoverage());
+            this.addCoverage(new EnhancedUsgsNedElevationCoverage());
+            this.addCoverage(new EnhancedUsgsNedHiElevationCoverage());
         };
 
         EarthElevationModel.prototype = Object.create(WorldWind.ElevationModel.prototype);

@@ -95,11 +95,12 @@ require([
     'WorldWindFixes',
     'model/Config',
     'model/Constants',
+    'model/globe/elevations/EnhancedEarthElevationModel',
     'pace',
     'jquery',
     'domReady!', // The value for domReady! is the current document
     'worldwind'],
-    function (fixes, config, constants, pace, $) {
+    function (fixes, config, constants, EnhancedEarthElevationModel, pace, $) {
         "use strict";
 
         // Start a  progress counter
@@ -145,7 +146,8 @@ require([
         WorldWind.BingMapsKey = "Ap6BL_3VPzCeoojebk2R9y_mYoMYKyPEPOzz9ZTmSzXBcEzdxFsfgJtAaeH9jOlJ";
         
         // Initialize the WorldWindow virtual globe with the specified HTML5 canvas
-        var wwd = new WorldWind.WorldWindow("globe-canvas");
+        var wwd = new WorldWind.WorldWindow("globe-canvas", new EnhancedEarthElevationModel());
+//        var wwd = new WorldWind.WorldWindow("globe-canvas");
         fixes.applyWorldWindowFixes(wwd);
         
         // Provide an initial location to view

@@ -9,8 +9,8 @@
 /**
  * The USGS NAIP Base Map layer.
  * 
- * See: https://basemap.nationalmap.gov/arcgis/services/USGSImageryTopo/MapServer/WMSServer?request=GetCapabilities&service=WMS
- * 
+ * See: https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer?request=GetCapabilities&service=WMS
+ *
  * @returns {UsgsNaipMapLayer}
  */
 
@@ -21,7 +21,7 @@ define([
         "use strict";
 
         /**
-         * Constructs a USGS Imagery Topo map layer.
+         * Constructs a USGS NAIP Imagery map layer.
          * @constructor
          * @augments WmsLayer
          */
@@ -29,9 +29,10 @@ define([
             var cfg = {
                 title: "USGS NAIP Imagery",
                 version: "1.3.0",
-//              service: "https://services.nationalmap.gov/arcgis/services/USGSNAIPPlus/MapServer/WmsServer?",
-                service: "https://emxsys.net/USGSNAIPPlus/MapServer/WmsServer?",
-                layerNames: "1",
+//              service: "https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WmsServer?",
+                // Use proxy service to establish Cache-Control header. See apache.conf on server
+                service: "https://mapserver.northernhorizon.org/USGSNAIPImagery/ImageServer/WmsServer?",
+                layerNames: "0",
                 sector: new WorldWind.Sector(-90.0, 90.0, -180, 180),
                 levelZeroDelta: new WorldWind.Location(180, 180),
                 numLevels: 19,

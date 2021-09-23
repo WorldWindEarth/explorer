@@ -17,8 +17,8 @@
 /**
  * @exports AsterV2ElevationCoverage
  */
-define([],
-    function () {
+define(['worldwind'],
+    function (WorldWind) {
         "use strict";
 
         /**
@@ -35,7 +35,7 @@ define([],
                 retrievalImageFormat: "application/bil16",
                 minElevation: -11000,
                 maxElevation: 8850,
-                urlBuilder: new WorldWind.WmsUrlBuilder("https://emxsys.net/worldwind26/elev", "aster_v2", "", "1.3.0")
+                urlBuilder: new WorldWind.WmsUrlBuilder("https://mapserver.northernhorizon.org/worldwind26/elev", "aster_v2", "", "1.3.0")
             });
 
             this.displayName = "ASTER V2 Earth Elevation Coverage";
