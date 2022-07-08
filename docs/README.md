@@ -1,9 +1,6 @@
 # WorldWindEarth | Explorer
 An HTML5/JavaScript geo-browser built with the [WorldWindJS](https://emxsys.github.io/worldwindjs) library plus the KnockoutJS and Bootstrap libraries.
 
-## Important News
-***Mitigation efforts are underway to ensure the Explorer project is insulated from the effects of the NASA WorldWind project suspension.***
-
 ## Overview
 The WorldWind Explorer is a geospatial web application for visualizing the earth. 
 It uses the NASA WebWorldWind SDK to display a 3D globe with terrain and imagery 
