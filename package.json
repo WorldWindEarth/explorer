@@ -3,9 +3,8 @@
   "version": "2.0.0",
   "private": true,
   "homepage": "https://worldwind.earth/explorer",
-  "dependencies": {},
   "devDependencies": {
-    "gh-pages": "^1.2.0"
+    "gh-pages": "^4.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
