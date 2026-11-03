@@ -281,7 +281,7 @@ define([],
                 var latRad = degToRad(lat);
                 var sdRad = degToRad(solarDec);
                 var HAarg = (Math.cos(degToRad(90.833)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad));
-                var HA = Math.acos(HAarg);
+                var HA = Math.acos(Math.max(-1.0, Math.min(1.0, HAarg)));
                 return HA;		// in radians (for sunset, use -HA)
             };
             /**
